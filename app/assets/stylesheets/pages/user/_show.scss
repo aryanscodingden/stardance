@@ -41,10 +41,10 @@ turbo-frame#profile_tabs {
 
 .profile__back {
   position: absolute;
-  top: var(--space-m);
-  left: var(--space-m);
-  width: 48px;
-  height: 48px;
+  top: var(--space-s);
+  left: var(--space-s);
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: none;
   background: var(--color-space-surface-soft);
@@ -96,7 +96,7 @@ turbo-frame#profile_tabs {
   position: relative;
   display: flex;
   gap: 16px;
-  padding: 28px 24px 24px;
+  padding: 22px 20px 20px;
   margin-top: -1px; // join visually
   background: var(--color-space-surface);
   color: var(--color-space-text);
@@ -109,8 +109,8 @@ turbo-frame#profile_tabs {
 }
 
 .profile__avatar {
-  width: 57px;
-  height: 57px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
   display: block;
@@ -121,27 +121,27 @@ turbo-frame#profile_tabs {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: var(--space-s);
 }
 
 .profile__top-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: var(--space-l);
+  gap: var(--space-m);
   flex-wrap: wrap;
 }
 
 .profile__identity {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-xs);
   min-width: 0;
 }
 
 .profile__handle {
   margin: 0;
-  font-size: 2.5rem; // 40px
+  font-size: var(--font-size-xxxl);
   font-weight: 700;
   line-height: 1;
   color: var(--color-space-text);
@@ -161,7 +161,7 @@ turbo-frame#profile_tabs {
   margin: 0;
   padding: 0;
   display: flex;
-  gap: 32px;
+  gap: var(--space-l);
   flex-wrap: wrap;
 }
 
@@ -173,7 +173,7 @@ turbo-frame#profile_tabs {
 }
 
 .profile__stat-num {
-  font-size: 1.375rem; // 22px
+  font-size: var(--font-size-l);
   font-weight: 700;
 }
 
@@ -184,7 +184,7 @@ turbo-frame#profile_tabs {
 
 // Bio
 .profile__bio {
-  font-size: 1.375rem; // 22px
+  font-size: var(--font-size-l);
   line-height: 1.3;
   // No `white-space: pre-wrap` here: render_bio already converts \n to <br>
   // and pre-wrap would render the ERB-template indentation around the
@@ -240,7 +240,7 @@ turbo-frame#profile_tabs {
   color: var(--color-space-text);
   // Match read-mode bio typography exactly so text doesn't shift on edit.
   font-family: inherit;
-  font-size: 1.375rem; // 22px, same as .profile__bio
+  font-size: var(--font-size-l);
   line-height: 1.3;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -360,12 +360,12 @@ turbo-frame#profile_tabs {
 }
 
 .profile__action-btn {
-  padding: 8px 28px;
+  padding: 7px 22px;
   border-radius: 999px;
   border: 1px solid var(--color-space-text);
   background: transparent;
   color: var(--color-space-text);
-  font-size: 1.25rem; // 20px
+  font-size: var(--font-size-l);
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
@@ -406,7 +406,7 @@ turbo-frame#profile_tabs {
 // Tabs
 .profile-tabs {
   display: flex;
-  gap: 14px;
+  gap: var(--space-s);
 }
 
 .profile-tabs__tab {
@@ -414,12 +414,12 @@ turbo-frame#profile_tabs {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 24px;
+  padding: 10px 18px;
   border: 2px solid var(--color-space-border);
   border-radius: 999px;
   text-decoration: none;
   color: var(--color-space-text);
-  font-size: 1.375rem; // 22px
+  font-size: var(--font-size-l);
   background: transparent;
 
   &--active {
@@ -439,13 +439,13 @@ turbo-frame#profile_tabs {
 }
 
 .profile-tab-content__empty {
-  padding: var(--space-xl);
+  padding: var(--space-l);
   text-align: center;
   color: var(--color-space-text);
   border: 2px dashed var(--color-space-border);
   border-radius: var(--profile-radius);
   opacity: 0.7;
-  font-size: 1.4rem;
+  font-size: var(--font-size-l);
   margin: 0;
 }
 
@@ -465,8 +465,8 @@ turbo-frame#profile_tabs {
 
 .profile-project-card {
   display: flex;
-  gap: 21px;
-  padding-right: 24px;
+  gap: var(--space-m);
+  padding-right: var(--space-m);
   background: var(--color-space-surface-soft);
   // Use box-shadow as a fake border so the banner image can extend over it
   // without being clipped by border-radius.
@@ -483,7 +483,7 @@ turbo-frame#profile_tabs {
 }
 
 .profile-project-card__banner {
-  width: 220px;
+  width: 180px;
   flex-shrink: 0;
   align-self: stretch;
   background: rgba(255, 255, 255, 0.05);
@@ -504,7 +504,7 @@ turbo-frame#profile_tabs {
 .profile-project-card__body {
   flex: 1;
   min-width: 0;
-  padding: 24px 0;
+  padding: var(--space-m) 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -521,7 +521,7 @@ turbo-frame#profile_tabs {
 
 .profile-project-card__title {
   margin: 0;
-  font-size: 2.5rem; // 40px
+  font-size: var(--font-size-xxl);
   font-weight: 700;
   line-height: 1;
   color: var(--color-space-text);
@@ -550,14 +550,14 @@ turbo-frame#profile_tabs {
 }
 
 .profile-project-card__meta-icon {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   color: currentColor;
 }
 
 .profile-project-card__meta-icon--time {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
 }
 
 .profile-project-card__authors {
@@ -573,7 +573,7 @@ turbo-frame#profile_tabs {
 
 .profile-project-card__description {
   margin: 0;
-  font-size: 1.375rem; // 22px
+  font-size: var(--font-size-l);
   line-height: 1.3;
 }
 
@@ -622,13 +622,66 @@ turbo-frame#profile_tabs {
   background: transparent;
   border-style: dashed;
   justify-content: center;
-  padding: 24px;
-  font-size: 1.375rem; // 22px
+  padding: var(--space-m);
+  font-size: var(--font-size-l);
   opacity: 0.75;
 
   &:hover {
     opacity: 1;
     filter: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .profile {
+    --profile-banner-aspect: 16 / 7;
+  }
+
+  .profile__card {
+    padding: var(--space-m);
+    gap: var(--space-s);
+  }
+
+  .profile__top-row,
+  .profile__footer {
+    align-items: stretch;
+  }
+
+  .profile__handle {
+    font-size: var(--font-size-xxl);
+  }
+
+  .profile__stats {
+    width: 100%;
+    justify-content: space-between;
+    gap: var(--space-s);
+  }
+
+  .profile-tabs {
+    gap: var(--space-xs);
+    overflow-x: auto;
+    padding-bottom: var(--space-xxs);
+  }
+
+  .profile-tabs__tab {
+    flex: 0 0 auto;
+    min-width: 128px;
+    padding-inline: var(--space-m);
+  }
+
+  .profile-project-card {
+    flex-direction: column;
+    padding-right: 0;
+  }
+
+  .profile-project-card__banner {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .profile-project-card__body {
+    padding: 0 var(--space-m) var(--space-m);
   }
 }
 

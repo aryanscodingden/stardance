@@ -1,6 +1,6 @@
 .sidebar {
-  --sidebar-width: 320px;
-  --sidebar-inset: 20px;
+  --sidebar-width: 280px;
+  --sidebar-inset: 16px;
   --sidebar-inset-y: var(--space-s); // tiny top + bottom edges
 
   position: fixed;
@@ -8,7 +8,7 @@
   bottom: var(--sidebar-inset-y);
   left: var(--sidebar-inset);
   width: var(--sidebar-width);
-  padding: var(--space-xl) var(--space-l);
+  padding: var(--space-l) var(--space-m);
   display: flex;
   flex-direction: column;
   z-index: 10;
@@ -83,7 +83,7 @@
   display: block;
   width: 100%;
   height: auto;
-  max-width: 260px;
+  max-width: 220px;
 }
 
 .sidebar__nav {
@@ -96,7 +96,7 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: var(--space-l);
+  gap: var(--space-m);
   padding: 0;
   margin: 0;
 }
@@ -109,7 +109,7 @@
   padding: var(--space-xxs) 0;
   color: var(--color-space-text);
   font-family: var(--font-family-text);
-  font-size: var(--font-size-xxxxl);
+  font-size: var(--font-size-xxxl);
   line-height: 1.2;
   text-decoration: none;
   width: 100%;
@@ -200,7 +200,7 @@ button.sidebar__nav-link {
 }
 
 .sidebar__nav-icon-wrapper {
-  --sidebar-icon-size: 2.5rem;
+  --sidebar-icon-size: 2rem;
 
   display: grid;
   place-items: center;
@@ -243,7 +243,7 @@ button.sidebar__nav-link {
   display: flex;
   align-items: center;
   gap: var(--space-s);
-  padding: var(--space-s) var(--space-m);
+  padding: var(--space-xs) var(--space-s);
   border-radius: calc(var(--border-radius) / 1.5);
   background: var(--color-space-card);
   color: var(--color-space-text);
@@ -255,7 +255,7 @@ button.sidebar__nav-link {
   display: flex;
   flex-direction: column;
   line-height: 1.1;
-  font-size: var(--font-size-l);
+  font-size: var(--font-size-m);
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -310,17 +310,29 @@ button.sidebar__nav-link {
 
 @media (max-width: 1500px) {
   .sidebar {
-    --sidebar-width: 250px;
+    --sidebar-width: 220px;
 
-    padding: var(--space-l) var(--space-m);
+    padding: var(--space-m) var(--space-s);
+  }
+
+  .sidebar__logo-img {
+    max-width: 190px;
   }
 
   .sidebar__nav-icon-wrapper {
-    --sidebar-icon-size: 2.1rem;
+    --sidebar-icon-size: 1.65rem;
   }
 
   .sidebar__nav-link {
-    font-size: var(--font-size-xxxl);
+    font-size: var(--font-size-xxl);
+  }
+
+  .sidebar__nav-list {
+    gap: var(--space-s);
+  }
+
+  .sidebar__user-meta {
+    font-size: var(--font-size-s);
   }
 }
 

@@ -6,7 +6,7 @@
   position: fixed;
   inset: 0;
   margin: auto;
-  width: min(960px, calc(100vw - 48px));
+  width: min(840px, calc(100vw - 48px));
   max-height: calc(100vh - 48px);
   overflow-y: auto;
   padding: 0;
@@ -47,12 +47,12 @@
 .project-creation {
   --pc-border: #5e6687;
   --pc-radius: 8px;
-  --pc-card-width: 337px;
+  --pc-card-width: 300px;
 
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
-  padding: var(--space-xl) var(--space-xl) var(--space-xxl);
+  gap: var(--space-l);
+  padding: var(--space-l) var(--space-l) var(--space-xl);
   background: rgba(8, 6, 30, 0.6);
   border: 2px solid var(--pc-border);
   border-radius: var(--pc-radius);
@@ -66,14 +66,14 @@
   // stack divider row and title row on the same horizontal axis
   display: grid;
   place-items: center;
-  margin-bottom: var(--space-s);
+  margin-bottom: var(--space-xs);
 }
 
 // Full-width horizontal line with sparkles, sits behind the title
 .project-creation__divider-row {
   position: relative;
   width: 100%;
-  height: 38px; // matches sparkle intrinsic height
+  height: 32px;
   grid-row: 1;
   grid-column: 1;
 }
@@ -137,7 +137,7 @@
   margin: 0;
   font-family: var(--font-family-text);
   font-style: normal;
-  font-size: clamp(2rem, 4.5vw, 3.5rem);
+  font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 700;
   text-align: center;
   color: var(--color-space-text);
@@ -155,7 +155,7 @@
 
 .project-creation__tagline {
   margin: 0;
-  font-size: 1.375rem; // 22px
+  font-size: var(--font-size-l);
   color: var(--color-space-text);
 }
 
@@ -168,14 +168,14 @@
 
 .project-creation__section-heading {
   margin: 0;
-  font-size: clamp(2rem, 3.5vw, 2.5rem);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
   font-weight: 700;
   color: var(--color-space-text);
   line-height: 1;
 }
 
 .project-creation__see-all {
-  font-size: 1.375rem; // 22px
+  font-size: var(--font-size-l);
   color: var(--color-space-text);
   opacity: 0.6;
   text-decoration: underline;
@@ -232,7 +232,7 @@
 
 .project-creation__card-media {
   display: block;
-  aspect-ratio: 337 / 107;
+  aspect-ratio: 300 / 95;
   background: rgba(94, 102, 135, 0.35);
   overflow: hidden;
   position: relative;
@@ -246,8 +246,8 @@
 }
 
 .project-creation__card-icon-lg {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
   position: absolute;
   top: 50%;
@@ -264,15 +264,15 @@
 .project-creation__card-body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-s);
-  padding: var(--space-m);
+  gap: var(--space-xs);
+  padding: var(--space-s);
   background: rgba(94, 102, 135, 0.5);
   flex: 1;
 }
 
 .project-creation__card-title {
   margin: 0;
-  font-size: 1.375rem; // 22px
+  font-size: var(--font-size-l);
   font-weight: 700;
   line-height: 1.2;
   color: var(--color-space-text);
@@ -280,7 +280,7 @@
 
 .project-creation__card-description {
   margin: 0;
-  font-size: 1.125rem; // 18px
+  font-size: var(--font-size-m);
   line-height: 1.35;
   color: var(--color-space-text);
   flex: 1;
@@ -303,7 +303,7 @@
   background: rgba(94, 102, 135, 0.5);
   color: var(--color-space-text);
   font: inherit;
-  font-size: 1.375rem; // 22px
+  font-size: var(--font-size-l);
   font-weight: 700;
   cursor: pointer;
   transition:
@@ -341,7 +341,7 @@
 
 .project-creation__or {
   text-align: center;
-  font-size: 1.375rem; // 22px
+  font-size: var(--font-size-l);
   font-weight: 700;
   color: var(--color-yellow-200, #f4ebb9);
   letter-spacing: 0.04em;
@@ -359,15 +359,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 334px;
+  width: 300px;
   max-width: 100%;
-  height: 71px;
+  height: 60px;
   border: 2px solid var(--pc-border);
   border-radius: 999px;
   background: rgba(94, 102, 135, 0.5);
   color: var(--color-space-text);
   font: inherit;
-  font-size: 1.375rem; // 22px
+  font-size: var(--font-size-l);
   font-weight: 700;
   cursor: pointer;
   transition:

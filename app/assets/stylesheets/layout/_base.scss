@@ -6,8 +6,8 @@
 }
 
 body {
-  --sidebar-width: 320px;
-  --sidebar-inset: 20px;
+  --sidebar-width: 280px;
+  --sidebar-inset: 16px;
   --sidebar-reserved: calc(var(--sidebar-width) + var(--sidebar-inset));
 
   margin: 0;
@@ -30,9 +30,9 @@ body.signed-in {
   margin-right: 100px;
 
   @media (max-width: 1500px) {
-    --sidebar-width: 250px;
-    --sidebar-inset: 16px;
-    margin-right: 50px;
+    --sidebar-width: 220px;
+    --sidebar-inset: 12px;
+    margin-right: 32px;
   }
 
   @media (max-width: 960px) {
@@ -61,30 +61,34 @@ body.app-layout-page.signed-in {
 }
 
 .app-layout {
-  --layout-gap: 48px;
+  --layout-gap: 32px;
   --nav-reserved: calc(var(--sidebar-reserved) + var(--layout-gap));
-  --aside-reserved: 380px;
+  --aside-reserved: 320px;
 
   margin-left: var(--nav-reserved);
   margin-right: calc(var(--aside-reserved) + var(--layout-gap));
-  padding: var(--space-xxl) 0 var(--space-xxl);
+  padding: var(--space-xl) 0 var(--space-xxl);
 
   @media (max-width: 1500px) {
-    --layout-gap: 32px;
+    --layout-gap: 24px;
   }
 
   @media (max-width: 1280px) {
     --aside-reserved: 0px; // rail hidden at this breakpoint
+    margin-right: var(--layout-gap);
   }
 
   @media (max-width: 960px) {
     --nav-reserved: 0px; // sidebar moves to bottom bar at this breakpoint
+    margin-left: 0;
+    margin-right: 0;
     max-width: 100%;
+    padding-top: var(--space-m);
   }
 }
 
 .app-layout__main {
-  max-width: 1200px;
+  max-width: 960px;
   margin: 0 auto;
   width: 100%;
   display: flex;
