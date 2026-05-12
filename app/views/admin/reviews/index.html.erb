@@ -1,0 +1,7 @@
+<% content_for :title, "YSWS Reviews" %>
+<h1>YSWS Review</h1>
+
+<div class="card">
+  <p>Total reviews: <%= @reviews.count %></p>
+  <p>Current user: <%= current_user.display_name %> (<%= current_user.highest_role %>)</p>
+</div>
