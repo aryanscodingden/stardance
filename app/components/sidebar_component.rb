@@ -39,10 +39,7 @@ class SidebarComponent < ViewComponent::Base
     items << { slug: "fulfil",  label: "fulfil",  path: helpers.admin_shop_orders_path(view: "fulfillment"), icon: "shopping_cart_1_fill" } if user.fulfillment_person? && !user.admin?
     items << { slug: "seller",  label: "seller",  path: helpers.seller_orders_path, icon: "shopping_cart_1_fill" } if user.seller?
     items << { slug: "helper",  label: "helper",  path: helpers.helper_root_path, icon: "help" } if helpers.policy(:helper).access_helper_dashboard?
-    if user.project_certifier?
-      certify_path = Flipper.enabled?(:reviewer_dashboard, user) ? helpers.reviewer_ships_path : "https://review.hackclub.com/"
-      items << { slug: "certify", label: "certify", path: certify_path, icon: "ship" }
-    end
+    items << { slug: "certify", label: "certify", path: helpers.reviewer_ships_path, icon: "ship" } if user.project_certifier?
 
     items
   end
