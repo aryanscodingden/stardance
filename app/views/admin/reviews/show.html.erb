@@ -124,7 +124,7 @@
       </section>
 
       <!-- Boss Note Section -->
-      <section class="review-card boss-note-card" data-review-sidebar-target="trigger">
+      <section class="review-card boss-note-card">
         <h3>Note from da boss of YSWS - Alex (aka AVD)</h3>
         <div class="boss-note-content">
           <div class="note-title">Reject if:</div>
@@ -147,8 +147,8 @@
 
         <% if @review.devlog_reviews.any? %>
           <div class="devlogs-list">
-            <% @review.devlog_reviews.each do |devlog_review| %>
-              <div class="devlog-item">
+            <% @review.devlog_reviews.each_with_index do |devlog_review, index| %>
+              <div class="devlog-item" <%= 'data-review-sidebar-target="trigger"'.html_safe if index == 0 %>>
                 <div class="devlog-main">
                   <div class="devlog-header-row">
                     <span class="devlog-id">Devlog #<%= devlog_review.post_devlog.id %></span>
