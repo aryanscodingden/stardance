@@ -121,54 +121,63 @@
                                } %>
 
             <div class="project-show__edit-grid">
-              <% if @hackatime_dropdown_items&.any? %>
-              <div class="project-show__field project-show__field--inline"
-                   data-controller="hackatime-link">
+              <div class="project-show__field project-show__field--inline">
                 <span>Hackatime projects</span>
-                <div class="project-show__hackatime-picker">
-                  <div class="project-show__hackatime-box" data-hackatime-link-target="box">
-                    <button type="button" class="project-show__hackatime-add" data-action="hackatime-link#toggle" data-hackatime-link-target="addBtn" aria-label="Add Hackatime project">
-                      <%= inline_svg_tag "icons/plus.svg", class: "project-show__hackatime-add-icon" %>
-                    </button>
-                    <div class="project-show__hackatime-tags" data-hackatime-link-target="tags">
-                      <span class="project-show__hackatime-placeholder"
-                            data-hackatime-link-target="placeholder"
-                            <%= "hidden" if @linked_hackatime_projects.any? %>>
-                        Link Hackatime
-                      </span>
-                      <% @linked_hackatime_projects.each do |hp| %>
-                        <span class="project-show__hackatime-tag" data-hackatime-id="<%= hp.id %>">
-                          <span class="project-show__hackatime-tag-name"><%= hp.name %></span>
-                          <span class="project-show__hackatime-tag-time"><%= format_seconds(@hackatime_times[hp.name] || 0) %></span>
-                          <button type="button" class="project-show__hackatime-tag-remove" data-action="hackatime-link#remove" data-id="<%= hp.id %>" aria-label="Remove <%= hp.name %>">
-                            <%= inline_svg_tag "icons/close.svg", class: "project-show__hackatime-tag-remove-icon" %>
+                <% if !@hackatime_linked %>
+                  <%= button_to "/auth/hackatime", method: :post, class: "project-show__hackatime-connect" do %>
+                    Connect Hackatime to link projects →
+                  <% end %>
+                <% elsif @hackatime_dropdown_items.blank? %>
+                  <span class="project-show__hackatime-empty">
+                    No Hackatime projects yet — start coding with Hackatime installed to see them here.
+                  </span>
+                <% else %>
+                  <div data-controller="hackatime-link">
+                    <div class="project-show__hackatime-picker">
+                      <div class="project-show__hackatime-box" data-hackatime-link-target="box">
+                        <button type="button" class="project-show__hackatime-add" data-action="hackatime-link#toggle" data-hackatime-link-target="addBtn" aria-label="Add Hackatime project">
+                          <%= inline_svg_tag "icons/plus.svg", class: "project-show__hackatime-add-icon" %>
+                        </button>
+                        <div class="project-show__hackatime-tags" data-hackatime-link-target="tags">
+                          <span class="project-show__hackatime-placeholder"
+                                data-hackatime-link-target="placeholder"
+                                <%= "hidden" if @linked_hackatime_projects.any? %>>
+                            Link Hackatime
+                          </span>
+                          <% @linked_hackatime_projects.each do |hp| %>
+                            <span class="project-show__hackatime-tag" data-hackatime-id="<%= hp.id %>">
+                              <span class="project-show__hackatime-tag-name"><%= hp.name %></span>
+                              <span class="project-show__hackatime-tag-time"><%= format_seconds(@hackatime_times[hp.name] || 0) %></span>
+                              <button type="button" class="project-show__hackatime-tag-remove" data-action="hackatime-link#remove" data-id="<%= hp.id %>" aria-label="Remove <%= hp.name %>">
+                                <%= inline_svg_tag "icons/close.svg", class: "project-show__hackatime-tag-remove-icon" %>
+                              </button>
+                              <input type="hidden" name="project[hackatime_project_ids][]" value="<%= hp.id %>">
+                            </span>
+                          <% end %>
+                        </div>
+                      </div>
+
+                      <div class="project-show__hackatime-dropdown" data-hackatime-link-target="dropdown" hidden>
+                        <% @hackatime_dropdown_items.reject { |i| i[:linked] }.each do |item| %>
+                          <button type="button"
+                                  class="project-show__hackatime-dropdown-item<%= " project-show__hackatime-dropdown-item--taken" if item[:taken] %>"
+                                  data-action="hackatime-link#select"
+                                  data-id="<%= item[:id] %>"
+                                  data-name="<%= item[:name] %>"
+                                  data-hours="<%= item[:hours] %>"
+                                  <%= "disabled" if item[:taken] %>>
+                            <span class="project-show__hackatime-dropdown-name"><%= item[:name] %></span>
+                            <span class="project-show__hackatime-dropdown-time"><%= format_seconds(item[:seconds]) %></span>
+                            <% if item[:taken] %>
+                              <span class="project-show__hackatime-dropdown-taken">linked to <%= item[:taken_by] %></span>
+                            <% end %>
                           </button>
-                          <input type="hidden" name="project[hackatime_project_ids][]" value="<%= hp.id %>">
-                        </span>
-                      <% end %>
+                        <% end %>
+                      </div>
                     </div>
                   </div>
-
-                  <div class="project-show__hackatime-dropdown" data-hackatime-link-target="dropdown" hidden>
-                    <% @hackatime_dropdown_items.reject { |i| i[:linked] }.each do |item| %>
-                      <button type="button"
-                              class="project-show__hackatime-dropdown-item<%= " project-show__hackatime-dropdown-item--taken" if item[:taken] %>"
-                              data-action="hackatime-link#select"
-                              data-id="<%= item[:id] %>"
-                              data-name="<%= item[:name] %>"
-                              data-hours="<%= item[:hours] %>"
-                              <%= "disabled" if item[:taken] %>>
-                        <span class="project-show__hackatime-dropdown-name"><%= item[:name] %></span>
-                        <span class="project-show__hackatime-dropdown-time"><%= format_seconds(item[:seconds]) %></span>
-                        <% if item[:taken] %>
-                          <span class="project-show__hackatime-dropdown-taken">linked to <%= item[:taken_by] %></span>
-                        <% end %>
-                      </button>
-                    <% end %>
-                  </div>
-                </div>
+                <% end %>
               </div>
-            <% end %>
 
               <label class="project-show__field project-show__field--inline">
                 <span>AI usage declaration</span>

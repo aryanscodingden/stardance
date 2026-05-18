@@ -1261,6 +1261,30 @@
   user-select: none;
 }
 
+.project-show__hackatime-connect {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-yellow-200);
+  background: none;
+  border: 1px dashed var(--color-yellow-200);
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    opacity 0.15s;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.project-show__hackatime-empty {
+  font-size: 13px;
+  color: var(--color-space-text);
+  opacity: 0.5;
+}
+
 .project-show__hackatime-tag {
   display: inline-flex;
   align-items: center;

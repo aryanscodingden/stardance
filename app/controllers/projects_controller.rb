@@ -22,7 +22,9 @@ class ProjectsController < ApplicationController
       @composer_devlog = Post::Devlog.new
       @composer_projects = current_user.projects.order(updated_at: :desc)
 
-      if current_user.hackatime_identity.present?
+      @hackatime_linked = current_user.hackatime_identity.present?
+
+      if @hackatime_linked
         @linked_hackatime_projects = @project.hackatime_projects
         @all_hackatime_projects = current_user.hackatime_projects.includes(:project)
         result = current_user.try_sync_hackatime_data!
