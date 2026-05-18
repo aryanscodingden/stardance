@@ -13,6 +13,7 @@ class Airtable::RsvpSyncJob < Airtable::BaseSyncJob
       "ip" => rsvp&.ip_address,
       "user_agent" => rsvp&.user_agent,
       "ref" => rsvp&.ref,
+      "user_ref" => rsvp&.user_ref,
       "created_at" => rsvp.created_at,
       "updated_at" => rsvp.updated_at,
       "signup_confirmation_sent_at" => rsvp.signup_confirmation_sent_at,

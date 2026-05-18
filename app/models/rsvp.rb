@@ -16,6 +16,7 @@
 #  signup_confirmation_sent_at :datetime
 #  synced_at                   :datetime
 #  user_agent                  :string
+#  user_ref                    :string
 #  created_at                  :datetime         not null
 #  updated_at                  :datetime         not null
 #
@@ -24,6 +25,8 @@
 #  index_rsvps_on_confirmation_token  (confirmation_token) UNIQUE
 #
 class Rsvp < ApplicationRecord
+  USER_REF_OPTIONS = %w[Teacher NASA GitHub AMD HackClub Friend].freeze
+
   has_paper_trail ignore: [ :ip_address, :user_agent ]
   has_secure_token :confirmation_token
 
@@ -33,6 +36,7 @@ class Rsvp < ApplicationRecord
   validates :email, presence: true,
                     uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :user_ref, length: { maximum: 100 }, allow_blank: true
   before_validation :downcase_email
   after_commit :deliver_signup_confirmation, on: :create
   after_commit :enqueue_geocode_job, on: :create

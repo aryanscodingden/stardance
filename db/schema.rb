@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_06_215815) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_11_185822) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -526,6 +526,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_06_215815) do
     t.datetime "synced_at"
     t.datetime "updated_at", null: false
     t.string "user_agent"
+    t.string "user_ref"
     t.index ["confirmation_token"], name: "index_rsvps_on_confirmation_token", unique: true
   end
 

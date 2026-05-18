@@ -586,7 +586,8 @@ html.warped .hero__doodle-arrow.is-falling {
 // Default state shows "play" + "unmuted" icons; the controller toggles
 // classes on .hero__video to swap them.
 .hero__video-icon--pause,
-.hero__video-icon--muted {
+.hero__video-icon--muted,
+.hero__video-icon--exit-fs {
   display: none;
 }
 
@@ -605,6 +606,76 @@ html.warped .hero__doodle-arrow.is-falling {
   }
   .hero__video-icon--muted {
     display: block;
+  }
+}
+
+.hero__video--fullscreen {
+  .hero__video-icon--enter-fs {
+    display: none;
+  }
+  .hero__video-icon--exit-fs {
+    display: block;
+  }
+}
+
+// In fullscreen the wrapper itself goes full-viewport (so the custom
+// controls bar comes along instead of being clipped to the iframe). Strip
+// the tilt/positioning, drop the rounded corners, and keep controls visible
+// since :hover is unreliable in fullscreen on touch and after cursor
+// inactivity.
+.hero__video:fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: auto;
+  transform: none;
+  background: #000;
+  cursor: default;
+
+  iframe {
+    border-radius: 0;
+  }
+
+  .hero__video-controls {
+    opacity: 1;
+    pointer-events: auto;
+    border-radius: 0;
+    gap: 16px;
+    padding: 20px 28px;
+  }
+
+  .hero__video-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+  }
+
+  .hero__video-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .hero__video-scrub {
+    height: 28px;
+
+    &::-webkit-slider-runnable-track,
+    &::-moz-range-track,
+    &::-moz-range-progress {
+      height: 6px;
+    }
+
+    &::-webkit-slider-thumb {
+      width: 18px;
+      height: 18px;
+      margin-top: -6px;
+    }
+
+    &::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+    }
   }
 }
 

@@ -42,6 +42,23 @@
   --color-bg: hsl(35, 74%, 90%);
   --color-bg-2: hsl(39, 52%, 80%);
 
+  // Stardance brand palette — the eight accent hues used across the reskin.
+  // These land on top of the dark space neutrals below.
+  --color-brand-mint: #81ffff;
+  --color-brand-lilac: #ebb7ff;
+  --color-brand-blue: #95dbff;
+  --color-brand-salmon: #ff8d9d;
+  --color-brand-yellow: #ffe564;
+  --color-brand-peach: #ffd598;
+  --color-brand-cream: #fff8d5;
+  --color-brand-off-white: #fffcf4;
+
+  // Soft (translucent) variants for accent fills.
+  --color-brand-mint-soft: rgba(129, 255, 255, 0.18);
+  --color-brand-lilac-soft: rgba(235, 183, 255, 0.18);
+  --color-brand-salmon-soft: rgba(255, 141, 157, 0.18);
+  --color-brand-yellow-soft: rgba(255, 229, 100, 0.18);
+
   // Stardance "space" palette — dark navy backdrop, lavender accents.
   --color-space-bg: hsl(245, 55%, 8%);
   --color-space-bg-2: hsl(245, 50%, 12%);

@@ -44,3 +44,5 @@
 
   <%= render "landing/sections/footer" %>
 </div>
+
+<%= render "landing/sections/user_ref_modal", token: @user_ref_token if @user_ref_token.present? %>

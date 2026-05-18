@@ -1,0 +1,193 @@
+// Referral-source picker shown after a fresh RSVP. The native <dialog> is
+// opened with showModal() — UA styles handle centering. We only paint.
+
+.user-ref-modal {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(440px, calc(100vw - 2rem));
+  height: fit-content;
+  max-height: calc(100vh - 2rem);
+  padding: var(--space-xl);
+  background: var(--color-space-bg-2);
+  border: 1px solid var(--color-space-border);
+  border-radius: var(--border-radius);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 30px 60px -20px rgba(0, 0, 0, 0.6),
+    0 0 80px -20px var(--color-brand-yellow-soft);
+  color: var(--color-body-text);
+  font-family: var(--font-family-text);
+
+  opacity: 1;
+  transition: opacity 220ms ease;
+
+  &::backdrop {
+    background: rgba(8, 6, 30, 0.72);
+    backdrop-filter: blur(4px);
+    transition: opacity 220ms ease;
+  }
+
+  &--closing {
+    opacity: 0;
+    pointer-events: none;
+
+    &::backdrop {
+      opacity: 0;
+    }
+  }
+
+  // The shared modal partial always renders an h3.modal__title inside.
+  // application.scss loads a global .modal__title rule (from
+  // components/_project_show_card.scss) that paints the title pill brown — we
+  // override the color here while keeping its padding/radius shape.
+  .modal__title {
+    margin: 0 0 var(--space-xs);
+    font-family: var(--font-family-text);
+    font-weight: 700;
+    font-size: var(--font-size-xl);
+    background-color: #5e6687;
+    color: white;
+    text-shadow:
+      0 0 14px rgba(255, 245, 200, 0.22),
+      0 0 32px rgba(255, 245, 200, 0.12);
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
+    margin-top: var(--space-m);
+  }
+
+  &__options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-xs);
+
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-s);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--color-space-border);
+    border-radius: 4px;
+    color: var(--color-body-text);
+    font-size: var(--font-size-m);
+    cursor: pointer;
+    transition:
+      background 120ms ease,
+      border-color 120ms ease,
+      color 120ms ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--color-brand-yellow);
+      color: white;
+    }
+
+    &:has(.user-ref-modal__radio:checked) {
+      background: var(--color-brand-yellow-soft);
+      border-color: var(--color-brand-yellow);
+      color: white;
+    }
+  }
+
+  &__radio {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    border: 1px solid var(--color-space-border);
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    flex: 0 0 auto;
+
+    &:checked {
+      border-color: var(--color-brand-yellow);
+      background: var(--color-brand-yellow);
+      box-shadow: inset 0 0 0 3px var(--color-space-bg-2);
+    }
+  }
+
+  &__option-label {
+    flex: 1;
+  }
+
+  &__other {
+    display: flex;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  &__other-input {
+    width: 100%;
+    padding: var(--space-xs) var(--space-s);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--color-space-border);
+    border-radius: 4px;
+    color: white;
+    font-family: inherit;
+    font-size: var(--font-size-m);
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-brand-yellow);
+      outline-offset: 1px;
+      border-color: var(--color-brand-yellow);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-s);
+    margin-top: var(--space-xs);
+  }
+
+  &__skip {
+    background: transparent;
+    border: none;
+    color: var(--color-body-text);
+    font-family: inherit;
+    font-size: var(--font-size-m);
+    padding: var(--space-xs) var(--space-s);
+    cursor: pointer;
+    transition: color 120ms ease;
+
+    &:hover {
+      color: white;
+    }
+  }
+
+  &__submit {
+    background: var(--color-brand-yellow);
+    color: #1a1608;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: var(--font-size-m);
+    border: none;
+    border-radius: 2px;
+    padding: var(--space-xs) var(--space-l);
+    height: 44px;
+    cursor: pointer;
+    transition: background 120ms ease;
+
+    &:hover {
+      background: #e0d8a8;
+    }
+  }
+}

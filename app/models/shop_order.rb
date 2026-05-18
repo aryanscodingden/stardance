@@ -172,7 +172,7 @@ class ShopOrder < ApplicationRecord
     frozen_address
   end
 
-  aasm timestamps: true do
+  aasm timestamps: true, requires_lock: true do
     # Normal states
     state :pending, initial: true
     state :awaiting_verification

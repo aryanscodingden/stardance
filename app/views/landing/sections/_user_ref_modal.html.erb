@@ -1,0 +1,40 @@
+<%= render "shared/modal",
+           id: "user-ref-modal",
+           title: "One more thing — how'd you hear about us?",
+           class_name: "user-ref-modal" do %>
+  <div data-controller="user-ref-modal">
+    <%= form_with url: user_ref_rsvps_path, method: :patch, local: true, class: "user-ref-modal__form" do |f| %>
+      <%= hidden_field_tag :token, token %>
+
+      <div class="user-ref-modal__options">
+        <% Rsvp::USER_REF_OPTIONS.each do |opt| %>
+          <label class="user-ref-modal__option">
+            <%= radio_button_tag :user_ref, opt, false,
+                                  class: "user-ref-modal__radio",
+                                  data: { action: "change->user-ref-modal#toggleOther" } %>
+            <span class="user-ref-modal__option-label"><%= opt == "HackClub" ? "Hack Club" : opt %></span>
+          </label>
+        <% end %>
+        <label class="user-ref-modal__option">
+          <%= radio_button_tag :user_ref, "Other", false,
+                                class: "user-ref-modal__radio",
+                                data: { action: "change->user-ref-modal#toggleOther" } %>
+          <span class="user-ref-modal__option-label">Other</span>
+        </label>
+      </div>
+
+      <div class="user-ref-modal__other" data-user-ref-modal-target="otherWrap" hidden>
+        <%= text_field_tag :user_ref_other, nil,
+                            placeholder: "Tell us where...",
+                            class: "user-ref-modal__other-input",
+                            autocomplete: "off",
+                            data: { user_ref_modal_target: "otherInput" } %>
+      </div>
+
+      <div class="user-ref-modal__actions">
+        <button type="button" class="user-ref-modal__skip" data-action="click->user-ref-modal#skip">Skip</button>
+        <%= f.submit "Submit", class: "user-ref-modal__submit" %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

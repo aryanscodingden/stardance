@@ -65,6 +65,10 @@ export default class extends Controller {
         this.element.classList.remove("hero__video--needs-unmute");
       }
     });
+    this._onFullscreenChange = () => {
+      this._setFullscreenState(document.fullscreenElement === this.element);
+    };
+    document.addEventListener("fullscreenchange", this._onFullscreenChange);
 
     this._setupPin();
   }
@@ -72,6 +76,12 @@ export default class extends Controller {
   disconnect() {
     if (this._onPinScroll) {
       window.removeEventListener("scroll", this._onPinScroll);
+    }
+    if (this._onFullscreenChange) {
+      document.removeEventListener(
+        "fullscreenchange",
+        this._onFullscreenChange,
+      );
     }
     if (this.player) this.player.destroy().catch(() => {});
   }
@@ -177,6 +187,16 @@ export default class extends Controller {
     });
   }
 
+  toggleFullscreen(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (document.fullscreenElement === this.element) {
+      document.exitFullscreen().catch(() => {});
+    } else {
+      this.element.requestFullscreen().catch(() => {});
+    }
+  }
+
   scrubInput() {
     this.isScrubbing = true;
     // Live-update the filled-progress visual as the user drags.
@@ -215,5 +235,9 @@ export default class extends Controller {
 
   _setMutedState(muted) {
     this.element.classList.toggle("hero__video--muted", muted);
+  }
+
+  _setFullscreenState(fullscreen) {
+    this.element.classList.toggle("hero__video--fullscreen", fullscreen);
   }
 }
