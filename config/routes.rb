@@ -394,6 +394,12 @@ Rails.application.routes.draw do
   get "rsvps/confirm/:token", to: "rsvps#confirm", as: :confirm_rsvp
   get "tic_tac", to: "rsvps#tic_tac", as: :tic_tac, defaults: { format: :text }
 
+  namespace :api, defaults: { format: :json } do
+    namespace :v1 do
+      resources :ambassador_referrals, only: [ :index, :show ]
+    end
+  end
+
   # Shop
   get "shop", to: "shop#index"
   get "shop/my_orders", to: "shop#my_orders"
