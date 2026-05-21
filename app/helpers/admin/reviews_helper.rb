@@ -115,7 +115,7 @@ module Admin::ReviewsHelper
     end
 
     # Calculate date range (last 365 days)
-    today = Date.today
+    today = Date.current
     one_year_ago = today - 364 # 365 days including today
 
     # Normalize to start on Sunday for first week
