@@ -34,7 +34,7 @@ class SidebarComponent < ViewComponent::Base
         icon: { idle: "box", active: "box_active" },
         locked: !user.shipped_projects.exists?,
         locked_message: "The Vote tab unlocks once you ship your first project!" },
-      { slug: "events",        label: "events",        path: "#",
+      { slug: "events",        label: "events",        path: helpers.events_path,
         icon: { idle: "calendar", active: "calendar_active" } },
       { slug: "shop",          label: "shop",          path: "/shop",
         icon: { idle: "cart", active: "cart_active" } },

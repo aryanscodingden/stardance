@@ -1,0 +1,32 @@
+<% content_for :title, "Events" %>
+<% content_for :og_title, "Events on Stardance" %>
+<% content_for :og_description, "Themed missions and events — pick one, ship a project, get reviewed." %>
+
+<div class="app-layout">
+  <div class="app-layout__main">
+    <header class="guides-index__header">
+      <h1 class="guides-index__title">Events</h1>
+      <p class="guides-index__subtitle">
+        Themed tracks with optional guides and prizes — pick one, ship a project under it, get reviewed.
+      </p>
+    </header>
+
+    <% if @missions.any? %>
+      <section class="guides-index__category" aria-labelledby="cat-missions">
+        <h2 id="cat-missions" class="guides-index__category-title">Missions</h2>
+        <p class="guides-index__category-subtitle">
+          Themed tracks with optional guides and prizes — pick one, ship a project under it, get reviewed.
+        </p>
+        <ul class="missions-index__grid">
+          <% @missions.each do |mission| %>
+            <li><%= render "missions/mission_card", mission: mission %></li>
+          <% end %>
+        </ul>
+      </section>
+    <% else %>
+      <p class="missions-index__empty">No events available right now — check back soon.</p>
+    <% end %>
+  </div>
+
+  <%= render DiscoverRailComponent.new %>
+</div>

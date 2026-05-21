@@ -9,21 +9,6 @@
       </p>
     </header>
 
-    <% if @missions.any? %>
-      <section class="guides-index__category" aria-labelledby="cat-missions">
-        <h2 id="cat-missions" class="guides-index__category-title">Missions</h2>
-        <p class="guides-index__category-subtitle">
-          Themed tracks with optional guides and prizes — pick one, ship a project under it, get reviewed.
-          <%= link_to "See all missions →", missions_path, class: "guides-index__category-link" %>
-        </p>
-        <ul class="missions-index__grid">
-          <% @missions.each do |mission| %>
-            <li><%= render "missions/mission_card", mission: mission %></li>
-          <% end %>
-        </ul>
-      </section>
-    <% end %>
-
     <% @category_order.each do |category| %>
       <% guides = @guides_by_category[category] %>
       <% next if guides.blank? %>

@@ -519,6 +519,9 @@ Rails.application.routes.draw do
   # Leaderboard
   get "leaderboard", to: "leaderboard#index"
 
+  # Events — listing of missions and (eventually) other themed events.
+  resources :events, only: [ :index ]
+
   # My
   namespace :my do
     resource :balance, only: [ :show ]
