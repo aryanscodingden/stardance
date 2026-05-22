@@ -18,7 +18,7 @@ module Reviewable
       expires = now + CLAIM_TTL
       updated = where(id: record_id, status: statuses[:pending])
         .where("reviewer_id IS NULL OR claim_expires_at IS NULL OR claim_expires_at < ? OR reviewer_id = ?", now, user.id)
-        .update_all(reviewer_id: user.id, claim_expires_at: expires, updated_at: now)
+        .update_all(reviewer_id: user.id, claimed_at: now, claim_expires_at: expires, updated_at: now)
       updated.zero? ? nil : find(record_id)
     end
 
