@@ -23,7 +23,7 @@
   inset: 0;
   pointer-events: none;
   transition:
-    inset 520ms cubic-bezier(.22, 1.32, .36, 1),
+    inset 520ms cubic-bezier(0.22, 1.32, 0.36, 1),
     opacity 320ms ease,
     border-color 320ms ease;
 }

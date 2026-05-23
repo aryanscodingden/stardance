@@ -72,10 +72,12 @@ export default class extends Controller {
     if (!this.hasRequirementsContainerTarget) return;
 
     const filled = {
-      description: this.hasDescriptionTarget && this.fieldFilled(this.descriptionTarget),
+      description:
+        this.hasDescriptionTarget && this.fieldFilled(this.descriptionTarget),
       demo_url: this.hasDemoUrlTarget && this.fieldFilled(this.demoUrlTarget),
       repo_url: this.hasRepoUrlTarget && this.fieldFilled(this.repoUrlTarget),
-      readme_url: this.hasReadmeUrlTarget && this.fieldFilled(this.readmeUrlTarget),
+      readme_url:
+        this.hasReadmeUrlTarget && this.fieldFilled(this.readmeUrlTarget),
       banner: this.bannerFilled(),
     };
 

@@ -2,6 +2,7 @@ module User::StateFlags
   extend ActiveSupport::Concern
 
   DISMISSIBLE_THINGS = %w[home_intro flagship_ad shop_suggestion_box willsbuilds_banner].freeze
+  ARRAY_COLUMNS = %i[tutorial_steps_completed things_dismissed].freeze
 
   # Use symbols here; `tutorial_steps_completed` is the raw persisted array.
   def tutorial_steps = tutorial_steps_completed&.map(&:to_sym) || []
@@ -48,12 +49,15 @@ module User::StateFlags
 
   private
     def append_array_value_once(column, value)
+      raise ArgumentError, "#{column} is not an array column" unless column.in?(ARRAY_COLUMNS)
+
       values = public_send(column) || []
       return if values.include?(value)
 
+      col = self.class.connection.quote_column_name(column)
       updated = self.class.where(id: id)
-        .where.not("#{column} @> ARRAY[?]::varchar[]", value)
-        .update_all([ "#{column} = array_append(#{column}, ?), updated_at = NOW()", value ])
+        .where.not("#{col} @> ARRAY[?]::varchar[]", value)
+        .update_all([ "#{col} = array_append(#{col}, ?), updated_at = NOW()", value ])
       return false if updated.zero?
 
       public_send("#{column}=", values + [ value ])
@@ -61,11 +65,14 @@ module User::StateFlags
     end
 
     def remove_array_value(column, value)
+      raise ArgumentError, "#{column} is not an array column" unless column.in?(ARRAY_COLUMNS)
+
       values = public_send(column) || []
       return unless values.include?(value)
 
+      col = self.class.connection.quote_column_name(column)
       self.class.where(id: id)
-        .update_all([ "#{column} = array_remove(#{column}, ?), updated_at = NOW()", value ])
+        .update_all([ "#{col} = array_remove(#{col}, ?), updated_at = NOW()", value ])
       public_send("#{column}=", values - [ value ])
       true
     end

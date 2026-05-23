@@ -28,17 +28,10 @@ development:
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
-#
-# DO NOT remove the explicit `url:` here. Rails treats DATABASE_URL as the
-# baseline connection for every environment that doesn't override the URL
-# outright — so without this line, running tests would purge and reload
-# whatever DATABASE_URL points at (typically the dev DB). Pinning a separate
-# url here keeps `bin/rails test` confined to its own database.
 test:
   primary:
     <<: *default
     database: stardance_test
-    url: <%= ENV.fetch("TEST_DATABASE_URL", "postgresql://postgres:pass@db:5432/stardance_test") %>
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is

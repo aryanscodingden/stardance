@@ -188,8 +188,7 @@ export default class extends Controller {
       ? "Finish! →"
       : `Next (${this.stepValue + 1}/${this.stepsValue.length}) →`;
     this.nextTarget.hidden = !!step.clickToAdvance;
-    this.backTarget.hidden =
-      this.stepValue === 0 || !!step.clickToAdvance;
+    this.backTarget.hidden = this.stepValue === 0 || !!step.clickToAdvance;
 
     this.element.classList.toggle(
       "welcome-tour--arrow-bottom",

@@ -102,7 +102,10 @@ export default class extends Controller {
     const start = performance.now();
     const tick = () => {
       if (loadId !== this.#loadId) return;
-      const pct = Math.min(99, ((performance.now() - start) / FAKE_LOAD_DURATION_MS) * 100);
+      const pct = Math.min(
+        99,
+        ((performance.now() - start) / FAKE_LOAD_DURATION_MS) * 100,
+      );
       this.#setProgress(pct);
       if (this.#state === "loading") this.#rafId = requestAnimationFrame(tick);
     };

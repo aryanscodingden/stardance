@@ -729,8 +729,16 @@ turbo-frame#project_hero {
   // `--secondary` inherits the base set-2 fill with set-3 border + white text.
 
   &--test {
-    border-color: color-mix(in srgb, var(--color-brand-yellow) 55%, transparent);
-    background: color-mix(in srgb, var(--color-brand-yellow) 14%, var(--color-set-2-bg));
+    border-color: color-mix(
+      in srgb,
+      var(--color-brand-yellow) 55%,
+      transparent
+    );
+    background: color-mix(
+      in srgb,
+      var(--color-brand-yellow) 14%,
+      var(--color-set-2-bg)
+    );
     color: var(--color-brand-yellow);
   }
 

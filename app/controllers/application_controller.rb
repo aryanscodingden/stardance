@@ -136,7 +136,7 @@ class ApplicationController < ActionController::Base
 
   # Skip oversized fullpaths so the cookie session can't overflow on long URLs.
   def store_return_to
-    return unless request.get?
+    return unless request.get? || request.head?
     return if request.fullpath.bytesize > 1000
 
     session[:return_to] = request.fullpath
