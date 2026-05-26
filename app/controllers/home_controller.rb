@@ -17,13 +17,13 @@ class HomeController < ApplicationController
   def load_feed
     devlogs = Post.of_devlogs(join: true)
                   .where(post_devlogs: { deleted_at: nil })
-                  .includes(:user, :project, devlog: { attachments_attachments: :blob })
+                  .includes(:user, :project, postable: { attachments_attachments: :blob })
                   .order(created_at: :desc)
                   .limit(20)
 
     ship_events = Post.of_ship_events(join: true)
                       .where.not(post_ship_events: { certification_status: "rejected" })
-                      .includes(:user, :project)
+                      .includes(:user, :project, :postable)
                       .order(created_at: :desc)
                       .limit(20)
 

@@ -88,14 +88,54 @@
 #
 class ShopItem::WarehouseItem < ShopItem
   validates :agh_contents, presence: true
+  validate :validate_agh_contents_format
+
   def get_agh_contents(order)
     return [] unless agh_contents.present?
 
-    agh_contents.map do |content_item|
-      {
-        sku: content_item["sku"],
-        quantity: (content_item["quantity"] || 1) * order.quantity
-      }
+    all_skus = agh_contents.flat_map do |entry|
+      qty = (entry["quantity"] || 1) * order.quantity
+
+      if entry["random_from"]
+        entry["random_from"].shuffle.take(qty)
+      else
+        Array.new(qty, entry["sku"])
+      end
+    end
+
+    all_skus.tally.map { |sku, quantity| { sku:, quantity: } }
+  end
+
+  private
+
+  def validate_agh_contents_format
+    return if agh_contents.blank?
+
+    unless agh_contents.is_a?(Array)
+      errors.add(:agh_contents, "must be an array")
+      return
+    end
+
+    agh_contents.each_with_index do |entry, i|
+      unless entry.is_a?(Hash)
+        errors.add(:agh_contents, "item #{i} must be a hash")
+        next
+      end
+
+      has_sku = entry["sku"].present?
+      has_random = entry["random_from"].is_a?(Array) && entry["random_from"].any?
+
+      unless has_sku ^ has_random
+        errors.add(:agh_contents, "item #{i} must have either \"sku\" or \"random_from\", not both")
+        next
+      end
+
+      if has_random
+        qty = entry["quantity"] || 1
+        if qty > entry["random_from"].length
+          errors.add(:agh_contents, "item #{i} quantity (#{qty}) exceeds random_from pool size (#{entry["random_from"].length})")
+        end
+      end
     end
   end
 end

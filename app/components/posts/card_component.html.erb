@@ -40,10 +40,10 @@
 
   <% if attachment_count.positive? %>
     <div class="feed-post-card__media">
-      <div class="feed-post-card__media-viewport post__viewport">
-        <div class="feed-post-card__media-track post__track">
+      <div class="feed-post-card__media-viewport">
+        <div class="feed-post-card__media-track">
           <% attachments.each_with_index do |attachment, index| %>
-            <figure class="feed-post-card__media-slide post__slide" <%= "hidden" if index.positive? %>>
+            <figure class="feed-post-card__media-slide" <%= "hidden" if index.positive? %>>
               <% if attachment.variable? %>
                 <%= image_tag attachment.variant(:large), alt: "", class: "feed-post-card__image" %>
               <% elsif attachment.content_type.to_s.start_with?("image/") %>

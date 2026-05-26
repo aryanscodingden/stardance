@@ -8,13 +8,13 @@
 
   <div class="ship__field">
     <label class="ship__label" for="review_instructions">Special instructions</label>
-    <p class="ship__hint">Include setup steps, test accounts, environment requirements, or anything they should know. Max 2,000 characters.</p>
+    <p class="ship__hint">Include setup steps, test accounts, environment requirements, or anything they should know. Max <%= number_with_delimiter(Post::ShipEvent::REVIEW_INSTRUCTIONS_MAX_LENGTH) %> characters.</p>
     <%= render StarBorderComponent.new(seed: "ship-review-instructions") do %>
       <%= form.text_area :review_instructions,
             id: "review_instructions",
             class: "ship__input ship__input--textarea",
             rows: 6,
-            maxlength: 2000,
+            maxlength: Post::ShipEvent::REVIEW_INSTRUCTIONS_MAX_LENGTH,
             placeholder: "Example: Run 'npm install && npm start' to launch locally. Test the multiplayer mode by opening two browser tabs." %>
     <% end %>
   </div>

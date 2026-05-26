@@ -5,18 +5,15 @@ export default class extends Controller {
   static values = { addresses: Array };
 
   connect() {
-    this.element.addEventListener(
-      "click",
-      this.handleDropdownSelect.bind(this),
-    );
+    const select = this.dropdownTarget.querySelector("select");
+    if (select) {
+      select.addEventListener("change", this.handleSelect.bind(this));
+    }
     this.dispatchAddressChange();
   }
 
-  handleDropdownSelect(event) {
-    const item = event.target.closest(".dropdown__item");
-    if (!item) return;
-
-    const addressId = item.dataset.value;
+  handleSelect(event) {
+    const addressId = event.target.value;
     this.inputTarget.value = addressId;
 
     const addresses = JSON.parse(this.element.dataset.addresses || "[]");

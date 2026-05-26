@@ -243,3 +243,23 @@ seed_missions.each do |attrs|
 end
 
 puts "Seeded #{seed_missions.size} missions."
+
+# Enable core feature flags for development/staging
+if Rails.env.development? || Rails.env.staging?
+  Flipper.enable(:shop_open)
+  Flipper.enable(:voting)
+  Flipper.enable(:grant_stardust)
+end
+
+# Seed default shop items
+ShopItem::FreeStickers.find_or_create_by!(name: "Stickers!!") do |item|
+  item.description = "we'll actually send you these!"
+  item.ticket_cost = 10
+  item.enabled = true
+  item.one_per_person_ever = true
+  item.image.attach(
+    io: File.open(Rails.root.join("app/assets/images/free_sticker.png")),
+    filename: "free_sticker.png",
+    content_type: "image/png"
+  )
+end

@@ -13,39 +13,19 @@
 @use "components/alerts";
 @use "components/action_button";
 @use "components/special_action_button";
-@use "components/form";
 @use "components/input";
 @use "components/input-group";
-@use "components/hackatime_project_selector";
-@use "components/project_card";
-@use "components/project_show_card";
 @use "components/sidebar";
 @use "components/discover_rail";
 @use "components/ui-heading";
-@use "components/state_card";
-@use "components/project_selection_card";
-@use "components/_home_help_card";
-@use "components/_home_stats";
-@use "components/home_tutorial_steps";
 @use "components/dropdown";
 @use "components/shop-item-card";
-@use "components/starter-project-card";
-@use "components/skill_card";
 @use "components/admin-banner";
-@use "components/impersonation";
-@use "components/post";
+@use "components/top_banner";
 @use "components/tooltip";
-@use "components/project_idea_generator";
 @use "components/like_button";
-@use "components/comments";
-@use "components/dialogue_box";
-@use "components/welcome_overlay";
 @use "components/welcome_tour";
 @use "components/markdown_content";
-@use "components/announcement_component";
-@use "components/comic_card";
-@use "components/platform_notice";
-@use "components/radio_option";
 @use "components/currency_icon";
 @use "components/mission_panel";
 @use "components/status_pill";
@@ -57,8 +37,7 @@
 @use "components/vimeo_embed";
 @use "components/command_palette";
 
-// Themes
-@use "themes/christmas";
+@use "components/streamer_mode";
 
 // Pages
 @use "pages/onboarding" as onboarding_pages;
@@ -67,7 +46,6 @@
 @use "pages/projects/show";
 @use "pages/projects/ship";
 @use "pages/projects/readme";
-@use "pages/home/index" as home_index;
 @use "pages/achievements/index" as achievements_index;
 @use "pages/shop/shop";
 @use "pages/shop/order";

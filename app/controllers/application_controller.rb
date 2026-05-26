@@ -55,20 +55,6 @@ class ApplicationController < ActionController::Base
     impersonating? ? real_user : current_user
   end
 
-  def tutorial_message(msg)
-    flash[:tutorial_messages] ||= []
-    if msg.is_a?(Array)
-      flash[:tutorial_messages] += msg
-    else
-      flash[:tutorial_messages] << msg
-    end
-  end
-
-  def tutorial_messages
-    flash[:tutorial_messages] || []
-  end
-  helper_method :tutorial_messages
-
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
   private
@@ -136,7 +122,7 @@ class ApplicationController < ActionController::Base
 
   # Skip oversized fullpaths so the cookie session can't overflow on long URLs.
   def store_return_to
-    return unless request.get?
+    return unless request.get? || request.head?
     return if request.fullpath.bytesize > 1000
 
     session[:return_to] = request.fullpath
@@ -215,8 +201,6 @@ class ApplicationController < ActionController::Base
     identity_payload = HCAService.identity(identity.access_token)
     return if identity_payload.blank?
 
-    latest_status = identity_payload["verification_status"].to_s
-    current_user.complete_tutorial_step!(:identity_verified) if %w[pending verified].include?(latest_status)
     current_user.apply_hca_verification_payload!(identity_payload)
   rescue StandardError => e
     Rails.logger.warn("Portal return identity refresh failed: #{e.class}: #{e.message}")

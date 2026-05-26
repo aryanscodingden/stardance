@@ -178,7 +178,7 @@
                           longest_option = address_options.max_by { |o| o[:label].length }&.dig(:label) || ""
                         %>
                         <input type="hidden" name="address_id" form="order-form" id="address-id-input" value="<%= primary_addr["id"] %>" data-address-select-target="input">
-                        <div data-address-select-target="dropdown">
+                        <div data-address-select-target="dropdown" class="sensitive">
                             <%= render DropdownComponent.new(
                                 label: "Shipping Address",
                                 options: address_options,

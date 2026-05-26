@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus";
 
 export default class extends Controller {
-  static targets = ["sortBtn", "items"];
+  static targets = ["sortBtn", "items", "empty"];
   static values = { userRegion: { type: String, default: "US" } };
 
   connect() {
@@ -14,7 +14,6 @@ export default class extends Controller {
     this.accessFilter = "All";
 
     this.setupSortButton();
-    this.setupFilterListeners();
     this.applyFiltersAndSort();
   }
 
@@ -25,25 +24,25 @@ export default class extends Controller {
     }
   }
 
-  setupFilterListeners() {
-    document.addEventListener("shop:filter", (event) => {
-      const { filterType, value } = event.detail;
+  filter(event) {
+    const select = event.target;
+    const filterType = select.dataset.filterType;
+    const value = select.value;
 
-      if (filterType === "Category") {
-        this.categoryFilter = value;
-      } else if (filterType === "Price Range") {
-        this.priceRange = value;
-      } else if (filterType === "Sort by") {
-        this.sortType = value;
-      } else if (filterType === "Region") {
-        this.regionFilter = value;
-        this.saveRegion(value);
-      } else if (filterType === "Access") {
-        this.accessFilter = value;
-      }
+    if (filterType === "Category") {
+      this.categoryFilter = value;
+    } else if (filterType === "Price Range") {
+      this.priceRange = value;
+    } else if (filterType === "Sort by") {
+      this.sortType = value;
+    } else if (filterType === "Region") {
+      this.regionFilter = value;
+      this.saveRegion(value);
+    } else if (filterType === "Access") {
+      this.accessFilter = value;
+    }
 
-      this.applyFiltersAndSort();
-    });
+    this.applyFiltersAndSort();
   }
 
   toggleSort() {
@@ -79,6 +78,11 @@ export default class extends Controller {
           ? "flex"
           : "none";
     });
+
+    const visibleCount = items.filter((i) => i.style.display !== "none").length;
+    if (this.hasEmptyTarget) {
+      this.emptyTarget.style.display = visibleCount === 0 ? "flex" : "none";
+    }
 
     this.sortItems();
   }

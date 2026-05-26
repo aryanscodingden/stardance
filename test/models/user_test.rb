@@ -29,7 +29,6 @@
 #  shop_region                  :enum
 #  synced_at                    :datetime
 #  things_dismissed             :string           default([]), not null, is an Array
-#  tutorial_steps_completed     :string           default([]), is an Array
 #  verification_status          :string           default("needs_submission"), not null
 #  vote_balance                 :integer          default(0), not null
 #  votes_count                  :integer
@@ -71,15 +70,9 @@ class UserTest < ActiveSupport::TestCase
     assert_not user.has_role?(:helper)
   end
 
-  test "tutorial steps and dismissals mutate array state once" do
+  test "dismissals mutate array state once" do
     user = users(:one)
-    user.update_columns(tutorial_steps_completed: [], things_dismissed: [])
-
-    assert user.complete_tutorial_step!(:setup_hackatime)
-    assert user.tutorial_step_completed?(:setup_hackatime)
-    assert_no_difference -> { user.reload.tutorial_steps.count } do
-      user.complete_tutorial_step!(:setup_hackatime)
-    end
+    user.update_columns(things_dismissed: [])
 
     assert user.dismiss_thing!("flagship_ad")
     assert user.has_dismissed?("flagship_ad")

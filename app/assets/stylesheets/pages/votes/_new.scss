@@ -214,17 +214,6 @@
     flex-direction: column;
     align-items: center;
     gap: 0.5em;
-
-    .post {
-      padding: 1em;
-      border-width: 0.5em;
-      width: 100%;
-
-      &::before,
-      &::after {
-        display: none;
-      }
-    }
   }
 
   &__score-card {

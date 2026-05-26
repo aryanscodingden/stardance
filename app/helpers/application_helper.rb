@@ -1,4 +1,10 @@
 module ApplicationHelper
+  def in_beta? = request.host.include?("beta")
+
+  def fullstory_org_id
+    Rails.application.credentials.dig(:fullstory, :org_id).presence
+  end
+
   def stardust_icon(extra_class: nil)
     image_tag "icons/stardust.png", alt: "Stardust", class: [ "currency-icon", extra_class ].compact.join(" ")
   end

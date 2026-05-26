@@ -268,10 +268,6 @@
               white-space: nowrap;
               overflow: hidden;
               max-width: 90%;
-
-              &:not(:hover) {
-                filter: blur(8px);
-              }
             }
           }
 

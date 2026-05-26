@@ -18,7 +18,7 @@ module Admin
           known_types = %w[
             ShopItem::HQMailItem ShopItem::LetterMail
             ShopItem::ThirdPartyPhysical ShopItem::Accessory ShopItem::ThirdPartyDigital
-            ShopItem::WarehouseItem ShopItem::PileOfStickersItem
+            ShopItem::WarehouseItem
             ShopItem::FreeStickers
           ]
           other_types = type_counts.keys.map(&:first).uniq - known_types
@@ -30,7 +30,7 @@ module Admin
 
           warehouse_has_stale = ShopOrder.joins(:shop_item)
                                          .where(aasm_state: "awaiting_periodical_fulfillment")
-                                         .where(shop_items: { type: %w[ShopItem::WarehouseItem ShopItem::PileOfStickersItem] })
+                                         .where(shop_items: { type: %w[ShopItem::WarehouseItem] })
                                          .where("shop_orders.awaiting_periodical_fulfillment_at <= ?", 3.days.ago)
                                          .exists?
 
@@ -38,7 +38,7 @@ module Admin
             all: calculate_type_totals(type_counts, nil, fulfilled_counts),
             hq_mail: calculate_type_totals(type_counts, %w[ShopItem::HQMailItem ShopItem::LetterMail], fulfilled_counts),
             third_party: calculate_type_totals(type_counts, %w[ShopItem::ThirdPartyPhysical ShopItem::Accessory ShopItem::ThirdPartyDigital], fulfilled_counts),
-            warehouse: calculate_type_totals(type_counts, %w[ShopItem::WarehouseItem ShopItem::PileOfStickersItem], fulfilled_counts),
+            warehouse: calculate_type_totals(type_counts, %w[ShopItem::WarehouseItem], fulfilled_counts),
             other: calculate_type_totals(type_counts, other_types, fulfilled_counts),
             warehouse_has_stale: warehouse_has_stale
           }

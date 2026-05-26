@@ -100,6 +100,57 @@ class ShopItem < ApplicationRecord
   after_commit :refresh_carousel_cache, if: :carousel_relevant_change?
   after_commit :invalidate_shop_page_cache
 
+  GITHUB_STICKERS = %w[
+    Sti/Git/Inv/Dar
+  ].freeze
+
+  NASA_STICKERS = %w[
+    Sti/SD/Art/Sheet
+    Sti/SD/Art/diecut
+  ].freeze
+
+  HC_STICKERS = %w[
+    Sti/Bra/BMO/Ovr
+    Sti/Bra/CD-/Gra
+    Sti/Bra/Can/Let
+    Sti/Bra/Cap/Hck
+    Sti/Bra/Cas/Mix
+    Sti/Bra/Clo/1st
+    Sti/Bra/Con/Rod
+    Sti/Bra/Ene/Drk
+    Sti/Bra/Fla/Emb
+    Sti/Bra/Gan/Gan
+    Sti/Bra/HC-/CD-
+    Sti/Bra/Hei/Chi
+    Sti/Bra/Hei/Cof
+    Sti/Bra/Hei/Gmr
+    Sti/Bra/Hei/Lea
+    Sti/Bra/Hei/Pls
+    Sti/Bra/Hei/Spe
+    Sti/Bra/Hei/Trs
+    Sti/Bra/Hel/Nam
+    Sti/Bra/Ins/1st
+    Sti/Bra/Lic/Plt
+    Sti/Bra/O&H/Hug
+    Sti/Bra/O&H/Lap
+    Sti/Bra/Orp/Cos
+    Sti/Bra/Orp/Des
+    Sti/Bra/Orp/Plu
+    Sti/Bra/Pol/O&H
+    Sti/Bra/Pol/Se2
+    Sti/Bra/Ram/1st
+    Sti/Bra/Ray/1st
+    Sti/Bra/Sur/Sum
+    Sti/Bra/Tam/1st
+    Sti/Bra/The/1st
+    Sti/Bra/Und/Sta
+    Sti/Bra/Yak/Bot
+    Sti/Sti/Fla/Top
+    Sti/Sti/Hac/1st
+    Sti/Sti/Kaw/1st
+    Sti/Sti/Orp/Thu
+  ].freeze
+
   RECENTLY_ADDED_WINDOW = 2.weeks
   SHOP_PAGE_CACHE_KEY = "shop_items/shop_page"
 
@@ -122,7 +173,7 @@ class ShopItem < ApplicationRecord
       end
 
       cutoff = RECENTLY_ADDED_WINDOW.ago
-      recently_added = buyable.select { |item| item.created_at >= cutoff }.sort_by(&:created_at).reverse
+      recently_added = buyable.select { |item| item.created_at >= cutoff && item.type != "ShopItem::FreeStickers" }.sort_by(&:created_at).reverse
 
       { buyable_standalone: buyable, recently_added: recently_added }
     end

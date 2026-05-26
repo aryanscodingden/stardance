@@ -150,23 +150,6 @@
   z-index: 0;
 }
 
-.sidebar__nav-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.4rem;
-  height: 1.4rem;
-  padding: 0 0.45rem;
-  border-radius: 999px;
-  background: var(--color-brand-salmon);
-  color: var(--color-space-bg);
-  font-size: var(--font-size-xs);
-  font-family: var(--font-family-text);
-  font-weight: 700;
-  line-height: 1;
-  margin-left: auto;
-}
-
 button.sidebar__nav-link {
   background: transparent;
   border: 0;
@@ -328,15 +311,6 @@ button.sidebar__nav-link {
   border-radius: 50%;
   object-fit: cover;
   display: block;
-}
-
-.sidebar__nav-avatar--placeholder {
-  display: grid;
-  place-items: center;
-  background: var(--color-space-accent-soft);
-  color: var(--color-space-text);
-  font-weight: 700;
-  font-size: 1.2rem;
 }
 
 .sidebar__nav-avatar--guest {
@@ -504,74 +478,5 @@ button.sidebar__nav-link {
 
   .sidebar__user-meta {
     display: none;
-  }
-}
-
-.api-key-section {
-  margin-top: var(--space-l);
-  padding-top: var(--space-l);
-  border-top: 2px solid var(--color-tan-300);
-}
-
-.api-key-container {
-  display: flex;
-  gap: var(--space-xs);
-  align-items: stretch;
-  width: 100%;
-
-  > form > button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-s);
-    min-width: 2.75rem;
-    border: 2px solid var(--color-brown-500);
-    border-radius: calc(var(--border-radius) * 0.6);
-    background: var(--color-bg);
-    cursor: pointer;
-    transition:
-      background-color 200ms,
-      border-color 200ms;
-
-    &:hover {
-      background: var(--color-tan-300);
-      border-color: var(--color-brown-400);
-    }
-
-    svg {
-      width: 1.25rem;
-      height: 1.25rem;
-      stroke: var(--color-brown-500);
-    }
-  }
-}
-
-.api-key-display {
-  flex: 1;
-  min-width: 0;
-  padding: var(--space-s) var(--space-m);
-  background: var(--color-bg);
-  border: 2px solid var(--color-brown-500);
-  border-radius: calc(var(--border-radius) * 0.6);
-  font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
-  font-size: var(--font-size-s);
-  color: var(--color-text-body);
-  transition: filter 0.2s;
-  filter: blur(8px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  &[onclick] {
-    cursor: pointer;
-  }
-}
-
-.api-docs-link {
-  text-decoration: underline;
-  color: var(--color-brown-500);
-
-  &:hover {
-    color: var(--color-brown-400);
   }
 }

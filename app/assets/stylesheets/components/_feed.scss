@@ -386,6 +386,7 @@
     cursor: pointer;
     display: grid;
     place-items: center;
+
     svg {
       width: 10px;
       height: 10px;
@@ -678,6 +679,7 @@
     overflow-x: auto;
     padding-bottom: var(--space-xs);
     scroll-snap-type: x proximity;
+    scrollbar-color: gray rgba(0, 0, 0, 0);
   }
 
   &__item {

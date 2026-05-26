@@ -181,9 +181,6 @@ application.register("tilt-3d", Tilt3dController);
 import TooltipController from "./tooltip_controller";
 application.register("tooltip", TooltipController);
 
-import TutorialVideoModalController from "./tutorial_video_modal_controller";
-application.register("tutorial-video-modal", TutorialVideoModalController);
-
 import UserRefModalController from "./user_ref_modal_controller";
 application.register("user-ref-modal", UserRefModalController);
 

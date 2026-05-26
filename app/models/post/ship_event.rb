@@ -44,6 +44,8 @@ class Post::ShipEvent < ApplicationRecord
   VOTES_REQUIRED_FOR_PAYOUT = 12
   VOTES_TO_LEAVE_POOL = VOTES_REQUIRED_FOR_PAYOUT
   VOTE_COST_PER_SHIP = 15
+  BODY_MAX_LENGTH = Post::Devlog::BODY_MAX_LENGTH
+  REVIEW_INSTRUCTIONS_MAX_LENGTH = 2_000
 
   has_one :project, through: :post
   has_many :project_memberships, through: :project, source: :memberships
@@ -64,7 +66,8 @@ class Post::ShipEvent < ApplicationRecord
   after_commit :decrement_user_vote_balance, on: :create
 
   validates :body, presence: { message: "Update message can't be blank" }
-  validates :review_instructions, length: { maximum: 2000 }, allow_blank: true
+  validates :body, length: { maximum: BODY_MAX_LENGTH }, on: :create
+  validates :review_instructions, length: { maximum: REVIEW_INSTRUCTIONS_MAX_LENGTH }, allow_blank: true
   validate :project_can_be_shipped, on: :create
   has_paper_trail ignore: [ :votes_count, :synced_at ]
 

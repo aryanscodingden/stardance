@@ -9,16 +9,6 @@ class ShopController < ApplicationController
       { label: config[:name], value: code }
     end
 
-    if current_user
-      free_stickers_step = User::TutorialStep.find(:free_stickers)
-      @show_shop_tutorial = free_stickers_step.deps_satisfied?(current_user.tutorial_steps) &&
-                            !current_user.tutorial_step_completed?(:free_stickers)
-
-      grant_free_stickers_welcome_stardust! if @show_shop_tutorial
-    else
-      @show_shop_tutorial = false
-    end
-
     load_shop_items
   end
 
@@ -29,7 +19,6 @@ class ShopController < ApplicationController
                           .where(parent_order_id: nil)
                           .includes(accessory_orders: { shop_item: { image_attachment: :blob } }, shop_item: { image_attachment: :blob })
                           .order(id: :desc)
-    @show_tutorial_complete_dialog = session.delete(:show_tutorial_complete_dialog)
   end
 
   def cancel_order
@@ -223,8 +212,6 @@ class ShopController < ApplicationController
         end
       end
 
-      handle_free_stickers_order! if @shop_item.is_a?(ShopItem::FreeStickers)
-
       unless current_user.eligible_for_shop?
         @order.queue_for_verification!
         @order.accessory_orders.each(&:queue_for_verification!)
@@ -266,26 +253,6 @@ class ShopController < ApplicationController
   def featured_free_stickers_item
     item = ShopItem.find_by(id: 1, type: "ShopItem::FreeStickers", enabled: true)
     item if item&.enabled_in_region?(@user_region)
-  end
-
-  def grant_free_stickers_welcome_stardust!
-    begin
-      current_user.ledger_entries.find_or_create_by!(reason: "Free Stickers Welcome Grant") do |entry|
-        entry.amount = 10
-        entry.created_by = "System"
-        entry.ledgerable = current_user
-      end
-    rescue ActiveRecord::RecordNotUnique
-      # Another request already created the grant — nothing to do
-    end
-    order_url = url_for(controller: "shop", action: "order", shop_item_id: 1, only_path: false)
-    session[:tutorial_redirect_url] = HCAService.address_portal_url(return_to: order_url)
-  end
-
-  def handle_free_stickers_order!
-    current_user.complete_tutorial_step!(:free_stickers)
-    session.delete(:tutorial_redirect_url)
-    session[:show_tutorial_complete_dialog] = true
   end
 
   def fulfill_free_stickers!

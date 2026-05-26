@@ -51,13 +51,20 @@ jobs:
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache,mode=max
 
   deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger Coolify redeploy
-        run: |
-          WEBHOOK=${{ github.ref == 'refs/heads/main' && secrets.COOLIFY_WEBHOOK_MAIN || secrets.COOLIFY_WEBHOOK_PLATFORM }}
-
-          curl -s -o /dev/null -w "%{http_code}" \
-            -X GET "$WEBHOOK" \
-            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
+      needs: build-and-push
+      runs-on: ubuntu-latest
+      steps:
+        - name: Trigger Coolify redeploy
+          env:
+            WEBHOOK_MAIN: ${{ secrets.COOLIFY_WEBHOOK }}
+            WEBHOOK_PLATFORM: ${{ secrets.COOLIFY_WEBHOOK_PLATFORM }}
+            COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          run: |
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              WEBHOOK="$WEBHOOK_MAIN"
+            else
+              WEBHOOK="$WEBHOOK_PLATFORM"
+            fi
+            curl -s -o /dev/null -w "%{http_code}" \
+              -X GET "$WEBHOOK" \
+              -H "Authorization: Bearer $COOLIFY_TOKEN"

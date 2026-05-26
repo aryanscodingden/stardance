@@ -121,7 +121,6 @@ class ShopOrder < ApplicationRecord
     ShopItem::ThirdPartyDigital
     ShopItem::WarehouseItem
     ShopItem::FreeStickers
-    ShopItem::PileOfStickersItem
     ShopItem::SillyItemType
   ].freeze
 

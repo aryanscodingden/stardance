@@ -150,6 +150,14 @@
         <small class="settings-form__hint">Your profile will not be indexed by search engines</small>
       </div>
 
+      <div class="settings-form__field">
+        <label class="settings-form__checkbox">
+          <%= check_box_tag :streamer_mode, "1", controller.session[:streamer_mode], id: "streamer_mode" %>
+          <span>Streamer mode</span>
+        </label>
+        <small class="settings-form__hint">Blur sensitive info like addresses and API keys</small>
+      </div>
+
       <div class="modal__actions">
         <button type="button" class="modal__actions-close" onclick="document.getElementById('settings-form').reset(); document.getElementById('settings-modal').close()">Cancel</button>
         <%= f.submit "Save", class: "modal__actions-close modal__actions-close--primary" %>

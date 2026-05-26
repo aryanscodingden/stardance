@@ -21,12 +21,14 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class Comment < ApplicationRecord
+  BODY_MAX_LENGTH = 5_000
+
   has_paper_trail
 
   belongs_to :commentable, polymorphic: true, counter_cache: true
   belongs_to :user
 
-  validates :body, presence: true, length: { maximum: 5000 }
+  validates :body, presence: true, length: { maximum: BODY_MAX_LENGTH }
 
   after_create :notify_slack_channel
 

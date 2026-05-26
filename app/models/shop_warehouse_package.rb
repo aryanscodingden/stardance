@@ -55,10 +55,11 @@ class ShopWarehousePackage < ApplicationRecord
       item_contents
     end
 
-    contents += bonus_stickers
+    non_sticker_count = contents.count { |c| !c[:sku].start_with?("Sti/") }
+    contents += bonus_stickers if non_sticker_count >= BONUS_STICKER_COUNT
     contents << {
-      sku: "Pri/Fla/4x6/1st",
-      quantity: 2
+      sku: "Pri/Sta/4x6/1st",
+      quantity: 1
     }
     update!(frozen_contents: contents)
     Rails.logger.info "Sending warehouse package #{id} to Theseus for user #{user_id} with orders #{shop_orders.pluck(:id).join(', ')}\nContents: #{contents.inspect}"
@@ -137,11 +138,7 @@ class ShopWarehousePackage < ApplicationRecord
   private
 
   def bonus_stickers
-    pile_of_stickers_item = ShopItem::PileOfStickersItem.find_by(enabled: true)
-    return [] unless pile_of_stickers_item&.agh_contents&.dig("choice").present?
-
-    possible_stickers = pile_of_stickers_item.agh_contents["choice"]
-    possible_stickers.shuffle.take(BONUS_STICKER_COUNT).map do |sku|
+    ShopItem::HC_STICKERS.shuffle.take(BONUS_STICKER_COUNT).map do |sku|
       { sku:, quantity: 1 }
     end
   end

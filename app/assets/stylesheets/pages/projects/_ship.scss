@@ -97,14 +97,44 @@
     // is transparent. Beats the Figma approach of overlaying a bg-coloured
     // rectangle because the fade is soft and stays bound to the line.
     mask-image:
-      radial-gradient(circle 56px at 16.67% 50%, transparent 0, transparent 28px, #000 56px),
-      radial-gradient(circle 56px at 50% 50%,    transparent 0, transparent 28px, #000 56px),
-      radial-gradient(circle 56px at 83.33% 50%, transparent 0, transparent 28px, #000 56px);
+      radial-gradient(
+        circle 56px at 16.67% 50%,
+        transparent 0,
+        transparent 28px,
+        #000 56px
+      ),
+      radial-gradient(
+        circle 56px at 50% 50%,
+        transparent 0,
+        transparent 28px,
+        #000 56px
+      ),
+      radial-gradient(
+        circle 56px at 83.33% 50%,
+        transparent 0,
+        transparent 28px,
+        #000 56px
+      );
     mask-composite: intersect;
     -webkit-mask-image:
-      radial-gradient(circle 56px at 16.67% 50%, transparent 0, transparent 28px, #000 56px),
-      radial-gradient(circle 56px at 50% 50%,    transparent 0, transparent 28px, #000 56px),
-      radial-gradient(circle 56px at 83.33% 50%, transparent 0, transparent 28px, #000 56px);
+      radial-gradient(
+        circle 56px at 16.67% 50%,
+        transparent 0,
+        transparent 28px,
+        #000 56px
+      ),
+      radial-gradient(
+        circle 56px at 50% 50%,
+        transparent 0,
+        transparent 28px,
+        #000 56px
+      ),
+      radial-gradient(
+        circle 56px at 83.33% 50%,
+        transparent 0,
+        transparent 28px,
+        #000 56px
+      );
     -webkit-mask-composite: source-in;
   }
 

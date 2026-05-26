@@ -729,8 +729,16 @@ turbo-frame#project_hero {
   // `--secondary` inherits the base set-2 fill with set-3 border + white text.
 
   &--test {
-    border-color: color-mix(in srgb, var(--color-brand-yellow) 55%, transparent);
-    background: color-mix(in srgb, var(--color-brand-yellow) 14%, var(--color-set-2-bg));
+    border-color: color-mix(
+      in srgb,
+      var(--color-brand-yellow) 55%,
+      transparent
+    );
+    background: color-mix(
+      in srgb,
+      var(--color-brand-yellow) 14%,
+      var(--color-set-2-bg)
+    );
     color: var(--color-brand-yellow);
   }
 
@@ -1261,6 +1269,7 @@ turbo-frame#project_hero {
   left: 50%;
   translate: -50% 0;
   margin: 0;
+  max-height: 76vh;
   overflow: visible;
 
   &::backdrop {
@@ -1270,6 +1279,45 @@ turbo-frame#project_hero {
 
   .feed-composer {
     background: var(--color-space-bg-2, #0d0b2e);
+    display: flex;
+    flex-direction: column;
+    max-height: 76vh;
+  }
+
+  .feed-composer__chips,
+  .feed-composer__grid,
+  .feed-composer__info-wrap,
+  .feed-composer__toolbar {
+    flex-shrink: 0;
+  }
+
+  .feed-composer__form {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .feed-composer__scroll {
+    display: contents;
+  }
+
+  .feed-composer__main {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  .feed-composer__field {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  .feed-composer__textarea {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 }
 

@@ -12,6 +12,21 @@ class My::SettingsController < ApplicationController
       send_notifications_for_new_comments: params[:send_notifications_for_new_comments] == "1",
       search_engine_indexing_off: params[:search_engine_indexing_off] == "1"
     )
+    session[:streamer_mode] = params[:streamer_mode] == "1"
     redirect_back fallback_location: root_path, notice: "Settings saved"
+  end
+
+  def toggle_streamer_mode
+    session[:streamer_mode] = params.key?(:enable) ? params[:enable] == "true" : !session[:streamer_mode]
+    respond_to do |format|
+      format.turbo_stream { head :ok }
+      format.html { redirect_back fallback_location: root_path }
+    end
+  end
+
+  private
+
+  def require_login
+    redirect_to root_path, alert: "Please log in first" and return unless current_user
   end
 end

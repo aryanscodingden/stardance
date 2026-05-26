@@ -22,7 +22,7 @@ module Admin
       filters = {
         "hq_mail" => [ "ShopItem::HQMailItem", "ShopItem::LetterMail" ],
         "third_party" => [ "ShopItem::ThirdPartyPhysical", "ShopItem::Accessory", "ShopItem::ThirdPartyDigital" ],
-        "warehouse" => [ "ShopItem::WarehouseItem", "ShopItem::PileOfStickersItem" ],
+        "warehouse" => [ "ShopItem::WarehouseItem" ],
         "free_stickers" => [ "ShopItem::FreeStickers" ]
       }
 
@@ -52,7 +52,7 @@ module Admin
       base_scope = base_fulfillment_scope(include_associations: true, include_free_stickers: include_free_stickers)
 
       if fulfillment_type == "all" && !@show_warehouse
-        base_scope = base_scope.where.not(shop_items: { type: [ "ShopItem::WarehouseItem", "ShopItem::PileOfStickersItem" ] })
+        base_scope = base_scope.where.not(shop_items: { type: [ "ShopItem::WarehouseItem" ] })
       end
 
       if fulfillment_type == "all" || !fulfillment_type_filters.key?(fulfillment_type)

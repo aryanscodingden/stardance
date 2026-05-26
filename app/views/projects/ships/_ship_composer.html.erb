@@ -32,6 +32,7 @@
                 class: "feed-composer__textarea",
                 rows: 1,
                 required: true,
+                maxlength: Post::ShipEvent::BODY_MAX_LENGTH,
                 placeholder: "What did you make? What was challenging? What are you proud of?",
                 aria: { label: "Ship update" },
                 data: { composer_target: "textarea",

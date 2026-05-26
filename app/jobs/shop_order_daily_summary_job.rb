@@ -17,7 +17,6 @@ class ShopOrderDailySummaryJob < ApplicationJob
     "ShopItem::HQMailItem" => "HQ Mail",
     "ShopItem::LetterMail" => "Letter Mail",
     "ShopItem::WarehouseItem" => "Warehouse",
-    "ShopItem::PileOfStickersItem" => "Pile of Stickers",
     "ShopItem::FreeStickers" => "Free Stickers",
     "ShopItem::HCBGrant" => "HCB Grant",
     "ShopItem::HCBPreauthGrant" => "HCB Preauth Grant",
