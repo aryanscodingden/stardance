@@ -106,20 +106,6 @@
             ) %>
     </div>
 
-    <div class="modal__field">
-      <%= label_tag :fraud_reason, "Fraud reason (only if rejecting for fraud)" %>
-      <%= select_tag :fraud_reason,
-            options_for_select(
-              [ [ "-- none --", "" ] ] + Project::FRAUD_REASONS.map { |r| [ r.titleize, r ] },
-              @project.fraud_reason
-            ) %>
-    </div>
-
-    <div class="modal__field">
-      <%= label_tag :fraud_evidence, "Fraud evidence / notes" %>
-      <%= text_area_tag :fraud_evidence, @project.fraud_evidence, rows: 3, maxlength: 10_000 %>
-    </div>
-
     <div class="modal__actions">
       <button type="submit" class="btn-primary">Update Status</button>
       <button type="button" onclick="document.getElementById('change-ship-status-modal').close()" class="btn-secondary">Cancel</button>
