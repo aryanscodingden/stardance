@@ -2,11 +2,12 @@ Guide = Data.define(:slug, :title, :description, :category, :icon, :reading_minu
   include ActiveModel::Conversion
   extend ActiveModel::Naming
 
-  self::CATEGORY_ORDER = %i[shipping craft].freeze
+  self::CATEGORY_ORDER = %i[shipping craft program].freeze
 
   self::CATEGORY_LABELS = {
     shipping: "Shipping",
-    craft: "Craft"
+    craft: "Craft",
+    program: "Program"
   }.freeze
 
   def initialize(params = {})
@@ -70,6 +71,15 @@ Guide = Data.define(:slug, :title, :description, :category, :icon, :reading_minu
       icon: "edit",
       reading_minutes: 4,
       related: %i[what_is_shipping]
+    ),
+    new(
+      slug: :why_we_ask,
+      title: "Why we ask for your info",
+      description: "What Stardance does with your birthday, region, and address — and what we don't do.",
+      category: :program,
+      icon: "info",
+      reading_minutes: 3,
+      related: []
     )
   ].freeze
 
