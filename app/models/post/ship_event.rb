@@ -52,6 +52,10 @@ class Post::ShipEvent < ApplicationRecord
   has_many :project_members, through: :project, source: :users
 
   has_many :votes, foreign_key: :ship_event_id, dependent: :nullify, inverse_of: :ship_event
+  has_many :vote_assignments, class_name: "Vote::Assignment",
+                              foreign_key: :ship_event_id,
+                              dependent: :destroy,
+                              inverse_of: :ship_event
 
   has_one :mission_submission, class_name: "Mission::Submission",
                                foreign_key: :ship_event_id,

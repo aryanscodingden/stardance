@@ -7,24 +7,22 @@
     <% when "none" %>
       <h1 class="onboarding-screen__title">
         No experience? Don't worry!<br>
-        so are <%= onboarding_count_up(6203) %> other people :)
+        <%= onboarding_count_up(6203) %> other people are also beginners.
       </h1>
-      <p class="onboarding-screen__body">
-        we have so many guides for you to get started.
-        <br><br>
-        don't worry at all :))
+      <p class="onboarding-screen__subhead">
+        We'll have plenty of guides to get you started, and a community to help!
       </p>
     <% when "little" %>
       <h1 class="onboarding-screen__title">A little bit counts! <%= onboarding_count_up(2000) %> others are at this stage too :)</h1>
-      <p class="onboarding-screen__body">
-        We'll help u go from "I sort of remember this" to "I built that." with our project guides and community help!
+      <p class="onboarding-screen__subhead">
+        We'll help you go from "I sort of remember this" to "I built that." with our project guides and community help!
       </p>
     <% when "some" %>
       <h1 class="onboarding-screen__title">
         You're in a great spot,<br>
         <%= onboarding_count_up(2756) %> others are here with you too!
       </h1>
-      <p class="onboarding-screen__body">
+      <p class="onboarding-screen__subhead">
         Check out our guides for more ideas, or view people's projects in the community and get inspired.
       </p>
     <% when "experienced" %>
@@ -32,14 +30,17 @@
         Nice! We're so excited to<br>
         see what you'll make here.
       </h1>
-      <p class="onboarding-screen__body">
+      <p class="onboarding-screen__subhead">
         Want some project ideas? Check out our guides, or view people's projects in the community and get inspired.
       </p>
     <% end %>
 
-    <%= render SpecialActionButtonComponent.new(
+    <%= render ActionButtonComponent.new(
           text: "Next",
+          variant: :primary,
+          size: :large,
           href: onboarding_interests_path,
+          icon: "icons/right-arrow.svg",
           data: { action: "click->onboarding-transition#leave" }
         ) %>
   </div>

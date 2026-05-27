@@ -1,56 +1,56 @@
 <% content_for :title, "Manage Shop" %>
-<div class="manage-shop">
-  <div class="manage-shop__header">
+<div>
+  <div>
     <h1>Manage Shop</h1>
-    <div class="manage-shop__actions">
-      <%= link_to current_user.shop_manager? && !current_user.admin? ? "New Draft" : "New Product", new_admin_shop_item_path, class: "btn-primary" %>
+    <div>
+      <%= link_to current_user.shop_manager? && !current_user.admin? ? "New Draft" : "New Product", new_admin_shop_item_path %>
       <% unless current_user.shop_manager? && !current_user.admin? %>
-        <%= button_to "Clear Carousel Cache", admin_clear_carousel_cache_path, method: :post, class: "btn-secondary", form: { onsubmit: "return confirm('Are you sure you want to clear the carousel cache?')" } %>
+        <%= button_to "Clear Carousel Cache", admin_clear_carousel_cache_path, method: :post, form: { onsubmit: "return confirm('Are you sure you want to clear the carousel cache?')" } %>
       <% end %>
     </div>
   </div>
 
-  <div class="card">
+  <div>
     <h3>Filters & Search</h3>
 
     <%= form_with url: admin_manage_shop_path, method: :get, local: true do |f| %>
-      <div class="manage-shop__filters">
-        <div class="manage-shop__filter-group">
-          <%= f.label :search, "Search", class: "manage-shop__label" %>
-          <%= f.text_field :search, value: params[:search], placeholder: "Name or ID...", class: "form-control", autocomplete: "off" %>
+      <div>
+        <div>
+          <%= f.label :search, "Search" %>
+          <%= f.text_field :search, value: params[:search], placeholder: "Name or ID...", autocomplete: "off" %>
         </div>
 
-        <div class="manage-shop__filter-group">
-          <%= f.label :type, "Type", class: "manage-shop__label" %>
-          <%= f.select :type, options_for_select(@item_types.map { |t| [t.gsub("ShopItem::", ""), t] }, params[:type]), { include_blank: "All Types" }, class: "form-control" %>
+        <div>
+          <%= f.label :type, "Type" %>
+          <%= f.select :type, options_for_select(@item_types.map { |t| [t.gsub("ShopItem::", ""), t] }, params[:type]), { include_blank: "All Types" } %>
         </div>
 
-        <div class="manage-shop__filter-group">
-          <%= f.label :enabled, "Status", class: "manage-shop__label" %>
-          <%= f.select :enabled, options_for_select([["Enabled", "true"], ["Disabled", "false"]], params[:enabled]), { include_blank: "All" }, class: "form-control" %>
+        <div>
+          <%= f.label :enabled, "Status" %>
+          <%= f.select :enabled, options_for_select([["Enabled", "true"], ["Disabled", "false"]], params[:enabled]), { include_blank: "All" } %>
         </div>
 
-        <div class="manage-shop__filter-group">
-          <%= f.label :carousel, "Carousel", class: "manage-shop__label" %>
-          <%= f.select :carousel, options_for_select([["In Carousel", "true"], ["Not in Carousel", "false"]], params[:carousel]), { include_blank: "All" }, class: "form-control" %>
+        <div>
+          <%= f.label :carousel, "Carousel" %>
+          <%= f.select :carousel, options_for_select([["In Carousel", "true"], ["Not in Carousel", "false"]], params[:carousel]), { include_blank: "All" } %>
         </div>
       </div>
 
-      <div class="manage-shop__filter-actions">
-        <%= f.submit "Apply Filters", class: "btn-primary slim" %>
-        <%= link_to "Clear All", admin_manage_shop_path, class: "btn-secondary slim" %>
+      <div>
+        <%= f.submit "Apply Filters" %>
+        <%= link_to "Clear All", admin_manage_shop_path %>
       </div>
     <% end %>
   </div>
 
-  <div class="card">
-    <div class="manage-shop__results-header">
+  <div>
+    <div>
       <h3>Items</h3>
-      <span class="manage-shop__count"><%= @shop_items.count %> items</span>
+      <span><%= @shop_items.count %> items</span>
     </div>
 
     <% if @shop_items.any? %>
-       <table class="table-data">
+       <table>
          <thead>
          <tr>
            <th>ID</th>
@@ -69,19 +69,19 @@
          <tbody>
          <% @shop_items.each do |item| %>
            <tr>
-             <td><code class="manage-shop__id">#<%= item.id %></code></td>
-             <td class="manage-shop__image-cell">
+             <td><code>#<%= item.id %></code></td>
+             <td>
                <% if item.image.attached? %>
-                 <%= image_tag item.image.variant(:carousel_sm), class: "manage-shop__image" %>
+                 <%= image_tag item.image.variant(:carousel_sm) %>
                <% else %>
-                 <div class="manage-shop__no-image">—</div>
+                 <div>—</div>
                <% end %>
              </td>
-             <td class="manage-shop__name"><%= item.name %></td>
-             <td><span class="manage-shop__type"><%= item.type.to_s.gsub("ShopItem::", "") %></span></td>
+             <td><%= item.name %></td>
+             <td><span><%= item.type.to_s.gsub("ShopItem::", "") %></span></td>
              <td><%= stardust_icon %> <%= item.ticket_cost.to_i %></td>
              <td><%= item.usd_cost ? number_to_currency(item.usd_cost) : "—" %></td>
-             <td class="manage-shop__regions">
+             <td>
                <%
                  regions = []
                  regions << "🇺🇸" if item.enabled_us
@@ -94,252 +94,55 @@
                  all_regions = item.enabled_us && item.enabled_eu && item.enabled_uk && item.enabled_ca && item.enabled_au && item.enabled_in && item.enabled_xx
                %>
                <% if all_regions %>
-                 <span class="manage-shop__region-globe" title="All regions">🌐</span>
+                 <span title="All regions">🌐</span>
                <% elsif regions.any? %>
                  <span title="<%= regions.join(" ") %>"><%= regions.join("") %></span>
                <% else %>
-                 <span class="manage-shop__no-regions">—</span>
+                 <span>—</span>
                <% end %>
              </td>
              <td>
                <% if item.draft? %>
-                 <span class="badge badge-draft">Draft</span>
+                 <span>Draft</span>
                <% elsif item.enabled %>
-                 <span class="badge badge-enabled">Enabled</span>
+                 <span>Enabled</span>
                <% else %>
-                 <span class="badge badge-disabled">Disabled</span>
+                 <span>Disabled</span>
                <% end %>
              </td>
              <td>
                <% if item.show_in_carousel %>
-                 <span class="manage-shop__carousel-yes">✓</span>
+                 <span>✓</span>
                <% else %>
-                 <span class="manage-shop__carousel-no">—</span>
+                 <span>—</span>
                <% end %>
              </td>
-             <td class="manage-shop__date"><%= item.created_at.strftime("%b %d, %Y") %></td>
+             <td><%= item.created_at.strftime("%b %d, %Y") %></td>
              <td>
-               <%= link_to "View", admin_shop_item_path(item), class: "btn-primary slim" %>
+               <%= link_to "View", admin_shop_item_path(item) %>
              </td>
            </tr>
          <% end %>
          </tbody>
        </table>
 
-       <div class="manage-shop__pagination">
+       <div>
          <% if @pagy.page > 1 %>
-           <%= link_to "← Previous", admin_manage_shop_path(search: params[:search], type: params[:type], enabled: params[:enabled], carousel: params[:carousel], page: @pagy.page - 1), class: "btn-secondary slim" %>
+           <%= link_to "← Previous", admin_manage_shop_path(search: params[:search], type: params[:type], enabled: params[:enabled], carousel: params[:carousel], page: @pagy.page - 1) %>
          <% end %>
 
-         <span class="manage-shop__page-info">Page <%= @pagy.page %> of <%= @pagy.pages %></span>
+         <span>Page <%= @pagy.page %> of <%= @pagy.pages %></span>
 
          <% if @pagy.page < @pagy.pages %>
-           <%= link_to "Next →", admin_manage_shop_path(search: params[:search], type: params[:type], enabled: params[:enabled], carousel: params[:carousel], page: @pagy.page + 1), class: "btn-secondary slim" %>
+           <%= link_to "Next →", admin_manage_shop_path(search: params[:search], type: params[:type], enabled: params[:enabled], carousel: params[:carousel], page: @pagy.page + 1) %>
          <% end %>
        </div>
     <% else %>
-      <p class="manage-shop__empty">No items found matching your filters.</p>
+      <p>No items found matching your filters.</p>
     <% end %>
   </div>
 
-  <div style="margin-top: 2rem;">
-    <%= link_to "← Back to Admin", admin_root_path, class: "btn-secondary" %>
+  <div>
+    <%= link_to "← Back to Users", admin_users_path %>
   </div>
 </div>
-
-<style>
-    .manage-shop__header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 1.5rem;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .manage-shop__header h1 {
-        margin: 0;
-    }
-
-    .manage-shop__actions {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .manage-shop .card {
-        margin-bottom: 1.5rem;
-    }
-
-    .manage-shop__filters {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .manage-shop__filter-group {
-        position: relative;
-    }
-
-    .manage-shop__label {
-        display: block;
-        font-weight: 500;
-        margin-bottom: 0.25rem;
-        font-size: 0.875rem;
-    }
-
-    .manage-shop__filter-actions {
-        display: flex;
-        gap: 0.75rem;
-    }
-
-    .manage-shop__results-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 1rem;
-    }
-
-    .manage-shop__results-header h3 {
-        margin: 0;
-    }
-
-    .manage-shop__count {
-        color: #6b7280;
-        font-size: 0.875rem;
-    }
-
-    .manage-shop__id {
-        background: var(--color-tan-400);
-        padding: 0.125rem 0.375rem;
-        border-radius: 4px;
-        font-size: 0.8125rem;
-    }
-
-    .manage-shop__name {
-        font-weight: 500;
-    }
-
-    .manage-shop__type {
-        background: var(--color-tan-400);
-        padding: 0.125rem 0.5rem;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        white-space: nowrap;
-    }
-
-    .manage-shop__image-cell {
-        width: 48px;
-        padding: 0.25rem !important;
-    }
-
-    .manage-shop__image {
-        width: 40px;
-        height: 40px;
-        object-fit: cover;
-        border-radius: 4px;
-        display: block;
-    }
-
-    .manage-shop__no-image {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--color-tan-400);
-        border-radius: 4px;
-        color: #9ca3af;
-        font-size: 0.875rem;
-    }
-
-    .manage-shop__regions {
-        font-size: 1rem;
-        letter-spacing: -0.05em;
-    }
-
-    .manage-shop__region-globe {
-        font-size: 1.125rem;
-    }
-
-    .manage-shop__no-regions {
-        color: #9ca3af;
-    }
-
-    .manage-shop__date {
-        white-space: nowrap;
-        color: #6b7280;
-        font-size: 0.875rem;
-    }
-
-    .manage-shop__carousel-yes {
-        color: #10b981;
-        font-weight: 600;
-    }
-
-    .manage-shop__carousel-no {
-        color: #9ca3af;
-    }
-
-    .manage-shop__empty,
-    .manage-shop__more {
-        text-align: center;
-        color: #6b7280;
-        padding: 1rem;
-        margin: 0;
-    }
-
-    /* Badges */
-    .badge-enabled {
-        background-color: #d1fae5;
-        color: #065f46;
-    }
-
-    .badge-disabled {
-        background-color: #f3f4f6;
-        color: #6b7280;
-    }
-
-    .badge-draft {
-        background-color: #fef3c7;
-        color: #b45309;
-    }
-
-    /* Form controls */
-    .form-control {
-        width: 100%;
-        padding: 0.5rem 0.75rem;
-        border-radius: 0.5rem;
-        border: 1px solid var(--color-brown-500);
-        background: var(--color-tan-400);
-        font-size: 0.875rem;
-        color: inherit;
-    }
-
-    .form-control:focus {
-        outline: none;
-        border-color: var(--color-brown-700);
-        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-control::placeholder {
-        color: #6b7280;
-    }
-
-    .manage-shop__pagination {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
-        padding: 1.5rem 0;
-        border-top: 1px solid var(--color-brown-500);
-        margin-top: 1rem;
-    }
-
-    .manage-shop__page-info {
-        color: #6b7280;
-        font-size: 0.875rem;
-        min-width: 120px;
-        text-align: center;
-    }
-</style>

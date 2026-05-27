@@ -1,18 +1,18 @@
 <% content_for :title, "Admin · Missions" %>
 
-<div class="admin-missions">
-  <header class="admin-missions__header">
+<div>
+  <header>
     <h1>Missions</h1>
-    <%= link_to "New mission", new_admin_mission_path, class: "action-btn action-btn--small action-btn--primary" %>
+    <%= link_to "New mission", new_admin_mission_path %>
   </header>
 
-  <nav class="admin-missions__filter">
+  <nav>
     <%= link_to "All", admin_missions_path %> ·
     <%= link_to "Disabled", admin_missions_path(filter: "disabled") %> ·
     <%= link_to "Deleted", admin_missions_path(filter: "deleted") %>
   </nav>
 
-  <table class="admin-missions__table">
+  <table>
     <thead>
       <tr>
         <th>Name</th>

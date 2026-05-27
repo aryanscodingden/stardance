@@ -13,7 +13,7 @@
     <% if @missions.any? %>
       <div class="project-setup-missions__grid">
         <% @missions.each do |mission| %>
-          <%= form_with url: projects_setup_submit_mission_path, method: :post, local: true,
+          <%= form_with url: projects_setup_submit_mission_path, method: :post,
                          class: "project-setup-missions__card-form" do %>
             <%= hidden_field_tag :mission_slug, mission.slug %>
             <button type="submit"
@@ -41,7 +41,7 @@
       <p class="project-setup-missions__empty">No missions available right now — pick "Figure it out later" and you can browse missions whenever you're ready.</p>
     <% end %>
 
-    <%= form_with url: projects_setup_submit_mission_path, method: :post, local: true,
+    <%= form_with url: projects_setup_submit_mission_path, method: :post,
                    class: "project-setup-missions__later-form" do %>
       <%= hidden_field_tag :figure_it_out_later, "1" %>
       <button type="submit" class="project-setup-missions__later"

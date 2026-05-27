@@ -1,89 +1,19 @@
-<% content_for :title, "Vote!" %>
-<% if @fullstory_org_id.present? %>
-  <% content_for :head do %>
-    <script>
-      window['_fs_host'] = 'fullstory.com';
-      window['_fs_script'] = 'edge.fullstory.com/s/fs.js';
-      window['_fs_org'] = <%= @fullstory_org_id.to_json %>;
-      window['_fs_namespace'] = 'FS';
-      (function(){
-        var s = document.createElement('script');
-        s.async = true;
-        s.src = 'https://' + window._fs_script;
-        var first = document.getElementsByTagName('script')[0];
-        first.parentNode.insertBefore(s, first);
-      })();
-    </script>
-  <% end %>
-<% end %>
+<% content_for :title, "Rate this project" %>
 
-<div class="votes-new">
-  <% if @project.nil? %>
-    <p class="votes-new__no-projects">No more projects to vote on!</p>
-  <% else %>
-    <%= render HeadingComponent.new(title: "Vote", tone: :blue, size: :full) do %>
-      <%= render "users/vote_verdict_banner" %>
-    <% end %>
+<main class="vote-page" aria-labelledby="vote-page-title">
+  <% if @assignment.present? %>
+    <div class="vote-page__layout">
+      <section class="vote-page__main" aria-label="Project context">
+        <%= render "votes/toolbar", assignment: @assignment %>
+        <%= render "votes/project_card", project: @project %>
+        <%= render "votes/timeline", posts: @timeline_posts, project: @project %>
+      </section>
 
-    <% if current_user.vote_balance < 0 %>
-      <%
-        cycle_size  = Post::ShipEvent::VOTE_COST_PER_SHIP
-        debt        = current_user.vote_balance.abs
-        cycles_owed = (debt.to_f / cycle_size).ceil
-        total       = cycles_owed * cycle_size
-        votes_cast  = total - debt
-      %>
-      <div class="votes-new__payout-meter">
-        <div class="votes-new__payout-meter-header">
-          <span class="votes-new__payout-meter-label">
-            <%= debt %> more <%= "vote".pluralize(debt) %> to unlock your payout
-          </span>
-          <span class="votes-new__payout-meter-count">
-            <%= votes_cast %> / <%= total %>
-          </span>
-        </div>
-        <progress
-          class="projects-show__payout-votes-progress"
-          value="<%= votes_cast %>"
-          max="<%= total %>"
-          aria-label="<%= votes_cast %> of <%= total %> votes cast to unlock payout">
-        </progress>
-      </div>
-    <% end %>
-
-    <%= form_with url: skip_votes_path, method: :post, data: { turbo: false }, class: "votes-new__skip-form" do %>
-      <%= hidden_field_tag :suggestion_token, @suggestion_token %>
-      <%= render ActionButtonComponent.new(
-        leading_icon: "icons/skip_forward_fill.svg",
-        size: :small,
-        variant: :secondary,
-        type: :submit,
-        text: "Skip",
-        disable_with: "Skipping..."
-      ) %>
-    <% end %>
-
-    <div class="votes-new__main">
-      <%= render "project_showcase", project: @project, posts: @posts %>
-
-      <aside
-        id="votes-score-card"
-        class="votes-new__score-card">
-        <button
-          type="button"
-          class="votes-new__score-card-toggle"
-          aria-controls="votes-score-card">
-          Score Card
-        </button>
-
-        <div class="votes-new__score-card-header">
-          <h2>Your grades, explorer</h2>
-        </div>
-
-        <div class="votes-new__score-card-form">
-          <%= render "form" %>
-        </div>
+      <aside class="vote-page__aside" aria-labelledby="vote-scorecard-title">
+        <%= render "votes/scorecard", assignment: @assignment, vote: @vote %>
       </aside>
     </div>
+  <% else %>
+    <%= render "votes/empty_state" %>
   <% end %>
-</div>
+</main>

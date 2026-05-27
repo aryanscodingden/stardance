@@ -3,17 +3,17 @@
   <%= render Onboarding::ProgressBarComponent.new(step: :birthday) %>
 
   <div class="onboarding-screen__content">
-    <h1 class="onboarding-screen__title">What's your birthday?</h1>
-    <p class="onboarding-screen__subhead">Stardance is only for teens aged 13–18!</p>
+    <h1 class="onboarding-screen__title">How old are you?</h1>
+    <p class="onboarding-screen__subhead">Stardance is only for teens aged 13–18, and is run by Hack Club, a nonprofit for teens, by teens.</p>
 
-    <%= form_with url: onboarding_birthday_path, method: :post, local: true,
+    <%= form_with url: onboarding_birthday_path, method: :post,
                    class: "onboarding-birthday__form" do %>
       <div class="onboarding-birthday__cards">
         <%= render Onboarding::ChoiceCardComponent.new(name: "attestation", value: "teen_13_18") do %>
-          Yes! I'm a teen aged 13-18
+          I'm a teen aged 13–18!
         <% end %>
         <%= render Onboarding::ChoiceCardComponent.new(name: "attestation", value: "ineligible") do %>
-          No, I'm not a teen.
+          I'm not a teen.
         <% end %>
       </div>
     <% end %>

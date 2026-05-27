@@ -1,0 +1,11 @@
+<header class="vote-page__toolbar">
+  <h1 id="vote-page-title" class="vote-page__title">Rate this project</h1>
+
+  <%= button_to votes_skip_path,
+                method: :post,
+                params: { vote_assignment_id: assignment.id },
+                class: "vote-page__skip" do %>
+    <span>Skip</span>
+    <span aria-hidden="true">→</span>
+  <% end %>
+</header>

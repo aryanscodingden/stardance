@@ -8,7 +8,7 @@
     <h1 class="onboarding-screen__title">What are you going to make?</h1>
     <p class="onboarding-screen__subhead">Give it a snazzy name — you can change it later.</p>
 
-    <%= form_with url: projects_setup_submit_name_path, method: :post, local: true,
+    <%= form_with url: projects_setup_submit_name_path, method: :post,
                    class: "project-setup-name__form" do %>
       <% prefill_title = @setup_project&.title.presence
          prefill_title = nil if prefill_title == Projects::SetupController::DEFAULT_PROJECT_TITLE %>

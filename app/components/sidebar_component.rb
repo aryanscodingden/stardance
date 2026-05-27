@@ -30,7 +30,7 @@ class SidebarComponent < ViewComponent::Base
         icon: { idle: "rocket", active: "rocket_active" } },
       { slug: "notifications", label: "notifications", path: "#",
         icon: { idle: "bell", active: "bell_active" } },
-      { slug: "vote",          label: "vote",          path: helpers.new_vote_path,
+      { slug: "rate",          label: "rate",          path: helpers.new_vote_path,
         icon: { idle: "box", active: "box_active" },
         locked: !user.shipped_projects.exists?,
         locked_message: "The Vote tab unlocks once you ship your first project!" },
@@ -44,7 +44,7 @@ class SidebarComponent < ViewComponent::Base
         icon: :avatar, active_prefix: "/users/" }
     ]
 
-    items << { slug: "admin",   label: "admin",   path: helpers.admin_root_path, icon: "code" } if helpers.policy(:admin).access_admin_dashboard?
+    items << { slug: "admin",   label: "admin",   path: helpers.admin_users_path, icon: "code" } if helpers.policy(:admin).access_admin_endpoints?
     items << { slug: "fulfil",  label: "fulfil",  path: helpers.admin_shop_orders_path(view: "fulfillment"), icon: "shopping_cart_1_fill" } if user.fulfillment_person? && !user.admin?
     items << { slug: "seller",  label: "seller",  path: helpers.seller_orders_path, icon: "shopping_cart_1_fill" } if user.seller?
     items << { slug: "helper",  label: "helper",  path: helpers.helper_root_path, icon: "help" } if helpers.policy(:helper).access_helper_dashboard?

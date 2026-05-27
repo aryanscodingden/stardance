@@ -2,34 +2,24 @@
 #
 # Table name: votes
 #
-#  id                   :bigint           not null, primary key
-#  demo_url_clicked     :boolean          default(FALSE)
-#  originality_score    :integer
-#  reason               :text
-#  reason_quality_label :string
-#  reason_quality_score :float
-#  repo_url_clicked     :boolean          default(FALSE)
-#  storytelling_score   :integer
-#  suspicious           :boolean          default(FALSE), not null
-#  technical_score      :integer
-#  time_taken_to_vote   :integer
-#  usability_score      :integer
-#  verdict              :string
-#  created_at           :datetime         not null
-#  updated_at           :datetime         not null
-#  project_id           :bigint           not null
-#  ship_event_id        :bigint           not null
-#  user_id              :bigint           not null
+#  id                 :bigint           not null, primary key
+#  originality_score  :integer
+#  reason             :text
+#  storytelling_score :integer
+#  technical_score    :integer
+#  usability_score    :integer
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  project_id         :bigint           not null
+#  ship_event_id      :bigint           not null
+#  user_id            :bigint           not null
 #
 # Indexes
 #
 #  index_votes_on_project_id                 (project_id)
-#  index_votes_on_reason_quality_label       (reason_quality_label)
 #  index_votes_on_ship_event_id              (ship_event_id)
-#  index_votes_on_suspicious_and_created_at  (suspicious,created_at)
 #  index_votes_on_user_id                    (user_id)
 #  index_votes_on_user_id_and_ship_event_id  (user_id,ship_event_id) UNIQUE
-#  index_votes_on_verdict                    (verdict)
 #
 # Foreign Keys
 #
@@ -43,9 +33,9 @@ class Vote < ApplicationRecord
 
   CATEGORIES = {
     originality: "How distinct is the project from common projects?",
-    technicality: "How much effort did the baker put into the implementation?",
+    technicality: "How much effort did the creator put into the implementation?",
     usability: "Did you like using it? Could you use it at all?",
-    storytelling: "How well does the baker document the development journey through devlogs, documentation, and READMEs?"
+    storytelling: "How well does the creator document the development journey through devlogs, documentation, commit messages, and READMEs?"
   }.freeze
 
   SCORE_COLUMNS_BY_CATEGORY = {
@@ -55,48 +45,31 @@ class Vote < ApplicationRecord
     storytelling: :storytelling_score
   }.freeze
 
-  def self.enabled_categories = CATEGORIES.keys
   def self.score_columns = SCORE_COLUMNS_BY_CATEGORY.values
-  def self.score_column_for!(category) = SCORE_COLUMNS_BY_CATEGORY.fetch(category.to_sym)
-
-  scope :legitimate, -> { where(suspicious: false) }
-  scope :suspicious, -> { where(suspicious: true) }
-  scope :payout_countable, -> {
-    legitimate
-      .where(verdict: [ nil, "neutral", "blessed" ])
-      .where.not(reason_quality_label: nil)
-      .where.not(reason_quality_label: "poor")
-  }
-  scope :current_voting_scale, -> {
-    joins(:ship_event).where(post_ship_events: { voting_scale_version: Post::ShipEvent::CURRENT_VOTING_SCALE_VERSION })
-  }
-
-  before_save :mark_suspicious
-  before_create :stamp_verdict
 
   belongs_to :user, counter_cache: true
   belongs_to :project
   belongs_to :ship_event, class_name: "Post::ShipEvent", counter_cache: true
 
+  has_one :assignment, class_name: "Vote::Assignment", dependent: :nullify
+
   has_paper_trail on: [ :create, :update, :destroy ]
 
-  after_commit :refresh_majority_judgment_scores, on: [ :create, :destroy ]
-  after_commit :trigger_payout_calculation, on: [ :create, :destroy ]
   after_commit :increment_user_vote_balance, on: :create
-  after_commit :detect_vote_spam, on: :create
-  after_commit :enqueue_reason_quality_scoring, on: :create
-  after_commit :broadcast_vote_to_channel, on: :create
 
-  validates :reason, presence: { message: "can't be blank" }
+  scope :payout_countable, -> { all }
+
+  validates :reason, presence: true
   validate :reason_minimum_words
-  validates(*score_columns, inclusion: { in: MIN_SCORE..MAX_SCORE, message: "must be between 1 and 9" }, allow_nil: true)
-  validate :all_categories_scored
+  validates(*score_columns,
+    presence: { message: "must be scored" },
+    numericality: { only_integer: true, in: MIN_SCORE..MAX_SCORE, message: "must be between #{MIN_SCORE} and #{MAX_SCORE}" })
   validate :user_cannot_vote_on_own_projects
   validate :ship_event_matches_project
 
-  def category_description(category) = CATEGORIES[category.to_sym]
-
   private
+
+  # Validations
 
   def reason_minimum_words
     return if reason.blank?
@@ -105,28 +78,8 @@ class Vote < ApplicationRecord
     errors.add(:reason, "must be at least 10 words (you have #{word_count})") if word_count < 10
   end
 
-  def all_categories_scored
-    missing = self.class.score_columns.select { |col| self[col].blank? }
-    errors.add(:base, "All categories must be scored") if missing.any?
-  end
-
   def user_cannot_vote_on_own_projects
     errors.add(:user, "cannot vote on own projects") if project&.users&.exists?(user_id)
-  end
-
-  def refresh_majority_judgment_scores
-    ShipEventMajorityJudgmentRefreshJob.perform_later
-  end
-
-  def trigger_payout_calculation
-    ShipEventPayoutCalculatorJob.perform_later
-  end
-
-  def increment_user_vote_balance
-    # Only increment vote balance for legitimate (non-suspicious) votes
-    return if suspicious?
-
-    user.increment!(:vote_balance, 1)
   end
 
   def ship_event_matches_project
@@ -138,23 +91,9 @@ class Vote < ApplicationRecord
     errors.add(:project, "does not match ship event") if project_id != expected_project_id
   end
 
-  def mark_suspicious
-    self.suspicious = Secrets::VoteSuspicion.suspicious_vote?(vote: self)
-  end
+  # Callback
 
-  def stamp_verdict
-    self.verdict = user&.vote_verdict&.verdict || "neutral"
-  end
-
-  def detect_vote_spam
-    Secrets::VoteSpamDetector.new(user).call
-  end
-
-  def enqueue_reason_quality_scoring
-    Vote::ScoreReasonQualityJob.perform_later(id)
-  end
-
-  def broadcast_vote_to_channel
-    BroadcastVoteToChannelJob.perform_later(self)
+  def increment_user_vote_balance
+    user.increment!(:vote_balance, 1)
   end
 end

@@ -9,14 +9,14 @@
 <% entries = entries.order(created_at: :desc) %>
 <% displayed_entries = entries.limit(limit).includes(:user) %>
 
-<div class="card" style="margin-top: 1.5rem;">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-    <h3 style="margin: 0;"><%= stardust_icon %> <%= title %></h3>
-    <span class="audit-logs__muted"><%= entries.count %> entries</span>
+<div>
+  <div>
+    <h3><%= stardust_icon %> <%= title %></h3>
+    <span><%= entries.count %> entries</span>
   </div>
 
   <% if displayed_entries.any? %>
-    <table class="table-data">
+    <table>
       <thead>
         <tr>
           <th>Timestamp</th>
@@ -30,35 +30,35 @@
       <tbody>
         <% displayed_entries.each do |entry| %>
           <tr>
-            <td class="audit-logs__timestamp">
-              <span class="audit-logs__date"><%= entry.created_at.strftime("%b %d, %Y") %></span>
-              <span class="audit-logs__time"><%= entry.created_at.strftime("%H:%M:%S") %></span>
+            <td>
+              <span><%= entry.created_at.strftime("%b %d, %Y") %></span>
+              <span><%= entry.created_at.strftime("%H:%M:%S") %></span>
             </td>
             <td>
               <% if entry.user %>
-                <div class="audit-logs__user">
-                  <img src="<%= entry.user.avatar %>" alt="" class="audit-logs__user-avatar">
+                <div>
+                  <img src="<%= entry.user.avatar %>" alt="">
                   <span><%= entry.user.display_name %></span>
                 </div>
               <% else %>
-                <span class="audit-logs__muted">—</span>
+                <span>—</span>
               <% end %>
             </td>
             <td>
-              <span class="badge <%= entry.amount.positive? ? 'badge-create' : 'badge-destroy' %>">
+              <span>
                 <%= entry.amount.positive? ? "+#{entry.amount}" : entry.amount %> <%= stardust_icon %>
               </span>
             </td>
             <td><%= truncate(entry.reason.to_s, length: 60) %></td>
             <td>
-              <code style="font-size: 0.75rem;"><%= entry.ledgerable_type.underscore.humanize %> #<%= entry.ledgerable_id %></code>
+              <code><%= entry.ledgerable_type.underscore.humanize %> #<%= entry.ledgerable_id %></code>
             </td>
-            <td class="audit-logs__muted"><%= entry.created_by %></td>
+            <td><%= entry.created_by %></td>
           </tr>
         <% end %>
       </tbody>
     </table>
   <% else %>
-    <p class="audit-logs__muted" style="text-align: center; padding: 1rem; margin: 0;">No ledger entries yet.</p>
+    <p>No ledger entries yet.</p>
   <% end %>
 </div>

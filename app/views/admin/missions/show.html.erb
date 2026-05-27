@@ -1,26 +1,26 @@
 <% content_for :title, "Admin · #{@mission.name}" %>
 
-<div class="admin-missions">
-  <header class="admin-missions__header">
+<div>
+  <header>
     <h1>
       <%= @mission.name %>
       <% if @mission.deleted_at? %>
-        <span class="status-pill status-pill--rejected">Deleted</span>
+        <span>Deleted</span>
       <% end %>
     </h1>
-    <div class="admin-missions__actions">
-      <%= link_to "Edit", edit_admin_mission_path(@mission.slug), class: "action-btn action-btn--small action-btn--secondary" %>
+    <div>
+      <%= link_to "Edit", edit_admin_mission_path(@mission.slug) %>
       <% if @mission.deleted_at? %>
-        <%= button_to "Restore", restore_admin_mission_path(@mission.slug), method: :post, class: "action-btn action-btn--small action-btn--primary" %>
+        <%= button_to "Restore", restore_admin_mission_path(@mission.slug), method: :post %>
       <% else %>
-        <%= button_to "Soft-delete", admin_mission_path(@mission.slug), method: :delete, data: { turbo_confirm: "Soft-delete this mission?" }, class: "action-btn action-btn--small action-btn--destructive" %>
+        <%= button_to "Soft-delete", admin_mission_path(@mission.slug), method: :delete, data: { turbo_confirm: "Soft-delete this mission?" } %>
       <% end %>
     </div>
   </header>
 
-  <section class="admin-missions__section">
+  <section>
     <h2>Details</h2>
-    <dl class="admin-missions__details">
+    <dl>
       <dt>Slug</dt>            <dd><code><%= @mission.slug %></code></dd>
       <dt>Enabled</dt>         <dd><%= @mission.enabled? ? "yes" : "no" %></dd>
       <dt>Window</dt>          <dd><%= @mission.start_at&.to_date %> → <%= @mission.end_at&.to_date %></dd>
@@ -31,7 +31,7 @@
     </dl>
   </section>
 
-  <section class="admin-missions__section">
+  <section>
     <h2>Steps (<%= @mission.steps.count %>)</h2>
     <ol>
       <% @mission.steps.ordered.each do |step| %>
@@ -40,7 +40,7 @@
     </ol>
   </section>
 
-  <section class="admin-missions__section">
+  <section>
     <h2>Prizes (<%= @mission.prizes.count %>)</h2>
     <ul>
       <% @mission.prizes.ordered.includes(:shop_item).each do |prize| %>
@@ -49,7 +49,7 @@
     </ul>
   </section>
 
-  <section class="admin-missions__section">
+  <section>
     <h2>Memberships (<%= @mission.memberships.count %>)</h2>
     <ul>
       <% @mission.memberships.includes(:user).each do |m| %>
@@ -58,7 +58,7 @@
     </ul>
   </section>
 
-  <section class="admin-missions__section">
+  <section>
     <h2>Shop unlocks (<%= @mission.shop_unlocks.count %>)</h2>
     <ul>
       <% @mission.shop_unlocks.includes(:shop_item).each do |u| %>
@@ -67,7 +67,7 @@
     </ul>
   </section>
 
-  <section class="admin-missions__section">
+  <section>
     <h2>Recent submissions</h2>
     <ul>
       <% @submissions.each do |s| %>
@@ -80,9 +80,9 @@
     </ul>
   </section>
 
-  <section class="admin-missions__section">
+  <section>
     <h2>Audit log</h2>
-    <table class="admin-missions__audit-log">
+    <table>
       <thead>
         <tr><th>When</th><th>Whodunnit</th><th>Item</th><th>Event</th></tr>
       </thead>

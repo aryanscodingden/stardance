@@ -85,7 +85,7 @@ class Onboarding::WizardControllerTest < ActionDispatch::IntegrationTest
       post onboarding_name_path, params: { display_name: "Happy Hacker" }
     end
 
-    assert_redirected_to onboarding_complete_path
+    assert_redirected_to home_path(welcome: 1)
     user = User.find_by(email: "happy@example.com")
     assert_equal "Happy Hacker", user.display_name
     assert_equal "teen_13_18", user.age_attestation

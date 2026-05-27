@@ -7,7 +7,7 @@
     <p class="onboarding-screen__eyebrow">Let's make your first project ✦</p>
     <h1 class="onboarding-screen__title">Do you have an idea<br>of what you want to make?</h1>
 
-    <%= form_with url: projects_setup_submit_idea_path, method: :post, local: true,
+    <%= form_with url: projects_setup_submit_idea_path, method: :post,
                    class: "project-setup-idea__form" do %>
       <div class="project-setup-idea__cards">
         <%= render Onboarding::ChoiceCardComponent.new(name: "idea", value: "yes", variant: :pair) do %>

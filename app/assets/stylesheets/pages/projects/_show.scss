@@ -647,6 +647,9 @@ turbo-frame#project_hero {
 }
 
 // Action row sits between the header and the latest-ship card.
+// Buttons are ActionButtonComponent (size :large), with two row-scoped tweaks:
+// each fills its share of the row, and the trailing icon is sized up to match
+// the illustrative rocket/arrow PNGs this row was originally tuned for.
 .project-show__actions {
   display: flex;
   gap: 14px;
@@ -654,125 +657,45 @@ turbo-frame#project_hero {
   position: sticky;
   top: 0;
   z-index: 5;
-}
 
-// Large action button (branding §4.2) — sits on the page background (set 1),
-// so this uses the dark-bg variant. Secondary base = set-2 fill with a
-// muted set-3-coloured border + white text; primary fills with the cream
-// highlight.
-// `button_to` wraps the button in a form. Make that form invisible to the
-// flex parent so the button itself remains the flex item (gets flex: 1 below).
-.project-show__action-form {
-  display: contents;
-}
-
-.project-show__action {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 32px;
-  border-radius: 999px;
-  border: 2px solid var(--color-set-3-bg);
-  background: var(--color-set-2-bg);
-  color: var(--color-space-text);
-  text-decoration: none;
-  font-family: inherit;
-  font-size: 1.1875rem; // 19px
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background 150ms ease,
-    border-color 150ms ease,
-    color 150ms ease;
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  .action-btn {
+    flex: 1;
   }
 
-  // Secondary hover — border + text shift to brand-highlight-secondary
-  // (keeps the dark fill so the change is purely a chrome lift).
-  &--secondary:hover:not(:disabled),
-  &--secondary:focus-visible:not(:disabled) {
-    border-color: var(--color-brand-highlight-secondary);
-    color: var(--color-brand-highlight-secondary);
+  // Some buttons in this row use button_to (Hackatime + test) because Turbo
+  // Drive is off app-wide and data-turbo-method links don't get intercepted.
+  // button_to wraps the button in a form — make the form invisible to flex.
+  .project-show__action-form {
+    display: contents;
   }
 
-  // Secondary pressed — push further to the deeper highlight cream.
-  &:active:not(:disabled),
-  &--secondary:active:not(:disabled) {
-    color: var(--color-brand-highlight);
-    border-color: var(--color-brand-highlight);
+  .action-btn__icon {
+    width: 1.6em;
+    height: 1.6em;
+    margin-top: -0.15em;
   }
 
-  // Primary action — cream highlight fill, dark text. Hover lightens to the
-  // secondary highlight, pressed goes pure white.
-  &--primary {
-    background: var(--color-brand-highlight);
-    border-color: var(--color-brand-highlight);
-    color: var(--color-set-1-bg);
-  }
-
-  &--primary:hover:not(:disabled),
-  &--primary:focus-visible:not(:disabled) {
-    background: var(--color-brand-highlight-secondary);
-    border-color: var(--color-brand-highlight-secondary);
-  }
-
-  &--primary:active:not(:disabled) {
-    background: var(--color-space-text);
-    border-color: var(--color-space-text);
-    color: var(--color-set-1-bg);
-  }
-
-  // `--secondary` inherits the base set-2 fill with set-3 border + white text.
-
-  &--test {
-    border-color: color-mix(
-      in srgb,
-      var(--color-brand-yellow) 55%,
-      transparent
-    );
+  // Yellow test variant applied via class: "project-show__action--test" on the
+  // "Add 15min (test)" ActionButton. Lives here because it's only used in this row.
+  .project-show__action--test {
     background: color-mix(
       in srgb,
       var(--color-brand-yellow) 14%,
       var(--color-set-2-bg)
     );
+    border-color: color-mix(
+      in srgb,
+      var(--color-brand-yellow) 55%,
+      transparent
+    );
     color: var(--color-brand-yellow);
+
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
+      border-color: var(--color-brand-yellow);
+      color: var(--color-brand-cream);
+    }
   }
-
-  &--test:hover:not(:disabled),
-  &--test:focus-visible:not(:disabled) {
-    border-color: var(--color-brand-yellow);
-    color: var(--color-brand-cream);
-  }
-}
-
-// End-icon slot for large action buttons. Per branding §4.2 the trailing icon
-// translates right on hover; the button body itself doesn't move.
-.project-show__action-icon {
-  display: inline-block;
-  margin-left: 8px;
-  transition: transform 150ms ease;
-
-  .project-show__action:hover:not(:disabled) &,
-  .project-show__action:focus-visible:not(:disabled) & {
-    transform: translateX(4px);
-  }
-}
-
-// Image-icon variant — sized to sit alongside the 19px button text. The
-// asset is the same illustrative PNG used in the sidebar for the "home"
-// nav item, so the rocket on "Create new ship" matches the home icon
-// visually.
-.project-show__action-icon--img {
-  width: 1.6em;
-  height: 1.6em;
-  vertical-align: middle;
-  // Pull the icon up slightly so its visual centre lines up with the
-  // capital-letter baseline rather than the descender line.
-  margin-top: -0.15em;
 }
 
 // Local onboarding vars previously lived here. Same brand-token mapping as

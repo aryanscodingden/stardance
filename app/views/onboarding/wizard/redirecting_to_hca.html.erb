@@ -2,13 +2,13 @@
 <main class="onboarding-screen onboarding-screen--project-link project-setup-screen">
   <div class="onboarding-screen__content">
     <h1 class="onboarding-screen__title">Welcome back!</h1>
-    <p class="onboarding-screen__body">Connecting you to your Hack Club account…</p>
+    <p class="onboarding-screen__subhead">Connecting you to your Hack Club account…</p>
 
     <%= form_with url: hack_club_auth_path(login_hint: @login_hint),
                    method: :post, local: true,
                    id: "hca-auto-redirect-form" do %>
       <noscript>
-        <%= render SpecialActionButtonComponent.new(text: "Continue", type: :submit, class: "project-setup-link__cta") %>
+        <%= render ActionButtonComponent.new(text: "Continue", variant: :primary, size: :large, type: :submit, icon: "icons/right-arrow.svg", class: "project-setup-link__cta") %>
       </noscript>
     <% end %>
   </div>

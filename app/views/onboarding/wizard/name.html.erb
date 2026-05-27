@@ -1,19 +1,20 @@
 <% content_for :title, "Your name" %>
 <main class="onboarding-screen onboarding-screen--name" data-controller="onboarding-transition">
+  <div class="onboarding-name__veil" aria-hidden="true"></div>
   <%= render Onboarding::ProgressBarComponent.new(step: :name) %>
 
   <div class="onboarding-screen__content">
-    <p class="onboarding-screen__subhead">So glad to have you here! Last question:</p>
+    <p class="onboarding-screen__eyebrow">almost there, just one final thing!!</p>
     <h1 class="onboarding-screen__title">What should we call you?</h1>
 
-    <%= form_with url: onboarding_name_path, method: :post, local: true,
+    <%= form_with url: onboarding_name_path, method: :post,
                    class: "onboarding-name__form" do |f| %>
       <%= f.text_field :display_name,
                        value: @display_name_default,
                        placeholder: "Your name",
                        autocomplete: "off",
                        required: true,
-                       class: "onboarding-name__input" %>
+                       class: "ship__input onboarding-name__input" %>
       <%= render SpecialActionButtonComponent.new(
             text: "Go",
             type: :submit,

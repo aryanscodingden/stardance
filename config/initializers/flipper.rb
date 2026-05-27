@@ -24,10 +24,8 @@ Rails.application.config.after_initialize do
         git_commit_2025-12-25
         shop_suggestion_box
         voting
-        admin_dark
         shop_backlogged
         kitchen_comic
-        admin_dark_brown_buttons
         grant_stardust
         fraud_daily_summary
         shop_order_daily_summary

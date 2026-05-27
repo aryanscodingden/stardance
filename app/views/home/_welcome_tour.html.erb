@@ -1,8 +1,14 @@
 <%
+  display_name = current_user&.display_name.presence
+  intro_text = display_name ? "Welcome, @#{display_name}" : "Welcome!"
+
   steps = [
     {
       intro: true,
-      text: "Welcome to the home page!"
+      ceremonial: true,
+      text: intro_text,
+      subtitle: "to the Stardance Challenge",
+      autoAdvance: 3200
     },
     {
       selector: ".feed-home",
@@ -45,6 +51,7 @@
                        focusable: false %>
 
     <p class="welcome-tour__text" data-welcome-tour-target="text"></p>
+    <p class="welcome-tour__subtitle" data-welcome-tour-target="subtitle" hidden></p>
 
     <div class="welcome-tour__actions">
       <button type="button"

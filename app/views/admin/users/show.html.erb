@@ -2,7 +2,7 @@
 <h1>User #<%= @user.id %>, <%= @user.display_name %></h1>
 
 <% if @user.banned? %>
-  <div class="alert alert--danger" style="margin-bottom: 1rem;">
+  <div>
     <strong>🚫 This user is banned</strong>
     <% if @user.banned_reason.present? %>
       <br>Reason: <%= @user.banned_reason %>
@@ -13,11 +13,11 @@
   </div>
 <% end %>
 
-<div class="flex">
-  <div class="card">
+<div>
+  <div>
     <h2>Basic info</h2>
 
-    <div class="info-rows">
+    <div>
       <div><b>Name:</b> <%= @user.display_name %></div>
       <div><b>Email:</b> <%= @user.email.presence || content_tag(:span, "N/A", style: "color: #9ca3af;") %></div>
       <div><b>HCB Email:</b> <%= @user.hcb_email.presence || content_tag(:span, "N/A", style: "color: #9ca3af;") %></div>
@@ -25,12 +25,12 @@
       <div><b>Roles:</b> <%= @user.roles.map { |r| r.to_s.titleize }.join(", ") %></div>
       <div>
         <b>Projects (<%= @all_projects.size %>):</b>
-        <ul style="margin: 0.5rem 0 0 1rem; padding: 0; list-style: disc;">
+        <ul>
           <% @all_projects.each do |project| %>
             <li>
               <%= link_to project.title, admin_project_path(project), style: "color: #3b82f6;" %>
               <% if project.deleted? %>
-                <span style="color: #ef4444; font-weight: 500;">(deleted)</span>
+                <span>(deleted)</span>
               <% end %>
             </li>
           <% end %>
@@ -39,38 +39,34 @@
       <% if @user.fulfillment_person? %>
         <div>
           <b>Regions:</b>
-          <form method="post" action="<%= admin_user_path(@user) %>" style="display: inline-block; vertical-align: middle;">
+          <form method="post" action="<%= admin_user_path(@user) %>">
             <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
             <%= hidden_field_tag :_method, "patch" %>
             <%= hidden_field_tag "user[regions][]", "" %>
-            <div class="region-checkboxes" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem;">
+            <div>
               <% Shop::Regionalizable::REGION_CODES.each do |code| %>
-                <label class="region-checkbox" style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.5rem; background: var(--color-tan-400); border: 2px solid var(--color-brown-500); border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem; transition: background 0.1s, border-color 0.1s;">
-                  <input type="checkbox"
-                         name="user[regions][]"
-                         value="<%= code %>"
-                         <%= "checked" if @user.regions.include?(code) %>
-                         style="accent-color: var(--color-brown-500); width: 1rem; height: 1rem;">
+                <label>
+                  <%= check_box_tag "user[regions][]", code, @user.regions.include?(code) %>
                   <span><%= Shop::Regionalizable.region_name(code) %></span>
                 </label>
               <% end %>
             </div>
-            <button type="submit" class="btn-primary slim" style="margin-top: 0.5rem;">Save Regions</button>
+            <button type="submit">Save Regions</button>
           </form>
         </div>
       <% end %>
     </div>
   </div>
-  <div class="card">
+  <div>
     <h2>Identities</h2>
-    <div class="info-rows">
+    <div>
       <div>
         <b>slack_id:</b>
         <% if @user.slack_id.present? %>
           <%= @user.slack_id %>
-          <%= link_to "go to slack", "https://hackclub.slack.com/team/#{ERB::Util.url_encode(@user.slack_id)}", class: "btn-primary slim", target: "_blank" %>
+          <%= link_to "go to slack", "https://hackclub.slack.com/team/#{ERB::Util.url_encode(@user.slack_id)}", target: "_blank" %>
         <% else %>
-          <span style="color: #9ca3af;">N/A</span>
+          <span>N/A</span>
         <% end %>
       </div>
       <% @user.identities.each do |identity| %>
@@ -79,16 +75,16 @@
           <%= identity.uid %>
 
           <% if identity.provider == "slack" %>
-            <%= link_to "go to slack", "https://hackclub.slack.com/team/#{identity.uid}", class: "btn-primary slim", target: "_blank" %>
+            <%= link_to "go to slack", "https://hackclub.slack.com/team/#{identity.uid}", target: "_blank" %>
           <% end %>
 
           <% if identity.provider == "hackatime" %>
-            <%= link_to "go to billy", "https://billy.3kh0.net/?u=#{identity.uid}", class: "btn-primary slim", target: "_blank" %>
-            <%= link_to "go to joe", "https://joe.fraud.hackclub.com/profile/#{identity.uid}", class: "btn-primary slim", target: "_blank" %>
+            <%= link_to "go to billy", "https://billy.3kh0.net/?u=#{identity.uid}", target: "_blank" %>
+            <%= link_to "go to joe", "https://joe.fraud.hackclub.com/profile/#{identity.uid}", target: "_blank" %>
           <% end %>
 
           <% if identity.provider == "hack_club" %>
-            <%= link_to "go to idv backend", "#{HCAService.backend_url("/identities/#{identity.uid}")}", class: "btn-primary slim", target: "_blank" %>
+            <%= link_to "go to idv backend", "#{HCAService.backend_url("/identities/#{identity.uid}")}", target: "_blank" %>
           <% end %>
         </div>
       <% end %>
@@ -96,18 +92,17 @@
   </div>
 </div>
 
-<div class="flex">
-  <div class="card">
+<div>
+  <div>
     <h2>Actions</h2>
-    <div class="admin-actions-wrap">
+    <div>
       <% if policy(:admin).manage_messages? %>
-        <%= link_to "✉️ Send Message", admin_messages_path(slack_id: @user.slack_id), class: "btn-primary slim" %>
+        <%= link_to "✉️ Send Message", admin_messages_path(slack_id: @user.slack_id) %>
       <% end %>
       <% if policy(@user).impersonate? && !impersonating? %>
         <%= button_to "Impersonate User",
                       impersonate_admin_user_path(@user),
                       method: :post,
-                      class: "btn-primary slim",
                       data: {
                         confirm: "Are you sure you want to impersonate #{@user.display_name}? You will see the site as they do."
                       } %>
@@ -115,13 +110,11 @@
       <%= button_to "🔄 Sync Hackatime Data",
                     sync_hackatime_admin_user_path(@user),
                     method: :post,
-                    title: "Sync Hackatime Data",
-                    class: "btn-primary slim" %>
+                    title: "Sync Hackatime Data" %>
       <%= button_to "🔄 Refresh Verification",
                     refresh_verification_admin_user_path(@user),
                     method: :post,
                     title: "Refresh verification status from HCA",
-                    class: "btn-primary slim",
                     data: { confirm: "Refresh verification status for #{@user.display_name}?" } %>
       <%
         all_roles = [
@@ -129,7 +122,6 @@
           { name: 'fulfillment_person', disabled: !current_user&.admin? },
           { name: 'project_certifier', disabled: !current_user&.admin? },
           { name: 'helper', disabled: !current_user&.admin? },
-          { name: 'flavortime', disabled: !current_user&.admin? },
           { name: 'shop_manager', disabled: !current_user&.admin? },
           { name: 'admin', disabled: !current_user&.super_admin? },
         ]
@@ -137,30 +129,28 @@
         demotable_roles = all_roles.select { |r| @user.has_role?(r[:name]) }
       %>
       <% if promotable_roles.any? %>
-        <div class="role-dropdown">
-          <button type="button" class="btn-primary slim" data-role-dropdown-toggle>⬆ Promote to…</button>
-          <div class="role-dropdown__menu">
+        <div>
+          <button type="button" data-role-dropdown-toggle>⬆ Promote to…</button>
+          <div>
             <% promotable_roles.each do |role| %>
               <%= button_to role[:name].titleize,
                             promote_role_admin_user_path(@user),
                             method: :post,
                             params: { role_name: role[:name] },
-                            class: "role-dropdown__item",
                             disabled: role[:disabled] %>
             <% end %>
           </div>
         </div>
       <% end %>
       <% if demotable_roles.any? %>
-        <div class="role-dropdown">
-          <button type="button" class="btn-danger slim" data-role-dropdown-toggle>⬇ Demote from…</button>
-          <div class="role-dropdown__menu">
+        <div>
+          <button type="button" data-role-dropdown-toggle>⬇ Demote from…</button>
+          <div>
             <% demotable_roles.each do |role| %>
               <%= button_to role[:name].titleize,
                             demote_role_admin_user_path(@user),
                             method: :post,
                             params: { role_name: role[:name] },
-                            class: "role-dropdown__item",
                             disabled: role[:disabled] %>
             <% end %>
           </div>
@@ -183,47 +173,47 @@
       </script>
 
       <% if @user.shop_orders.where(aasm_state: %w[pending awaiting_periodical_fulfillment]).any? %>
-        <button type="button" onclick="document.getElementById('reject-modal-orders').showModal()" class="btn-danger slim">
+        <button type="button" onclick="document.getElementById('reject-modal-orders').showModal()">
           ✗ Reject Orders
         </button>
         <%= render layout: "shared/modal", locals: { id: "reject-modal-orders", title: "Reject All Orders", description: "This will reject all pending and awaiting fulfillment orders for #{@user.display_name}." } do %>
           <form action="<%= mass_reject_orders_admin_user_path(@user) %>" method="post">
             <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-            <div class="modal__field">
+            <div>
               <%= label_tag :reason, "Rejection Reason (optional)" %>
               <%= text_area_tag :reason, "", placeholder: "Enter reason..." %>
             </div>
-            <div class="modal__actions">
-              <button type="submit" class="btn-danger slim">Confirm Reject</button>
-              <button type="button" onclick="document.getElementById('reject-modal-orders').close()" class="btn-secondary slim">Cancel</button>
+            <div>
+              <button type="submit">Confirm Reject</button>
+              <button type="button" onclick="document.getElementById('reject-modal-orders').close()">Cancel</button>
             </div>
           </form>
         <% end %>
       <% end %>
 
       <% if policy(:admin).manage_users? %>
-        <button type="button" onclick="document.getElementById('adjust-balance-modal').showModal()" class="btn-primary slim">
+        <button type="button" onclick="document.getElementById('adjust-balance-modal').showModal()">
           💰 Adjust Balance
         </button>
         <%= render layout: "shared/modal", locals: { id: "adjust-balance-modal", title: "Adjust Balance", description: "Current balance: #{@user.balance} tickets" } do %>
           <form action="<%= adjust_balance_admin_user_path(@user) %>" method="post">
             <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-            <div class="modal__field">
+            <div>
               <%= label_tag :amount, "Amount (use negative to decrease)" %>
               <%= number_field_tag :amount, nil, placeholder: "e.g. 100 or -50", required: true, autocomplete: "off" %>
             </div>
-            <div class="modal__field">
+            <div>
               <%= label_tag :reason, "Reason (required)" %>
               <%= text_area_tag :reason, "", placeholder: "Enter reason for adjustment...", required: true %>
             </div>
-            <div class="modal__actions">
-              <button type="submit" class="btn-primary slim">Confirm Adjustment</button>
-              <button type="button" onclick="document.getElementById('adjust-balance-modal').close()" class="btn-secondary slim">Cancel</button>
+            <div>
+              <button type="submit">Confirm Adjustment</button>
+              <button type="button" onclick="document.getElementById('adjust-balance-modal').close()">Cancel</button>
             </div>
           </form>
         <% end %>
-        <%= link_to "View Votes", votes_admin_user_path(@user), class: "btn-secondary slim" %>
-        <button type="button" class="btn-primary slim" id="set-vote-bal">
+        <%= link_to "View Votes", votes_admin_user_path(@user) %>
+        <button type="button" id="set-vote-bal">
           Set Vote Balance (<%= @user.vote_balance %>)
         </button>
         <script>
@@ -245,17 +235,17 @@
 
       <% if current_user.admin? %>
         <% has_grants = @user.shop_card_grants.where.not(hcb_grant_hashid: nil).exists? %>
-        <button type="button" onclick="document.getElementById('cancel-grants-modal').showModal()" class="btn-danger slim" <%= 'disabled style="opacity: 0.5; cursor: not-allowed;"'.html_safe unless has_grants %>>
+        <button type="button" onclick="document.getElementById('cancel-grants-modal').showModal()" <%= 'disabled'.html_safe unless has_grants %>>
           🚫 Cancel All HCB Grants
         </button>
         <% if has_grants %>
           <%= render layout: "shared/modal", locals: { id: "cancel-grants-modal", title: "Cancel All HCB Grants", description: "This will cancel ALL HCB grants for #{@user.display_name}. This action cannot be undone!" } do %>
             <form action="<%= cancel_all_hcb_grants_admin_user_path(@user) %>" method="post">
               <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-              <p style="color: #ef4444; font-weight: bold;">⚠️ Warning: This will cancel <%= @user.shop_card_grants.where.not(hcb_grant_hashid: nil).count %> grant(s).</p>
-              <div class="modal__actions">
-                <button type="submit" class="btn-danger slim">Confirm Cancel All Grants</button>
-                <button type="button" onclick="document.getElementById('cancel-grants-modal').close()" class="btn-secondary slim">Cancel</button>
+              <p>⚠️ Warning: This will cancel <%= @user.shop_card_grants.where.not(hcb_grant_hashid: nil).count %> grant(s).</p>
+              <div>
+                <button type="submit">Confirm Cancel All Grants</button>
+                <button type="button" onclick="document.getElementById('cancel-grants-modal').close()">Cancel</button>
               </div>
             </form>
           <% end %>
@@ -264,31 +254,31 @@
 
       <% if policy(:admin).ban_users? %>
         <% if @user.banned? %>
-          <%= button_to "🔓 Unban User", unban_admin_user_path(@user), method: :post, class: "btn-primary slim", form: { onsubmit: "return confirm(#{("Are you sure you want to unban #{@user.display_name}?").to_json})" } %>
+          <%= button_to "🔓 Unban User", unban_admin_user_path(@user), method: :post, form: { onsubmit: "return confirm(#{("Are you sure you want to unban #{@user.display_name}?").to_json})" } %>
         <% else %>
-          <button type="button" onclick="document.getElementById('ban-user-modal').showModal()" class="btn-danger slim">
+          <button type="button" onclick="document.getElementById('ban-user-modal').showModal()">
             🚫 Ban User
           </button>
           <%= render layout: "shared/modal", locals: { id: "ban-user-modal", title: "Ban User", description: "This will prevent #{@user.display_name} from accessing the site (except /home)." } do %>
             <form action="<%= ban_admin_user_path(@user) %>" method="post">
               <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-              <div class="modal__field">
+              <div>
                 <%= label_tag :reason, "Ban Reason (optional)" %>
                 <%= text_area_tag :reason, "", placeholder: "Enter reason for ban..." %>
               </div>
-              <div class="modal__actions">
-                <button type="submit" class="btn-danger slim">Confirm Ban</button>
-                <button type="button" onclick="document.getElementById('ban-user-modal').close()" class="btn-secondary slim">Cancel</button>
+              <div>
+                <button type="submit">Confirm Ban</button>
+                <button type="button" onclick="document.getElementById('ban-user-modal').close()">Cancel</button>
               </div>
             </form>
           <% end %>
         <% end %>
 
         <% if @user.manual_ysws_override? %>
-          <%= button_to "Remove ysws override", set_ysws_eligible_override_admin_user_path(@user), method: :patch, params: { manual_ysws_override: "false" }, class: "btn-secondary slim", form: { onsubmit: "return confirm(#{("Are you sure you want to remove the YSWS eligibility override for #{@user.display_name}?").to_json})" } %>
+          <%= button_to "Remove ysws override", set_ysws_eligible_override_admin_user_path(@user), method: :patch, params: { manual_ysws_override: "false" }, form: { onsubmit: "return confirm(#{("Are you sure you want to remove the YSWS eligibility override for #{@user.display_name}?").to_json})" } %>
         <% else %>
           <% unless @user.ysws_eligible? %>
-            <%= button_to "Make ysws eligible", set_ysws_eligible_override_admin_user_path(@user), method: :patch, params: { manual_ysws_override: "true" }, class: "btn-danger slim", form: { onsubmit: "return confirm(#{("Are you sure you want to manually override YSWS eligibility for #{@user.display_name}?").to_json})" } %>
+            <%= button_to "Make ysws eligible", set_ysws_eligible_override_admin_user_path(@user), method: :patch, params: { manual_ysws_override: "true" }, form: { onsubmit: "return confirm(#{("Are you sure you want to manually override YSWS eligibility for #{@user.display_name}?").to_json})" } %>
           <% end %>
         <% end %>
       <% end %>
@@ -296,7 +286,6 @@
       <% if policy(:admin).ban_users? %>
         <%= button_to toggle_voting_lock_admin_user_path(@user),
               method: :post,
-              class: "btn-secondary slim",
               title: @user.voting_locked? ? "Unlock Voting" : "Lock Voting",
               form: { onsubmit: "return confirm(#{("Are you sure you want to #{@user.voting_locked? ? "unlock" : "lock"} voting for #{@user.display_name}?").to_json})" } do %>
           <%= @user.voting_locked? ? "Unlock Voting" : "Lock Voting" %>
@@ -304,14 +293,12 @@
       <% end %>
     </div>
   </div>
-  <div class="card">
+  <div>
     <h2>Flipper Features</h2>
-    <div class="flipper-features-wrap">
+    <div>
       <%
         features = [
           { key: :shop_open, label: "Shop" },
-          { key: :admin_green, label: "Admin Green" },
-          { key: :admin_dark, label: "Admin Dark" },
           { key: :"git_commit_2025-12-25", label: "Git Commit" },
           { key: :kitchen_comic, label: "Kitchen Comic" },
           { key: :voting, label: "Voting" },
@@ -323,7 +310,6 @@
         <%= button_to toggle_flipper_admin_user_path(@user),
                       method: :post,
                       params: { feature: f[:key].to_s },
-                      class: "flipper-toggle #{enabled ? 'flipper-toggle--enabled' : ''}",
                       disabled: !current_user&.admin?,
                       title: "#{enabled ? 'Disable' : 'Enable'} #{f[:label]}" do %>
           <%= f[:label] %><%= enabled ? " ✓" : "" %>
@@ -333,11 +319,11 @@
   </div>
 </div>
 
-<div class="admin-section<%= ' admin-section--highlighted' if @user.internal_notes.present? %>">
-  <h2 class="admin-section__header">📝 Internal Notes</h2>
-  <p class="admin-section__note">⚠️ Shared between fraud, fulfillment, and admins. Changes are audit logged.</p>
+<div>
+  <h2>📝 Internal Notes</h2>
+  <p>⚠️ Shared between fraud, fulfillment, and admins. Changes are audit logged.</p>
   <% if @user.internal_notes.present? %>
-    <div class="admin-alert admin-alert--warning">
+    <div>
       <strong>Note:</strong> <%= simple_format(@user.internal_notes, {}, wrapper_tag: "span") %>
     </div>
   <% end %>
@@ -346,9 +332,8 @@
     <%= hidden_field_tag :_method, "patch" %>
     <%= text_area_tag "user[internal_notes]", @user.internal_notes,
         placeholder: "Add internal notes about this user...",
-        rows: 4,
-        class: "admin-textarea" %>
-    <button type="submit" class="btn-primary slim">Save Notes</button>
+        rows: 4 %>
+    <button type="submit">Save Notes</button>
   </form>
 </div>
 

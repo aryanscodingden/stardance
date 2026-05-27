@@ -1,17 +1,17 @@
 <% content_for :title, "Votes by #{@user.display_name}" %>
 <h1 align="center">Votes by <%= @user.display_name %></h1>
 
-<div style="display: flex; justify-content: space-between; margin: 1.5em 0;">
-  <%= link_to "← Back to User", admin_user_path(@user), class: "btn-secondary" %>
-  <label style="display: flex; align-items: center; gap: 0.5em;">
+<div>
+  <%= link_to "← Back to User", admin_user_path(@user) %>
+  <label>
     <input type="checkbox" id="toggle-reasons" checked>
     Show vote reasons
   </label>
 </div>
 
-<div class="card voting-card voting-card--full">
+<div>
   <% if @votes.any? %>
-    <table class="voting-table voting-table--wide">
+    <table>
       <thead>
         <tr>
           <th>Time</th>
@@ -23,7 +23,7 @@
           <th>Time</th>
           <th>Demo</th>
           <th>Repo</th>
-          <th class="vote-reasons">Reason</th>
+          <th>Reason</th>
         </tr>
       </thead>
       <tbody>
@@ -34,24 +34,24 @@
               <% if vote.project %>
                 <%= link_to truncate(vote.project.title, length: 30), admin_project_path(vote.project) %>
               <% else %>
-                <span class="text-muted">Deleted</span>
+                <span>Deleted</span>
               <% end %>
             </td>
-            <td class="score"><%= vote.originality_score || "—" %></td>
-            <td class="score"><%= vote.technical_score || "—" %></td>
-            <td class="score"><%= vote.usability_score || "—" %></td>
-            <td class="score"><%= vote.storytelling_score || "—" %></td>
+            <td><%= vote.originality_score || "—" %></td>
+            <td><%= vote.technical_score || "—" %></td>
+            <td><%= vote.usability_score || "—" %></td>
+            <td><%= vote.storytelling_score || "—" %></td>
             <td><%= vote.time_taken_to_vote ? "#{vote.time_taken_to_vote}s" : "—" %></td>
             <td><%= vote.demo_url_clicked ? "✓" : "—" %></td>
             <td><%= vote.repo_url_clicked ? "✓" : "—" %></td>
-            <td class="vote-reasons">
+            <td>
               <% if vote.reason.present? %>
                 <details>
                   <summary>View</summary>
-                  <div style="margin-top: 0.5rem; white-space: pre-wrap; max-width: 300px;"><%= vote.reason %></div>
+                  <div><%= vote.reason %></div>
                 </details>
               <% else %>
-                <span class="text-muted">—</span>
+                <span>—</span>
               <% end %>
             </td>
           </tr>
@@ -59,7 +59,7 @@
       </tbody>
     </table>
     <% if @pagy.pages > 1 %>
-      <div class="pagination" style="margin-top: 1rem;">
+      <div>
         <%== @pagy.series_nav %>
       </div>
     <% end %>

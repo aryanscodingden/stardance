@@ -1,17 +1,17 @@
 <% content_for :title, "Votes on #{@project.title}" %>
 <h1 align="center">Votes on <%= @project.title %> (#<%= @project.id %>)</h1>
 
-<div style="display: flex; justify-content: space-between; margin: 1.5em 0;">
-  <%= link_to "← Back to Project", admin_project_path(@project), class: "btn-secondary" %>
-  <label style="display: flex; align-items: center; gap: 0.5em;">
+<div>
+  <%= link_to "← Back to Project", admin_project_path(@project) %>
+  <label>
     <input type="checkbox" id="toggle-reasons" checked>
     Show vote reasons
   </label>
 </div>
 
-<div class="card voting-card voting-card--full">
+<div>
   <% if @votes.any? %>
-    <table class="voting-table voting-table--wide">
+    <table>
       <thead>
         <tr>
           <th>Time</th>
@@ -24,42 +24,42 @@
           <th>Demo</th>
           <th>Repo</th>
           <th>Discarded</th>
-          <th class="vote-reasons">Reason</th>
+          <th>Reason</th>
         </tr>
       </thead>
       <tbody>
         <% @votes.each do |vote| %>
-          <tr class="<%= 'suspicious-vote' if vote.suspicious %>">
+          <tr>
             <td><%= time_ago_in_words(vote.created_at) %> ago</td>
             <td>
               <% if vote.user %>
                 <%= link_to vote.user.display_name || "User ##{vote.user.id}", admin_user_path(vote.user) %>
               <% else %>
-                <span class="text-muted">Unknown</span>
+                <span>Unknown</span>
               <% end %>
             </td>
-            <td class="score"><%= vote.originality_score || "—" %></td>
-            <td class="score"><%= vote.technical_score || "—" %></td>
-            <td class="score"><%= vote.usability_score || "—" %></td>
-            <td class="score"><%= vote.storytelling_score || "—" %></td>
+            <td><%= vote.originality_score || "—" %></td>
+            <td><%= vote.technical_score || "—" %></td>
+            <td><%= vote.usability_score || "—" %></td>
+            <td><%= vote.storytelling_score || "—" %></td>
             <td><%= vote.time_taken_to_vote ? "#{vote.time_taken_to_vote}s" : "—" %></td>
             <td><%= vote.demo_url_clicked ? "✓" : "—" %></td>
             <td><%= vote.repo_url_clicked ? "✓" : "—" %></td>
             <td>
               <% if vote.suspicious %>
-                <span class="text-danger">⚠ Yes</span>
+                <span>⚠ Yes</span>
               <% else %>
-                <span class="text-muted">No</span>
+                <span>No</span>
               <% end %>
             </td>
-            <td class="vote-reasons">
+            <td>
               <% if vote.reason.present? %>
                 <details>
                   <summary>View</summary>
-                  <div style="margin-top: 0.5rem; white-space: pre-wrap; max-width: 300px;"><%= vote.reason %></div>
+                  <div><%= vote.reason %></div>
                 </details>
               <% else %>
-                <span class="text-muted">—</span>
+                <span>—</span>
               <% end %>
             </td>
           </tr>
@@ -67,7 +67,7 @@
       </tbody>
     </table>
     <% if @pagy.pages > 1 %>
-      <div class="pagination" style="margin-top: 1rem;">
+      <div>
         <%== @pagy.series_nav %>
       </div>
     <% end %>

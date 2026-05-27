@@ -204,7 +204,7 @@ class Admin::ShopOrdersController < Admin::ApplicationController
 
       render turbo_stream: turbo_stream.replace(
         "phone-content",
-        html: "<div class='info-rows'><div><b>Phone:</b> #{phone_number.present? ? ERB::Util.html_escape(phone_number) : 'N/A'}</div></div><div style='margin-top: 1em; padding: 0.5em; background: #fef3c7; border-radius: 4px;'><small style='color: #92400e;'>🔒 Phone access has been logged for security purposes.</small></div>".html_safe
+        html: "<div><div><b>Phone:</b> #{phone_number.present? ? ERB::Util.html_escape(phone_number) : 'N/A'}</div></div><div><small>Phone access has been logged for security purposes.</small></div>".html_safe
       )
     else
       render plain: "Unauthorized", status: :forbidden

@@ -1,40 +1,40 @@
 <% content_for :title, "Admin · Edit #{@mission.name}" %>
 
-<div class="admin-missions">
-  <header class="admin-missions__header">
+<div>
+  <header>
     <h1>Edit <%= @mission.name %></h1>
-    <%= link_to "← Back to view", admin_mission_path(@mission.slug), class: "action-btn action-btn--small action-btn--secondary" %>
+    <%= link_to "← Back to view", admin_mission_path(@mission.slug) %>
   </header>
 
-  <section class="admin-missions__section">
+  <section>
     <h2>Mission details</h2>
     <%= render "form", mission: @mission, form_url: admin_mission_path(@mission.slug), form_method: :patch %>
   </section>
 
-  <section class="admin-missions__section">
+  <section>
     <h2>Steps</h2>
     <ol>
       <% @steps.each do |step| %>
         <li>
           <%= step.title %>
-          <%= button_to "Delete", admin_mission_step_path(@mission.slug, step), method: :delete, data: { turbo_confirm: "Delete?" }, class: "action-btn action-btn--small action-btn--destructive" %>
+          <%= button_to "Delete", admin_mission_step_path(@mission.slug, step), method: :delete, data: { turbo_confirm: "Delete?" } %>
         </li>
       <% end %>
     </ol>
     <%= form_with url: admin_mission_steps_path(@mission.slug), method: :post, local: true do %>
       <label>Title <%= text_field_tag "mission_step[title]", nil, required: true, autocomplete: "off" %></label>
       <label>Body <%= text_area_tag "mission_step[body]", nil, rows: 3 %></label>
-      <%= submit_tag "Add step", class: "action-btn action-btn--small action-btn--primary" %>
+      <%= submit_tag "Add step" %>
     <% end %>
   </section>
 
-  <section class="admin-missions__section">
+  <section>
     <h2>Prizes</h2>
     <ul>
       <% @prizes.each do |prize| %>
         <li>
           <%= prize.shop_item.name %>
-          <%= button_to "Delete", admin_mission_prize_path(@mission.slug, prize), method: :delete, data: { turbo_confirm: "Delete?" }, class: "action-btn action-btn--small action-btn--destructive" %>
+          <%= button_to "Delete", admin_mission_prize_path(@mission.slug, prize), method: :delete, data: { turbo_confirm: "Delete?" } %>
         </li>
       <% end %>
     </ul>
@@ -42,34 +42,34 @@
       <%= select_tag "mission_prize[shop_item_id]",
             options_from_collection_for_select(ShopItem.where(mission_prize_only: true).order(:name), :id, :name),
             prompt: "Mission-prize-only shop item" %>
-      <%= submit_tag "Add prize", class: "action-btn action-btn--small action-btn--primary" %>
+      <%= submit_tag "Add prize" %>
     <% end %>
   </section>
 
-  <section class="admin-missions__section">
+  <section>
     <h2>Memberships</h2>
     <ul>
       <% @memberships.each do |m| %>
         <li>
           <%= m.user.display_name %> — <%= m.role.titleize %>
-          <%= button_to "Remove", admin_mission_membership_path(@mission.slug, m), method: :delete, data: { turbo_confirm: "Remove?" }, class: "action-btn action-btn--small action-btn--destructive" %>
+          <%= button_to "Remove", admin_mission_membership_path(@mission.slug, m), method: :delete, data: { turbo_confirm: "Remove?" } %>
         </li>
       <% end %>
     </ul>
     <%= form_with url: admin_mission_memberships_path(@mission.slug), method: :post, local: true do %>
       <label>User ID or Slack ID <%= text_field_tag "mission_membership[user_id]", nil, required: true, autocomplete: "off" %></label>
       <%= select_tag "mission_membership[role]", options_for_select(Mission::Membership.roles.keys.map { |r| [ r.titleize, r ] }) %>
-      <%= submit_tag "Add member", class: "action-btn action-btn--small action-btn--primary" %>
+      <%= submit_tag "Add member" %>
     <% end %>
   </section>
 
-  <section class="admin-missions__section">
+  <section>
     <h2>Shop unlocks</h2>
     <ul>
       <% @unlocks.each do |u| %>
         <li>
           <%= u.shop_item.name %>
-          <%= button_to "Remove", admin_mission_shop_unlock_path(@mission.slug, u), method: :delete, data: { turbo_confirm: "Remove?" }, class: "action-btn action-btn--small action-btn--destructive" %>
+          <%= button_to "Remove", admin_mission_shop_unlock_path(@mission.slug, u), method: :delete, data: { turbo_confirm: "Remove?" } %>
         </li>
       <% end %>
     </ul>
@@ -77,7 +77,7 @@
       <%= select_tag "mission_shop_unlock[shop_item_id]",
             options_from_collection_for_select(ShopItem.order(:name), :id, :name),
             prompt: "Shop item" %>
-      <%= submit_tag "Add unlock", class: "action-btn action-btn--small action-btn--primary" %>
+      <%= submit_tag "Add unlock" %>
     <% end %>
   </section>
 </div>

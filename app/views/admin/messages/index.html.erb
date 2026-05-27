@@ -1,27 +1,27 @@
 <% content_for :title, "Messages" %>
 <%= render HeadingComponent.new(title: "Messages", tone: :blue, size: :full) %>
 
-<div class="admin-actions-wrap" style="margin-bottom: 1rem;">
+<div>
   <% if @target_user %>
-    <%= link_to "All messages", admin_messages_path, class: "btn-secondary slim" %>
-    <%= link_to "User profile", admin_user_path(@target_user), class: "btn-secondary slim" %>
+    <%= link_to "All messages", admin_messages_path %>
+    <%= link_to "User profile", admin_user_path(@target_user) %>
   <% else %>
-    <%= link_to "Back to admin", admin_root_path, class: "btn-secondary slim" %>
+    <%= link_to "Back to users", admin_users_path %>
   <% end %>
 </div>
 
 <% if @target_user %>
-  <div class="admin-section">
-    <h2 class="admin-section__header">Recipient</h2>
-    <div class="info-rows">
+  <div>
+    <h2>Recipient</h2>
+    <div>
       <div><b>Name:</b> <%= @target_user.display_name || "—" %></div>
       <div><b>Slack ID:</b> <code><%= @target_user.slack_id %></code></div>
     </div>
   </div>
 
-  <div class="admin-section">
-    <h2 class="admin-section__header">Compose message</h2>
-    <p class="admin-section__note">Send a DM to this user. Provide message content, a block path, or both.</p>
+  <div>
+    <h2>Compose message</h2>
+    <p>Send a DM to this user. Provide message content, a block path, or both.</p>
 
     <%= render "form",
       path: admin_messages_path(slack_id: @target_user.slack_id),
@@ -30,10 +30,10 @@
       user_count: 0 %>
   </div>
 
-  <div class="admin-section">
-    <h2 class="admin-section__header">Previous messages (<%= @messages.size %>)</h2>
+  <div>
+    <h2>Previous messages (<%= @messages.size %>)</h2>
     <% if @messages.any? %>
-      <table class="table-data">
+      <table>
         <thead>
           <tr>
             <th>Date</th>
@@ -60,22 +60,22 @@
         </tbody>
       </table>
     <% else %>
-      <p class="admin-section__note">No messages have been sent to this user yet.</p>
+      <p>No messages have been sent to this user yet.</p>
     <% end %>
   </div>
 
 <% elsif params[:slack_id].present? %>
-  <div class="admin-section">
-    <h2 class="admin-section__header">Recipient not found</h2>
-    <div class="admin-alert admin-alert--warning">
+  <div>
+    <h2>Recipient not found</h2>
+    <div>
       No user found with Slack ID: <code><%= params[:slack_id] %></code>
     </div>
   </div>
 
 <% else %>
-  <div class="admin-section admin-section--highlighted">
-    <h2 class="admin-section__header">Mass send</h2>
-    <div class="admin-alert admin-alert--warning">
+  <div>
+    <h2>Mass send</h2>
+    <div>
       You are about to send a message to <strong>all <%= @user_count %> users</strong>.
       Double-check wording and block path before submitting.
     </div>
@@ -88,10 +88,10 @@
       user_count: @user_count %>
   </div>
 
-  <div class="admin-section">
-    <h2 class="admin-section__header">All previous messages (<%= @messages.size %>)</h2>
+  <div>
+    <h2>All previous messages (<%= @messages.size %>)</h2>
     <% if @messages.any? %>
-      <table class="table-data">
+      <table>
         <thead>
           <tr>
             <th>Date</th>
@@ -120,7 +120,7 @@
         </tbody>
       </table>
     <% else %>
-      <p class="admin-section__note">No messages have been sent yet.</p>
+      <p>No messages have been sent yet.</p>
     <% end %>
   </div>
 <% end %>

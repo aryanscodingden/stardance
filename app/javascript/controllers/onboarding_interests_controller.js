@@ -12,10 +12,7 @@ export default class extends Controller {
     const anyChecked =
       this.element.querySelectorAll("input[type=checkbox]:checked").length > 0;
     this.submitTarget.disabled = !anyChecked;
-    this.submitTarget.classList.toggle(
-      "special-action-btn--disabled",
-      !anyChecked,
-    );
+    this.submitTarget.classList.toggle("action-btn--disabled", !anyChecked);
   }
 
   toggle(event) {

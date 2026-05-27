@@ -29,7 +29,6 @@
 #  shop_region                  :enum
 #  synced_at                    :datetime
 #  things_dismissed             :string           default([]), not null, is an Array
-#  tutorial_steps_completed     :string           default([]), is an Array
 #  verification_status          :string           default("needs_submission"), not null
 #  vote_balance                 :integer          default(0), not null
 #  votes_count                  :integer
@@ -63,12 +62,12 @@ class User < ApplicationRecord
   has_many :shop_orders, dependent: :destroy
   has_many :shop_card_grants, dependent: :destroy
   has_many :votes, dependent: :destroy
+  has_many :vote_assignments, class_name: "Vote::Assignment", dependent: :destroy
   has_many :reports, class_name: "Project::Report", foreign_key: :reporter_id, dependent: :destroy
   has_many :project_skips, class_name: "Project::Skip", dependent: :destroy
   has_many :likes, dependent: :destroy
   has_many :comments, dependent: :destroy
   has_many :ledger_entries, dependent: :destroy
-  has_many :flavortime_sessions, dependent: :destroy
   has_many :project_follows, dependent: :destroy
   has_many :followed_projects, through: :project_follows, source: :project
   has_one :preference, class_name: "User::Preference", dependent: :destroy
@@ -122,7 +121,15 @@ class User < ApplicationRecord
     experienced: "experienced"
   }, prefix: :experience
 
-  ALLOWED_INTERESTS = %w[web_dev hardware app_dev game_dev].freeze
+  ALLOWED_INTERESTS = %w[web_dev hardware app_dev game_dev ai_ml art_design].freeze
+  INTEREST_LABELS = {
+    "web_dev" => "Websites",
+    "game_dev" => "Video games",
+    "app_dev" => "Desktop applications",
+    "hardware" => "Hardware/<wbr>electronics".html_safe,
+    "ai_ml" => "AI/<wbr>machine learning".html_safe,
+    "art_design" => "Art & design"
+  }.freeze
   INTERESTS_UNKNOWN = "dont_know".freeze
 
   validate :interests_must_be_allowed

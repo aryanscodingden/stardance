@@ -17,7 +17,8 @@ class HomeController < ApplicationController
   def load_feed
     devlogs = Post.of_devlogs(join: true)
                   .where(post_devlogs: { deleted_at: nil })
-                  .includes(:user, :project, postable: { attachments_attachments: :blob })
+                  .includes(:user, :project)
+                  .preload(postable: :attachments_attachments)
                   .order(created_at: :desc)
                   .limit(20)
 

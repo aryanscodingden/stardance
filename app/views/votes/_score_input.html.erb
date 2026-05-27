@@ -1,0 +1,21 @@
+<fieldset class="vote-score">
+  <legend class="vote-score__legend">
+    <span class="vote-score__name"><%= category.to_s.humanize %></span>
+    <span class="vote-score__description"><%= description %></span>
+  </legend>
+
+  <div class="vote-score__options">
+    <% (Vote::MIN_SCORE..Vote::MAX_SCORE).each do |score| %>
+      <% input_id = "vote_#{column}_#{score}" %>
+      <%= form.radio_button column,
+                            score,
+                            id: input_id,
+                            class: "vote-score__input",
+                            checked: vote.public_send(column) == score %>
+      <%= form.label column, score, for: input_id, class: "vote-score__star" do %>
+        <%= inline_svg_tag "icons/star_fill.svg", class: "vote-score__star-icon", aria_hidden: true %>
+        <span class="vote-score__star-text"><%= score %></span>
+      <% end %>
+    <% end %>
+  </div>
+</fieldset>

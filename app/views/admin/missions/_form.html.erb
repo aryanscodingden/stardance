@@ -1,6 +1,6 @@
-<%= form_with model: mission, url: form_url, method: form_method, multipart: true, local: true, class: "admin-missions__form" do |f| %>
+<%= form_with model: mission, url: form_url, method: form_method, multipart: true, local: true do |f| %>
   <% if mission.errors.any? %>
-    <div class="admin-missions__errors">
+    <div>
       <ul>
         <% mission.errors.full_messages.each do |msg| %>
           <li><%= msg %></li>
@@ -24,5 +24,5 @@
   <label>Icon <%= f.file_field :icon, accept: "image/*" %></label>
   <label>Banner <%= f.file_field :banner, accept: "image/*" %></label>
 
-  <%= f.submit class: "action-btn action-btn--large action-btn--primary" %>
+  <%= f.submit %>
 <% end %>

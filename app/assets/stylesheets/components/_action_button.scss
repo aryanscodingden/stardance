@@ -48,7 +48,7 @@
   }
 
   &--large {
-    font-size: 19px;
+    font-size: var(--font-body);
     padding: 12px 32px;
 
     &:hover .action-btn__icon--trailing,
@@ -77,8 +77,14 @@
 
   &--secondary {
     background-color: var(--color-set-2-bg);
-    border-color: #fff;
+    border-color: var(--color-set-3-bg);
     color: #fff;
+
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
+      border-color: var(--color-brand-highlight-secondary);
+      color: var(--color-brand-highlight-secondary);
+    }
 
     &:active {
       color: var(--color-brand-highlight);

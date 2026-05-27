@@ -359,74 +359,89 @@
           devlog_modifier_class = devlog_primary ? "project-show__action--primary" : "project-show__action--secondary"
         %>
         <nav class="project-show__actions" aria-label="Project actions">
+          <% devlog_variant = devlog_primary ? :primary : :secondary %>
           <% if devlog_disabled_message %>
-            <button type="button"
-                    class="project-show__action <%= devlog_modifier_class %>"
-                    disabled
-                    aria-disabled="true"
-                    data-controller="disabled-tooltip"
-                    data-disabled-tooltip-message-value="<%= devlog_disabled_message %>"
-                    data-disabled-tooltip-position-value="top">
-              Post a devlog<span class="project-show__action-icon" aria-hidden="true">+</span>
-            </button>
+            <%= render ActionButtonComponent.new(
+                  text: "Post a devlog +",
+                  variant: devlog_variant,
+                  type: :button,
+                  disabled: true,
+                  data: {
+                    controller: "disabled-tooltip",
+                    disabled_tooltip_message_value: devlog_disabled_message,
+                    disabled_tooltip_position_value: "top"
+                  }
+                ) %>
           <% else %>
-            <button type="button"
-                    class="project-show__action <%= devlog_modifier_class %>"
-                    onclick="document.getElementById('composer-modal-' + <%= @project.id.to_json %>).showModal()">
-              Post a devlog<span class="project-show__action-icon" aria-hidden="true">+</span>
-            </button>
+            <%= render ActionButtonComponent.new(
+                  text: "Post a devlog +",
+                  variant: devlog_variant,
+                  type: :button,
+                  onclick: "document.getElementById('composer-modal-' + #{@project.id.to_json}).showModal()"
+                ) %>
           <% end %>
           <%= button_to "Add 15min (test)",
                         add_test_time_project_path(@project),
                         method: :post,
-                        class: "project-show__action project-show__action--secondary project-show__action--test",
+                        class: "action-btn action-btn--large action-btn--secondary project-show__action--test",
                         form: { class: "project-show__action-form" } %>
           <% if @project.has_devlog_since_last_ship? %>
             <% if unposted_seconds >= 15 * 60 %>
-              <button type="button"
-                      class="project-show__action project-show__action--primary"
-                      onclick="document.getElementById('ship-warning-modal-' + <%= @project.id.to_json %>).showModal()">
-                Create new ship<%= image_tag "icons/rocket.png", alt: "", class: "project-show__action-icon project-show__action-icon--img" %>
-              </button>
+              <%= render ActionButtonComponent.new(
+                    text: "Create new ship",
+                    variant: :primary,
+                    type: :button,
+                    icon: "icons/rocket.png",
+                    onclick: "document.getElementById('ship-warning-modal-' + #{@project.id.to_json}).showModal()"
+                  ) %>
             <% else %>
-              <%= link_to new_project_ships_path(@project),
-                          class: "project-show__action project-show__action--primary",
-                          data: { turbo_frame: "_top" } do %>
-                Create new ship<%= image_tag "icons/rocket.png", alt: "", class: "project-show__action-icon project-show__action-icon--img" %>
-              <% end %>
+              <%= render ActionButtonComponent.new(
+                    text: "Create new ship",
+                    variant: :primary,
+                    href: new_project_ships_path(@project),
+                    icon: "icons/rocket.png",
+                    data: { turbo_frame: "_top" }
+                  ) %>
             <% end %>
           <% else %>
-            <button type="button"
-                    class="project-show__action project-show__action--secondary"
-                    disabled
-                    aria-disabled="true"
-                    data-controller="disabled-tooltip"
-                    data-disabled-tooltip-message-value="Post at least one devlog before shipping!"
-                    data-disabled-tooltip-position-value="top">
-              Create new ship<%= image_tag "icons/rocket.png", alt: "", class: "project-show__action-icon project-show__action-icon--img" %>
-            </button>
+            <%= render ActionButtonComponent.new(
+                  text: "Create new ship",
+                  variant: :secondary,
+                  type: :button,
+                  icon: "icons/rocket.png",
+                  disabled: true,
+                  data: {
+                    controller: "disabled-tooltip",
+                    disabled_tooltip_message_value: "Post at least one devlog before shipping!",
+                    disabled_tooltip_position_value: "top"
+                  }
+                ) %>
           <% end %>
-          <button type="button"
-                  class="project-show__action project-show__action--secondary"
-                  disabled
-                  aria-disabled="true"
-                  data-controller="disabled-tooltip"
-                  data-disabled-tooltip-message-value="This feature is WIP!"
-                  data-disabled-tooltip-position-value="top">Manage teammates</button>
+          <%= render ActionButtonComponent.new(
+                text: "Manage teammates",
+                variant: :secondary,
+                type: :button,
+                disabled: true,
+                data: {
+                  controller: "disabled-tooltip",
+                  disabled_tooltip_message_value: "This feature is WIP!",
+                  disabled_tooltip_position_value: "top"
+                }
+              ) %>
         </nav>
       <% else %>
         <nav class="project-show__actions" aria-label="Project actions">
           <%= button_to "/auth/hackatime",
                         method: :post,
                         params: { origin: request.fullpath },
-                        class: "project-show__action project-show__action--primary project-show__action--full",
+                        class: "action-btn action-btn--large action-btn--primary project-show__hackatime-cta",
                         form: { class: "project-show__action-form" } do %>
-            Link Hackatime to track your project time<%= image_tag "icons/right-arrow.svg", alt: "", class: "project-show__action-icon project-show__action-icon--img" %>
+            Link Hackatime to track your project time<%= inline_svg_tag "icons/right-arrow.svg", class: "action-btn__icon action-btn__icon--trailing", aria: { hidden: true } %>
           <% end %>
           <%= button_to "Add 15min (test)",
                         add_test_time_project_path(@project),
                         method: :post,
-                        class: "project-show__action project-show__action--secondary project-show__action--test",
+                        class: "action-btn action-btn--large action-btn--secondary project-show__action--test",
                         form: { class: "project-show__action-form" } %>
         </nav>
       <% end %>

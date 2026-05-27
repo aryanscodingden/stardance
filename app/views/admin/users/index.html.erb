@@ -1,18 +1,16 @@
 <% content_for :title, "Users" %>
 <h1>users</h1>
 
-<%= form_with url: admin_users_path, method: :get, local: true, class: "form-basic" do %>
+<%= form_with url: admin_users_path, method: :get, local: true do %>
   <%= text_field_tag :query, params[:query],
     placeholder: "Search users by name or email...",
-    autocomplete: "off",
-    class: "input-primary" %>
+    autocomplete: "off" %>
 
-  <%= submit_tag "Search",
-    class: "btn-primary slim" %>
+  <%= submit_tag "Search" %>
 <% end %>
 
 <% if @users.any? %>
-  <table class="table-data">
+  <table>
     <thead>
       <tr>
         <th>ID</th>
@@ -41,9 +39,9 @@
 <% end %>
 
 <% if @pagy.pages > 1 %>
-  <div class="pagination">
+  <div>
     <%== @pagy.series_nav %>
   </div>
 <% end %>
 
-<%= link_to "Go back", "/admin", class: "btn-primary" %>
+<%= link_to "Go back", admin_users_path %>

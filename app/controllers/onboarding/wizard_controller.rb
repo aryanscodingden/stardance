@@ -115,13 +115,7 @@ class Onboarding::WizardController < ApplicationController
     end
 
     current_user.update!(display_name: display_name, onboarded_at: Time.current)
-    redirect_to onboarding_complete_path
-  end
-
-  def complete
-    authorize :onboarding
-
-    @display_name = current_user.display_name
+    redirect_to home_path(welcome: 1)
   end
 
   private

@@ -42,28 +42,24 @@
   users_by_id = User.where(id: user_ids).index_by(&:id)
 %>
 
-<div class="card action-leaderboard">
-  <div class="action-leaderboard__header">
+<div>
+  <div>
     <h3>
       🕵️ Fraud Team Leaderboard
-      <small style="color: #666; font-weight: normal;">(<%= time_range == '7_days' ? '7 days' : 'all time' %>)</small>
+      <small>(<%= time_range == '7_days' ? '7 days' : 'all time' %>)</small>
     </h3>
-    <div class="action-leaderboard__toggle">
-      <%= link_to "7 days", admin_reports_path(time_range: '7_days', limit: limit),
-          class: "btn-#{time_range == '7_days' ? 'primary' : 'secondary'} slim" %>
-      <%= link_to "All time", admin_reports_path(time_range: 'all_time', limit: limit),
-          class: "btn-#{time_range == 'all_time' ? 'primary' : 'secondary'} slim" %>
+    <div>
+      <%= link_to "7 days", admin_reports_path(time_range: '7_days', limit: limit) %>
+      <%= link_to "All time", admin_reports_path(time_range: 'all_time', limit: limit) %>
     </div>
-    <div class="action-leaderboard__limit-toggle">
-      <%= link_to "Top 10", admin_reports_path(time_range: time_range, limit: 10),
-          class: "btn-#{limit == 10 ? 'primary' : 'secondary'} slim" %>
-      <%= link_to "All", admin_reports_path(time_range: time_range, limit: nil),
-          class: "btn-#{limit.nil? ? 'primary' : 'secondary'} slim" %>
+    <div>
+      <%= link_to "Top 10", admin_reports_path(time_range: time_range, limit: 10) %>
+      <%= link_to "All", admin_reports_path(time_range: time_range, limit: nil) %>
     </div>
   </div>
 
   <% if top_users.any? %>
-    <table class="leaderboard-table">
+    <table>
       <thead>
         <tr>
           <th>#</th>
@@ -76,128 +72,29 @@
       <tbody>
         <% top_users.each_with_index do |(user_id, stats), index| %>
           <% user = users_by_id[user_id] %>
-          <tr class="<%= 'highlight' if index < 3 %>">
-            <td class="rank">
+          <tr>
+            <td>
               <% if index == 0 %>🥇
               <% elsif index == 1 %>🥈
               <% elsif index == 2 %>🥉
               <% else %><%= index + 1 %>
               <% end %>
             </td>
-            <td class="user-name">
+            <td>
               <% if user %>
                 <%= link_to user.display_name || user.email, admin_user_path(user) %>
               <% else %>
-                <span class="text-muted">User #<%= user_id %></span>
+                <span>User #<%= user_id %></span>
               <% end %>
             </td>
-            <td class="stat stat-reviewed"><%= stats[:reviewed] %></td>
-            <td class="stat stat-dismissed"><%= stats[:dismissed] %></td>
-            <td class="stat stat-total"><%= stats[:total] %></td>
+            <td><%= stats[:reviewed] %></td>
+            <td><%= stats[:dismissed] %></td>
+            <td><%= stats[:total] %></td>
           </tr>
         <% end %>
       </tbody>
     </table>
   <% else %>
-    <p class="text-muted">No report actions <%= time_range == '7_days' ? 'in the last 7 days' : 'recorded' %>.</p>
+    <p>No report actions <%= time_range == '7_days' ? 'in the last 7 days' : 'recorded' %>.</p>
   <% end %>
 </div>
-
-<style>
-  .action-leaderboard {
-    max-width: 350px;
-  }
-
-  .action-leaderboard h3 {
-    margin-top: 0;
-    margin-bottom: 1em;
-  }
-
-  .leaderboard-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9em;
-  }
-
-  .leaderboard-table th,
-  .leaderboard-table td {
-    padding: 0.4em 0.5em;
-    text-align: center;
-  }
-
-  .leaderboard-table th {
-    font-weight: 600;
-    border-bottom: 2px solid #e5e7eb;
-    font-size: 0.85em;
-  }
-
-  .leaderboard-table td.rank {
-    font-weight: bold;
-  }
-
-  .leaderboard-table td.user-name {
-    text-align: left;
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .leaderboard-table tr.highlight {
-    background: #fef3c7;
-  }
-
-  .leaderboard-table tr:hover {
-    background: #f3f4f6;
-  }
-
-  .leaderboard-table .stat {
-    font-family: monospace;
-    font-weight: 500;
-  }
-
-  .leaderboard-table .stat-reviewed { color: #10b981; }
-  .leaderboard-table .stat-dismissed { color: #6b7280; }
-  .leaderboard-table .stat-total { font-weight: bold; color: #1f2937; }
-
-  .text-muted {
-    color: #6b7280;
-  }
-
-  .action-leaderboard__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1em;
-    gap: 1em;
-  }
-
-  .action-leaderboard__header h3 {
-    margin: 0;
-    flex: 1;
-  }
-
-  .action-leaderboard__toggle {
-    display: flex;
-    gap: 0.5em;
-    flex-shrink: 0;
-  }
-
-  .action-leaderboard__toggle .btn-primary,
-  .action-leaderboard__toggle .btn-secondary {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-  }
-
-  .action-leaderboard__limit-toggle {
-    display: flex;
-    gap: 0.5em;
-    margin-top: 0.5em;
-  }
-
-  .action-leaderboard__limit-toggle .btn-primary,
-  .action-leaderboard__limit-toggle .btn-secondary {
-    font-size: 0.7rem;
-    padding: 0.2rem 0.4rem;
-  }
-</style>

@@ -2,7 +2,7 @@
 <h1>Users with Roles</h1>
 
 <% if @users.any? %>
-  <table class="table-data">
+  <table>
     <thead>
       <tr>
         <th>ID</th>
@@ -20,7 +20,7 @@
           <td><%= user.email %></td>
           <td><%= user.roles.map { |r| r.to_s.titleize }.join(", ") %></td>
           <td>
-            <%= link_to "View", "/admin/users/#{user.id}", class: "btn-primary slim" %>
+            <%= link_to "View", "/admin/users/#{user.id}" %>
           </td>
         </tr>
       <% end %>
@@ -30,4 +30,4 @@
   <p>No users with roles found.</p>
 <% end %>
 
-<%= link_to "Go back", "/admin", class: "btn-primary" %>
+<%= link_to "Go back", admin_users_path %>

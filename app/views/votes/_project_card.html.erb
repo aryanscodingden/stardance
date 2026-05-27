@@ -1,0 +1,79 @@
+<%# Read-only project hero shown to a voter. Mirrors the read-mode of
+    projects/show.html.erb minus edit/follow actions. %>
+<%
+  members        = project.users.to_a
+  banner_url     = project.banner.attached? ? url_for(project.banner) : image_path("profile/default-banner.png")
+  total_hours    = (project.duration_seconds / 3600.0).round
+  follower_count = project.project_follows.size
+%>
+
+<article class="project-show project-show--vote">
+  <header class="project-show__hero">
+    <div class="project-show__banner">
+      <%= image_tag banner_url, alt: "", class: "project-show__banner-image" %>
+    </div>
+
+    <div class="project-show__panel project-show__panel--read">
+      <div class="project-show__summary">
+        <div class="project-show__identity">
+          <h2 class="project-show__title"><%= project.title %></h2>
+          <div class="project-show__byline">
+            <% if members.any? %>
+              <ul class="project-show__avatars" aria-hidden="true">
+                <% members.first(4).each do |member| %>
+                  <li class="project-show__avatars-item">
+                    <% if member.slack_id.present? %>
+                      <%= image_tag member.avatar, alt: member.display_name, class: "project-show__avatar" %>
+                    <% else %>
+                      <span class="project-show__avatar project-show__avatar--placeholder">
+                        <%= member.display_name.to_s.first&.upcase %>
+                      </span>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ul>
+            <% end %>
+            <p class="project-show__authors">
+              By
+              <% members.each_with_index do |m, i| %>
+                <%= " and " if i > 0 && i == members.length - 1 %><%= link_to "@#{m.display_name}", user_path(m), class: "project-show__author", data: { turbo_frame: "_top", turbo_prefetch: "true" } %><%= "," if i < members.length - 2 && members.length > 2 %>
+              <% end %>
+            </p>
+          </div>
+        </div>
+
+        <ul class="project-show__stats" aria-label="Project stats">
+          <li class="project-show__stats-item">
+            <strong class="project-show__stats-num"><%= project.devlogs_count %></strong>
+            <span class="project-show__stats-label">Devlogs</span>
+          </li>
+          <li class="project-show__stats-item">
+            <strong class="project-show__stats-num"><%= total_hours %></strong>
+            <span class="project-show__stats-label">Total hours</span>
+          </li>
+        </ul>
+      </div>
+
+      <% if project.description.present? %>
+        <p class="project-show__description"><%= project.description %></p>
+      <% end %>
+
+      <% if project.ai_declaration.present? %>
+        <div class="project-show__ai-declaration">
+          <%= inline_svg_tag "icons/star_fill.svg", class: "project-show__ai-declaration-icon", aria_hidden: true %>
+          <p class="project-show__ai-declaration-text">
+            <strong>This project uses AI:</strong>
+            <%= project.ai_declaration %>
+          </p>
+        </div>
+      <% end %>
+
+      <div class="project-show__read-footer">
+        <span class="project-show__followers"><strong><%= follower_count %></strong> <%= "follower".pluralize(follower_count) %></span>
+        <% if project.fire? %>
+          <span class="project-show__badge project-show__badge--fire">⭐ Super Star Project</span>
+        <% end %>
+      </div>
+    </div>
+  </header>
+</article>

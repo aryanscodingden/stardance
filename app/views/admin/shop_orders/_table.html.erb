@@ -1,6 +1,6 @@
 <% if orders.any? %>
-  <div class="card">
-    <table class="table-data">
+  <div>
+    <table>
       <thead>
         <tr>
           <th>ID</th>
@@ -25,44 +25,44 @@
           <tr>
             <td>#<%= order.id %></td>
             <td>
-              <%= link_to order.user.display_name || "Unknown", admin_user_path(order.user), class: "btn-primary slim" %><br>
-              <small style="color: #6b7280;"><%= order.user.email %></small>
+              <%= link_to order.user.display_name || "Unknown", admin_user_path(order.user) %><br>
+              <small><%= order.user.email %></small>
             </td>
             <td>
               <%= order.shop_item.name %><br>
-              <small style="color: #6b7280;"><%= order.shop_item.type&.demodulize %></small>
+              <small><%= order.shop_item.type&.demodulize %></small>
               <% if order.parent_order_id.present? %>
-                <br><small style="color: #f59e0b;">🔗 Accessory for #<%= order.parent_order_id %></small>
+                <br><small>🔗 Accessory for #<%= order.parent_order_id %></small>
               <% elsif order.accessory_orders.any? %>
-                <br><small style="color: #10b981;">🎁 +<%= order.accessory_orders.count %> accessories</small>
+                <br><small>🎁 +<%= order.accessory_orders.count %> accessories</small>
               <% end %>
             </td>
             <td>
-              <span style="font-weight: 700;<%= ' color: #dc2626;' if order.quantity > 1 %>">
+              <span>
                 <%= order.quantity %>
               </span>
               <% if order.quantity > 1 %>
-                <br><span class="badge" style="background: #fef2f2; color: #dc2626; font-size: 0.6rem;">+1</span>
+                <br><span>+1</span>
               <% end %>
             </td>
             <td><%= order.total_cost %></td>
             <td>
-              <span class="badge badge-<%= order.aasm_state %>">
+              <span>
                 <%= order.aasm_state.humanize %>
               </span>
               <% if order.aasm_state == "fulfilled" %>
-                <br><small style="color: #6b7280;">Shipped to user</small>
+                <br><small>Shipped to user</small>
               <% end %>
             </td>
 
             <% if @view == 'fulfillment' %>
               <td>
                 <% if order.frozen_address.present? %>
-                  <span style="background: #e0f2fe; color: #0369a1; padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500;">
+                  <span>
                     <%= country_name_from_code(order.frozen_address["country"]) %>
                   </span>
                 <% else %>
-                  <span style="color: #9ca3af;">—</span>
+                  <span>—</span>
                 <% end %>
               </td>
             <% end %>
@@ -70,44 +70,40 @@
             <% if (current_user.admin? || current_user.fulfillment_person?) && @view == 'fulfillment' %>
               <td>
                 <% if order.assigned_to_user.present? %>
-                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <div>
                     <%= image_tag order.assigned_to_user.avatar, alt: order.assigned_to_user.display_name, style: "width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" %>
                     <span><%= order.assigned_to_user.display_name %></span>
                   </div>
                 <% end %>
-                <div data-controller="searchable-select" style="position: relative; margin-top: 0.25rem;">
+                <div data-controller="searchable-select">
                   <%= form_with url: assign_user_admin_shop_order_path(order), method: :post, local: true, data: { turbo: false } do |f| %>
                     <%= f.hidden_field :assigned_to_user_id, value: order.assigned_to_user_id, data: { searchable_select_target: "hiddenField" } %>
                     <input
                       type="text"
-                      class="input-primary"
                       placeholder="<%= order.assigned_to_user.present? ? 'Change...' : 'Assign...' %>"
-                      style="padding: 0.25rem 0.5rem; font-size: 0.75rem; width: 120px;"
                       data-searchable-select-target="input"
                       data-action="focus->searchable-select#open input->searchable-select#filter"
                       autocomplete="off">
-                    <div data-searchable-select-target="dropdown" class="searchable-select-dropdown" style="min-width: 200px;">
+                    <div data-searchable-select-target="dropdown">
                       <div
-                        class="searchable-select-option"
                         data-searchable-select-target="option"
                         data-action="click->searchable-select#selectAndSubmit"
                         data-value=""
                         data-label=""
                         data-search-text="unassigned none">
-                        <span style="color: #9ca3af;">Unassign</span>
+                        <span>Unassign</span>
                       </div>
                       <% @fulfillment_users.each do |user| %>
                         <div
-                          class="searchable-select-option"
                           data-searchable-select-target="option"
                           data-action="click->searchable-select#selectAndSubmit"
                           data-value="<%= user.id %>"
                           data-label="<%= user.display_name %>"
                           data-search-text="<%= "#{user.display_name} #{user.regions.join(' ')} #{user.id}".downcase %>">
-                          <img src="<%= user.avatar %>" alt="" class="searchable-select-avatar">
+                          <img src="<%= user.avatar %>" alt="">
                           <span><%= user.display_name %></span>
                           <% if user.has_regions? %>
-                            <span style="font-size: 0.65rem; color: #6b7280; margin-left: auto;"><%= user.regions.join(", ") %></span>
+                            <span><%= user.regions.join(", ") %></span>
                           <% end %>
                         </div>
                       <% end %>
@@ -119,19 +115,19 @@
 
             <td>
               <% if @view == 'fulfillment' && order.awaiting_periodical_fulfillment_at %>
-                <span style="font-family: monospace; font-weight: bold; <%= (Time.current - order.awaiting_periodical_fulfillment_at) > 2.days ? 'color: #ef4444;' : '' %>">
+                <span>
                   <%= time_ago_in_words(order.awaiting_periodical_fulfillment_at) %>
                 </span>
-                <br><small style="color: #6b7280;">since approval</small>
+                <br><small>since approval</small>
               <% elsif @view == 'fulfillment' %>
-                <span style="color: #9ca3af;">not approved yet</span>
+                <span>not approved yet</span>
               <% else %>
                 <%= order.created_at.strftime("%b %d, %Y") %><br>
-                <small style="color: #6b7280;"><%= order.created_at.strftime("%l:%M %p") %></small>
+                <small><%= order.created_at.strftime("%l:%M %p") %></small>
               <% end %>
             </td>
             <td>
-              <%= link_to "Inspect", admin_shop_order_path(order, return_view: params[:view], return_status: params[:status]), class: "btn-primary slim" %>
+              <%= link_to "Inspect", admin_shop_order_path(order, return_view: params[:view], return_status: params[:status]) %>
             </td>
           </tr>
         <% end %>
@@ -139,7 +135,7 @@
     </table>
   </div>
 <% else %>
-  <div class="card">
+  <div>
     <p>No orders found matching the filters.</p>
   </div>
 <% end %>

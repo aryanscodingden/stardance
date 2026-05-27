@@ -27,10 +27,13 @@
     <p class="onboarding-welcome__subhead">
       Make projects → Ship to earn stardust → Spend on prizes
     </p>
-    <%= link_to onboarding_birthday_path,
-                class: "onboarding-welcome__cta",
-                data: { action: "click->onboarding-transition#leave" } do %>
-      <span class="onboarding-welcome__cta-label">GET STARTED</span>
-    <% end %>
+    <%= render ActionButtonComponent.new(
+          text: "GET STARTED",
+          variant: :primary,
+          size: :large,
+          href: onboarding_birthday_path,
+          icon: "icons/right-arrow.svg",
+          data: { action: "click->onboarding-transition#leave" }
+        ) %>
   </div>
 </main>

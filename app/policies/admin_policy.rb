@@ -1,8 +1,4 @@
 class AdminPolicy < ApplicationPolicy
-  def access_admin_dashboard?
-    user.admin? || user.fraud_dept?
-  end
-
   def index?
     user.admin? || user.fraud_dept? || user.shop_manager?
   end
@@ -67,39 +63,11 @@ class AdminPolicy < ApplicationPolicy
     user.admin? || user.fraud_dept?
   end
 
-  def access_payouts_dashboard?
-    user.admin? || user.fraud_dept?
-  end
-
-  def access_fraud_dashboard?
-    user.admin? || user.fraud_dept?
-  end
-
-  def access_fulfillment_dashboard?
-    user.admin? || user.fulfillment_person?
-  end
-
   def ban_users?
     user.admin? || user.fraud_dept?
   end
 
   def access_reports?
-    user.admin? || user.fraud_dept?
-  end
-
-  def access_super_mega_dashboard?
-    user.admin?
-  end
-
-  def access_voting_dashboard?
-    user.admin? || user.fraud_dept?
-  end
-
-  def access_vote_spam_dashboard?
-    user.admin? || user.fraud_dept?
-  end
-
-  def access_vote_quality_dashboard?
     user.admin? || user.fraud_dept?
   end
 
@@ -129,13 +97,5 @@ class AdminPolicy < ApplicationPolicy
 
   def access_sw_vibes?
     user.admin?
-  end
-
-  def access_special_activities?
-    user.admin?
-  end
-
-  def access_flavortime_dashboard?
-    user.admin? || user.flavortime?
   end
 end

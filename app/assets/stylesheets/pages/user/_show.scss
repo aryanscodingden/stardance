@@ -939,15 +939,3 @@ turbo-frame#profile_tabs {
 .profile--editing .profile__card {
   outline: 2px solid var(--color-space-accent);
 }
-
-// PostComponent :profile_dark theme overrides
-.post.post--profile-dark {
-  background: transparent;
-  border: 2px solid var(--color-space-border);
-  border-radius: var(--profile-radius);
-  color: var(--color-space-text);
-
-  a {
-    color: inherit;
-  }
-}

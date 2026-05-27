@@ -3,24 +3,56 @@
   <%= render Onboarding::ProgressBarComponent.new(step: :experience) %>
 
   <div class="onboarding-screen__content">
-    <p class="onboarding-screen__eyebrow">This includes coding experience, hardware projects, uhhhh</p>
-    <h1 class="onboarding-screen__title">Do u have experience making technical projects?</h1>
+    <h1 class="onboarding-screen__title">How much have you made on your own before?</h1>
+    <p class="onboarding-screen__subhead">Coding experience, hardware projects, anything technical. There's no wrong answer, and we'll use this to tailor your experience to your better!</p>
 
-    <%= form_with url: onboarding_experience_path, method: :post, local: true,
+    <%= form_with url: onboarding_experience_path, method: :post,
+                   data: { controller: "onboarding-experience-slider" },
                    class: "onboarding-experience__form" do %>
-      <div class="onboarding-experience__cards">
-        <%= render Onboarding::ChoiceCardComponent.new(name: "level", value: "none", variant: :stacked) do %>
-          I have no coding experience. (It's okay, we'll be here to help!)
-        <% end %>
-        <%= render Onboarding::ChoiceCardComponent.new(name: "level", value: "little", variant: :stacked) do %>
-          I know a little bit maybe/ learnt some in school but never made anything.
-        <% end %>
-        <%= render Onboarding::ChoiceCardComponent.new(name: "level", value: "some", variant: :stacked) do %>
-          I've made a project or two before :)
-        <% end %>
-        <%= render Onboarding::ChoiceCardComponent.new(name: "level", value: "experienced", variant: :stacked) do %>
-          I make technical projects all the time!
-        <% end %>
+      <div class="onboarding-experience__slider-wrap">
+        <div class="onboarding-experience__slider-readout" aria-live="polite">
+          <h2 class="onboarding-experience__slider-title"
+              data-onboarding-experience-slider-target="title"></h2>
+          <p class="onboarding-experience__slider-description"
+             data-onboarding-experience-slider-target="description"></p>
+        </div>
+
+        <div class="onboarding-experience__slider-track">
+          <div class="onboarding-experience__slider-rail" aria-hidden="true">
+            <div class="onboarding-experience__slider-fill"></div>
+          </div>
+          <input type="range" min="0" max="3" step="1" value="1" autocomplete="off"
+                 class="onboarding-experience__slider"
+                 data-onboarding-experience-slider-target="slider"
+                 data-action="input->onboarding-experience-slider#touch">
+        </div>
+
+        <div class="onboarding-experience__slider-ticks" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+        </div>
+
+        <div class="onboarding-experience__slider-endpoints" aria-hidden="true">
+          <span>Beginner</span>
+          <span>Expert</span>
+        </div>
+
+        <%= hidden_field_tag :level, "little",
+                             data: { onboarding_experience_slider_target: "hidden" } %>
+      </div>
+
+      <div class="onboarding-experience__submit-row">
+        <%= render ActionButtonComponent.new(
+              text: "Next",
+              variant: :primary,
+              size: :large,
+              type: :submit,
+              icon: "icons/right-arrow.svg",
+              disabled: true,
+              data: {
+                onboarding_experience_slider_target: "submit",
+                action: "click->onboarding-transition#press"
+              }
+            ) %>
       </div>
     <% end %>
   </div>

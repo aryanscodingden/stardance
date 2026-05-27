@@ -9,10 +9,17 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= yield :head %>
+    <%= render "shared/fullstory" %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
   </head>
-  <body class="onboarding-body">
+  <body class="onboarding-body" data-turbo="true">
+    <div id="onboarding-ambient" class="onboarding-ambient" aria-hidden="true" data-turbo-permanent>
+      <video class="onboarding-ambient__video" autoplay muted loop playsinline preload="auto">
+        <source src="<%= asset_path("stardance-bg.webm") %>" type="video/webm">
+      </video>
+      <div class="onboarding-ambient__overlay"></div>
+    </div>
     <div id="flash-region"><%= render "shared/flash" %></div>
     <%= yield %>
   </body>

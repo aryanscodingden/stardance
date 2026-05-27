@@ -90,9 +90,6 @@
     <% end %>
     <div id="flash-region"><%= render "shared/flash" %></div>
     <%= render Onboarding::GuestBannerComponent.new %>
-    <% if tutorial_messages.present? %>
-      <%= render DialogueBoxComponent.new(text: tutorial_messages) %>
-    <% end %>
     <%= yield %>
     <% unless @hide_footer %>
       <footer class="dev-footer">

@@ -4,8 +4,8 @@
 
   <div class="onboarding-screen__content">
     <% if @interests == [ User::INTERESTS_UNKNOWN ] %>
-      <h1 class="onboarding-screen__title">that's okay!</h1>
-      <p class="onboarding-screen__subhead">we'll figure it out :D</p>
+      <h1 class="onboarding-screen__title">That's alright!</h1>
+      <p class="onboarding-screen__subhead">We'll figure it out together :D</p>
     <% else %>
       <h1 class="onboarding-screen__title"><%= onboarding_count_up(2734) %> other teens like that too!</h1>
       <p class="onboarding-screen__subhead">and <%= onboarding_count_up(820) %> of them are also beginners!</p>
@@ -25,9 +25,12 @@
       </div>
     <% end %>
 
-    <%= render SpecialActionButtonComponent.new(
+    <%= render ActionButtonComponent.new(
           text: "Next",
+          variant: :primary,
+          size: :large,
           href: onboarding_name_path,
+          icon: "icons/right-arrow.svg",
           data: { action: "click->onboarding-transition#leave" }
         ) %>
   </div>

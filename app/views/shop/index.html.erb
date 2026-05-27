@@ -3,20 +3,6 @@
 <% content_for :og_description, "Spend your Stardust on stickers, hardware, and other prizes. Earn Stardust by building projects and voting!" %>
 <% content_for :og_image, og_image_url('shop', format: :png) %>
 
-<% if @show_shop_tutorial && session[:tutorial_redirect_url].present? %>
-  <%= render DialogueBoxComponent.new(
-    text: [
-      "You're in the shop now. This is where you spend Stardust on prizes.",
-      "Stardust is the currency you use to buy prizes here. You earn Stardust by working on your project with your time attached, then voting on other projects.",
-      "I've given you 10 Stardust to get started. We'll use them to place your stickers order.",
-      "Before we can ship prizes, I need to confirm that you're a teenager and get your address. I'll redirect you to Hack Club Auth to fill that out. It's secure and open source."
-    ],
-    sticker: "icons/stardust.png",
-    sticker_line_index: 0,
-    redirect_url: session[:tutorial_redirect_url]
-  ) %>
-<% end %>
-
 <div class="shop" data-controller="shop" data-shop-user-region-value="<%= @user_region %>">
   <h1 class="shop__title">Shop</h1>
 

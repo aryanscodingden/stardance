@@ -1,0 +1,9 @@
+<section class="vote-page__timeline" aria-label="Project timeline through assigned ship">
+  <% posts.each do |post| %>
+    <% if post.postable_type == "Post::ShipEvent" %>
+      <%= render "projects/ship_card", post: post, project: project %>
+    <% else %>
+      <%= render PostComponent.new(post: post, current_user: current_user, theme: :profile_dark) %>
+    <% end %>
+  <% end %>
+</section>
