@@ -1,6 +1,6 @@
 class AdminPolicy < ApplicationPolicy
   def index?
-    user.admin? || user.fraud_dept? || user.shop_manager?
+    user.admin? || user.fraud_dept? || user.shop_manager? || user.helper?
   end
 
   def access_blazer?
@@ -20,7 +20,7 @@ class AdminPolicy < ApplicationPolicy
   end
 
   def access_admin_endpoints?
-    user.admin? || user.fraud_dept?
+    user.admin? || user.fraud_dept? || user.shop_manager? || user.helper?
   end
 
   def manage_user_roles?
