@@ -71,7 +71,7 @@
   // --- Overview: stats + leaderboard -------------------------------------
   &__overview {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 3fr 2fr;
     gap: var(--space-m);
     margin-bottom: var(--space-l);
 
@@ -233,7 +233,7 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 
     &.is-hidden {
       display: none;
@@ -248,19 +248,33 @@
 
   &__rank {
     display: grid;
-    grid-template-columns: 1.5rem 1fr auto;
+    grid-template-columns: 1.75rem 1fr auto;
     align-items: center;
     gap: var(--space-s);
-    padding: var(--space-xxs) var(--space-xs);
-    border-radius: 6px;
-    font-size: 0.9rem;
+    padding: var(--space-xs) var(--space-s);
+    border-radius: 8px;
+    font-size: 0.95rem;
 
     &:nth-child(odd) {
       background: rgba(255, 255, 255, 0.03);
     }
+
+    // Medal accents for the podium.
+    &:nth-child(1) .ship-queue__rank-pos {
+      color: #fbbf24;
+    }
+
+    &:nth-child(2) .ship-queue__rank-pos {
+      color: #d1d5db;
+    }
+
+    &:nth-child(3) .ship-queue__rank-pos {
+      color: #d8a47f;
+    }
   }
 
   &__rank-pos {
+    font-weight: 700;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
   }
@@ -273,7 +287,8 @@
 
   &__rank-count {
     color: var(--accent);
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.05rem;
     font-variant-numeric: tabular-nums;
   }
 
