@@ -42,8 +42,9 @@ body.signed-in {
   }
 }
 
-// Shop page keeps the same backdrop even when logged out.
-body.shop-page:not(.signed-in) {
+// Shop and guides pages keep the dark space backdrop even when logged out.
+body.shop-page:not(.signed-in),
+body.guides-page:not(.signed-in) {
   background-color: var(--color-space-bg);
   color: var(--color-space-text);
 }

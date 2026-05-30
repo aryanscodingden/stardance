@@ -14,6 +14,6 @@ class GuidesController < ApplicationController
   private
 
   def set_body_class
-    @body_class = "app-layout-page"
+    @body_class = "app-layout-page guides-page"
   end
 end
