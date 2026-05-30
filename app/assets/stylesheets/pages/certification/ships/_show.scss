@@ -263,6 +263,16 @@
     gap: var(--space-s);
   }
 
+  &__current {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-space-text-muted, rgba(255, 255, 255, 0.7));
+
+    a {
+      color: var(--color-brand-highlight);
+    }
+  }
+
   &__back {
     color: var(--color-space-text-muted, rgba(255, 255, 255, 0.7));
     font-size: 0.9rem;
@@ -271,6 +281,110 @@
     &:hover,
     &:focus-visible {
       color: var(--color-brand-highlight);
+    }
+  }
+}
+
+// Drag-and-drop zone for the verdict walkthrough video.
+.video-drop {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  padding: var(--space-m);
+  background: var(--color-space-surface, rgba(255, 255, 255, 0.04));
+  border: 1px dashed var(--color-space-border, rgba(255, 255, 255, 0.28));
+  border-radius: 8px;
+  transition: border-color 120ms ease, background-color 120ms ease;
+
+  &--over {
+    border-color: var(--color-brand-highlight);
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  &--accepted {
+    border-style: solid;
+    border-color: #22c55e;
+  }
+
+  &--error {
+    border-color: var(--color-brand-salmon);
+  }
+
+  // The input still drives the upload; we hide it and open it from the prompt.
+  &__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  &__prompt {
+    padding: var(--space-l) var(--space-m);
+    color: var(--color-space-text-muted, rgba(255, 255, 255, 0.7));
+    font: inherit;
+    text-align: center;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-brand-highlight);
+    }
+  }
+
+  // display:flex would override the browser's [hidden] rule, so the empty
+  // preview would show before a file is picked. Keep it gone until then.
+  &__preview {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  &__video {
+    width: 100%;
+    max-height: 240px;
+    background: #000;
+    border-radius: 6px;
+  }
+
+  &__filename {
+    margin: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  &__replace {
+    align-self: flex-start;
+    padding: 0;
+    color: var(--color-brand-highlight);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+  }
+
+  // Empty until the controller reports an accepted file or a rejection.
+  &__status {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-space-text-muted, rgba(255, 255, 255, 0.7));
+
+    .video-drop--accepted & {
+      color: #22c55e;
+    }
+
+    .video-drop--error & {
+      color: var(--color-brand-salmon);
     }
   }
 }

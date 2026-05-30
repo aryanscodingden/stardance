@@ -28,6 +28,12 @@ application.register(
 import Certification__QueueController from "./certification/queue_controller";
 application.register("certification--queue", Certification__QueueController);
 
+import Certification__VideoDropController from "./certification/video_drop_controller";
+application.register(
+  "certification--video-drop",
+  Certification__VideoDropController,
+);
+
 import Certification__Ysws__FraudReportController from "./certification/ysws/fraud_report_controller";
 application.register(
   "certification--ysws--fraud-report",

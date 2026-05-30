@@ -27,8 +27,40 @@
   </div>
 
   <div class="review-form__field">
-    <%= f.label :internal_reason, "Internal notes (staff-only, never shown to the user)" %>
-    <%= f.text_area :internal_reason, rows: 3, maxlength: 10_000 %>
+    <%= f.label :verdict_video, "Walkthrough video (mp4, webm, or mov, max 250 MB)" %>
+    <div class="video-drop"
+         data-controller="certification--video-drop"
+         data-certification--video-drop-over-class="video-drop--over"
+         data-certification--video-drop-accepted-class="video-drop--accepted"
+         data-certification--video-drop-error-class="video-drop--error"
+         data-action="dragover->certification--video-drop#over
+                      dragleave->certification--video-drop#leave
+                      drop->certification--video-drop#drop">
+      <%= f.file_field :verdict_video, accept: "video/mp4,video/webm,video/quicktime",
+            class: "video-drop__input",
+            data: { "certification--video-drop-target": "input",
+                    action: "certification--video-drop#change" } %>
+      <button type="button" class="video-drop__prompt"
+              data-certification--video-drop-target="prompt"
+              data-action="certification--video-drop#open">
+        Drag a video here, or click to choose one
+      </button>
+      <div class="video-drop__preview" data-certification--video-drop-target="preview" hidden>
+        <video class="video-drop__video" data-certification--video-drop-target="video" controls muted playsinline></video>
+        <p class="video-drop__filename" data-certification--video-drop-target="filename"></p>
+        <button type="button" class="video-drop__replace"
+                data-action="certification--video-drop#open">
+          Choose a different video
+        </button>
+      </div>
+      <p class="video-drop__status" role="status" aria-live="polite"
+         data-certification--video-drop-target="status"></p>
+    </div>
+    <% if ship.verdict_video.attached? %>
+      <p class="review-form__current">
+        Current: <%= link_to ship.verdict_video.filename, ship.verdict_video, target: "_blank", rel: "noopener" %>
+      </p>
+    <% end %>
   </div>
 
   <div class="review-form__actions">
