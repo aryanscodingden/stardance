@@ -23,10 +23,12 @@ class SessionsController < ApplicationController
 
     destination = if result.user.onboarded_at.nil? && result.user.age_attestation_ineligible?
       onboarding_age_gate_path
-    elsif return_to
-      return_to
+    elsif result.user.onboarded_at.nil? && result.is_new_user
+      onboarding_welcome_path
     elsif result.user.onboarded_at.nil?
       onboarding_resume_path(result.user)
+    elsif return_to
+      return_to
     elsif result.user.setup_complete?
       profile_projects_path(result.user.display_name)
     else

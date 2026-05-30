@@ -70,7 +70,10 @@
   <div class="sidebar__user" aria-live="polite">
     <div class="sidebar__user-card">
       <div class="sidebar__user-meta">
-        <span class="sidebar__user-meta-label">logged in as</span>
+        <div class="sidebar__user-balance">
+          <%= helpers.stardust_icon(extra_class: "sidebar__user-balance-icon") %>
+          <span class="sidebar__user-balance-amount"><%= number_with_delimiter(user.cached_balance) %></span>
+        </div>
         <%= link_to profile_path(user.display_name), class: "sidebar__user-meta-handle", data: { turbo: true } do %>
           @<%= user.display_name %>
         <% end %>
