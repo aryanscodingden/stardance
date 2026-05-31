@@ -85,6 +85,8 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class ShopItem < ApplicationRecord
+  def self.policy_class = ShopItemPolicy
+
   has_paper_trail
 
   include Shop::Regionalizable
