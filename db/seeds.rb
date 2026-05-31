@@ -37,6 +37,15 @@ user.save!
 user.grant_role!(:super_admin)
 user.grant_role!(:admin)
 
+stardance_project = Project.find_or_create_by!(title: "Stardance") do |p|
+  p.description = "The Stardance program project."
+  p.ship_status = "draft"
+end
+
+Project::Membership.find_or_create_by!(project: stardance_project, user: user) do |m|
+  m.role = :owner
+end
+
 # ---------------------------------------------------------------------------
 # Base seed: "Make a Slack Bot" — the canonical first mission. Kept intact
 # across reseeds via find_or_create_by!; admins who edit the mission or
