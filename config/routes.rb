@@ -425,7 +425,8 @@ Rails.application.routes.draw do
   get "og/:page", to: "og_images#show", as: :og_image, defaults: { format: :png }
   # Landing
   root "landing#index"
-  # get "marketing", to: "landing#marketing"
+  get "landing/signup_count", to: "landing#signup_count", as: :landing_signup_count
+  get "landing/rsvp_count", to: "landing#rsvp_count", as: :landing_rsvp_count
 
   # RSVPs
   resources :rsvps, only: [ :create ] do
@@ -494,6 +495,7 @@ Rails.application.routes.draw do
   delete "logout", to: "sessions#destroy"
   get "dev_login", to: "sessions#dev_login", as: :dev_login_auto if Rails.env.development? || Rails.env.test?
   get "dev_login/:id", to: "sessions#dev_login", as: :dev_login if Rails.env.development? || Rails.env.test?
+  get "dev/test_counter", to: "debug#test_counter" if Rails.env.development?
 
   # OAuth callback for HCA
   get "/oauth/callback", to: "sessions#create"

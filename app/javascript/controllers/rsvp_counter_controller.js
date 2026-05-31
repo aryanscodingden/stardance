@@ -1,10 +1,27 @@
 import { Controller } from "@hotwired/stimulus";
 
-// Odometer-style counter: each digit animates independently. When the
-// count jumps by more than 1 (batched broadcasts), intermediate values
-// are queued and ticked through with faster, jittered timing so bursts
-// of signups look organic rather than a single jump.
+// Odometer-style counter with polling backoff. Each digit animates
+// independently. Big jumps are broken into intermediate ticks so
+// bursts of signups look organic.
+//
+// Backoff schedule:
+//   0–15s:   poll every 500ms
+//   15s–1m:  poll every 1s
+//   1m–10m:  poll every 5s
+//   10m–1h:  poll every 10s
+//   1h+:     poll every 60s
+
+const BACKOFF_TIERS = [
+  { until: 15_000, interval: 500 },
+  { until: 60_000, interval: 1_000 },
+  { until: 600_000, interval: 5_000 },
+  { until: 3_600_000, interval: 10_000 },
+  { until: Infinity, interval: 60_000 },
+];
+
 export default class extends Controller {
+  static values = { pollUrl: String };
+
   connect() {
     this.prefersReducedMotion =
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
@@ -16,14 +33,72 @@ export default class extends Controller {
     this.animating = false;
     this.queue = [];
     this.tickDuration = null;
-    this.buildDigits(this.currentCount);
+    this.startedAt = Date.now();
 
-    this._onStream = this.onStream.bind(this);
-    document.addEventListener("turbo:before-stream-render", this._onStream);
+    this.buildDigits(this.currentCount);
+    this.schedulePoll();
   }
 
   disconnect() {
-    document.removeEventListener("turbo:before-stream-render", this._onStream);
+    clearTimeout(this._pollTimer);
+  }
+
+  getInterval() {
+    const elapsed = Date.now() - this.startedAt;
+    for (const tier of BACKOFF_TIERS) {
+      if (elapsed < tier.until) return tier.interval;
+    }
+    return 60_000;
+  }
+
+  schedulePoll() {
+    this._pollTimer = setTimeout(() => this.poll(), this.getInterval());
+  }
+
+  async poll() {
+    if (!this.pollUrlValue) {
+      this.schedulePoll();
+      return;
+    }
+
+    try {
+      const resp = await fetch(this.pollUrlValue, {
+        headers: { Accept: "application/json" },
+      });
+      if (resp.ok) {
+        const { count } = await resp.json();
+        if (typeof count === "number" && count !== this.currentCount) {
+          this.applyNewCount(count);
+        }
+      }
+    } catch {
+      // retry on next poll
+    }
+
+    this.schedulePoll();
+  }
+
+  applyNewCount(newCount) {
+    const oldCount = this.currentCount;
+    this.currentCount = newCount;
+
+    if (newCount < oldCount) {
+      this.buildDigits(newCount);
+      return;
+    }
+
+    const delta = newCount - oldCount;
+    if (delta <= 1) {
+      this.tickDuration = null;
+      this.enqueue(newCount);
+    } else {
+      const maxTicks = Math.min(delta, 20);
+      this.tickDuration = Math.max(80, Math.floor(1000 / maxTicks));
+      const step = delta / maxTicks;
+      for (let i = 1; i <= maxTicks; i++) {
+        this.enqueue(Math.round(oldCount + step * i));
+      }
+    }
   }
 
   formatNumber(n) {
@@ -50,42 +125,6 @@ export default class extends Controller {
 
       this.span.appendChild(wrapper);
       this.digitEls.push({ wrapper, inner, value: ch });
-    }
-  }
-
-  onStream(event) {
-    const stream = event.target;
-    if (stream?.getAttribute?.("target") !== "rsvp_counter") return;
-
-    const template = stream.querySelector("template");
-    const incoming = template?.content.querySelector("#rsvp_counter");
-    if (!incoming) return;
-
-    const newCount = parseInt(incoming.dataset.count, 10);
-    if (Number.isNaN(newCount) || newCount === this.currentCount) return;
-
-    event.preventDefault();
-
-    if (newCount < this.currentCount) {
-      this.currentCount = newCount;
-      this.buildDigits(newCount);
-      return;
-    }
-
-    const oldCount = this.currentCount;
-    this.currentCount = newCount;
-
-    const delta = newCount - oldCount;
-    if (delta <= 1) {
-      this.tickDuration = null;
-      this.enqueue(newCount);
-    } else {
-      const maxTicks = Math.min(delta, 20);
-      this.tickDuration = Math.max(80, Math.floor(1000 / maxTicks));
-      const step = delta / maxTicks;
-      for (let i = 1; i <= maxTicks; i++) {
-        this.enqueue(Math.round(oldCount + step * i));
-      }
     }
   }
 

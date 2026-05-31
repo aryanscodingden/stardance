@@ -25,6 +25,16 @@ class LandingController < ApplicationController
     prepare_landing_page_state
   end
 
+  def signup_count
+    count = cached_signup_count
+    render json: { count: count }
+  end
+
+  def rsvp_count
+    count = cached_rsvp_count
+    render json: { count: count }
+  end
+
   private
 
   def prepare_landing_page_state
