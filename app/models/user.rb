@@ -59,7 +59,10 @@
 #  index_users_on_slack_id                   (slack_id) UNIQUE
 #
 class User < ApplicationRecord
+  include SemanticSearchIndexable
+
   has_paper_trail ignore: [ :votes_count, :updated_at, :shop_region, :ip_address, :user_agent ], on: [ :update, :destroy ]
+  semantic_search_indexable type: "user"
 
   has_many :identities, class_name: "User::Identity", dependent: :destroy
   has_one :hackatime_identity, -> { hackatime }, class_name: "User::Identity"

@@ -132,16 +132,6 @@ class Mission < ApplicationRecord
 
   def guide_body_updated_at = default_guide&.body_updated_at
 
-  # `parse_h2_sections` discards lines before the first ##; surface them so
-  # authors don't silently lose an intro paragraph on paste.
-  def self.guide_paste_preamble(text)
-    preamble = []
-    text.to_s.split(/\r?\n/).each do |line|
-      break if line.match?(/\A##\s+/)
-      preamble << line
-    end
-    preamble.join("\n").strip.presence
-  end
 
   def self.parse_h2_sections(text)
     return [] if text.to_s.strip.empty?

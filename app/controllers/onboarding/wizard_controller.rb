@@ -129,7 +129,7 @@ class Onboarding::WizardController < ApplicationController
     submitted = Array(params[:interests])
     if submitted.include?(User::INTERESTS_UNKNOWN)
       current_user.update!(interests: [ User::INTERESTS_UNKNOWN ])
-      track_event "onboarding_interests_selected", { interests: [User::INTERESTS_UNKNOWN] }
+      track_event "onboarding_interests_selected", { interests: [ User::INTERESTS_UNKNOWN ] }
       redirect_to onboarding_interests_result_path and return
     end
 

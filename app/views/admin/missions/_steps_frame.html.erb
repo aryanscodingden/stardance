@@ -132,7 +132,8 @@
             data-modal-target="dialog"
             aria-labelledby="paste-guide-dialog-title">
       <%= form_with url: admin_mission_guide_paste_path(mission.slug),
-            method: :post, class: "admin-mission-edit__paste-form" do %>
+            method: :post, class: "admin-mission-edit__paste-form",
+            data: { turbo_frame: "_top" } do %>
         <header class="admin-mission-edit__paste-header">
           <h3 id="paste-guide-dialog-title" class="admin-mission-edit__paste-title">Paste a full guide</h3>
           <button type="button"

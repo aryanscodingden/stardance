@@ -261,6 +261,7 @@
 #                      username_availability GET    /username_availability(.:format)                                                                  users/username_availabilities#show
 #                               search_users GET    /search/users(.:format)                                                                           search#users
 #                            search_projects GET    /search/projects(.:format)                                                                        search#projects
+#                              global_search GET    /search/global(.:format)                                                                          search#global
 #                                        edu GET    /edu(.:format)                                                                                    landing#edu
 #                                     guides GET    /guides(.:format)                                                                                 guides#index
 #                                      guide GET    /guides/:id(.:format)                                                                             guides#show
@@ -275,6 +276,7 @@
 #                        mission_submissions GET    /mission_submissions(.:format)                                                                    mission_submissions#index
 #                         mission_submission GET    /mission_submissions/:id(.:format)                                                                mission_submissions#show
 #                                                   /400(.:format)                                                                                    errors#bad_request
+#                                                   /403(.:format)                                                                                    errors#not_authorized
 #                                                   /404(.:format)                                                                                    errors#not_found
 #                                                   /406(.:format)                                                                                    errors#not_acceptable
 #                                                   /422(.:format)                                                                                    errors#unprocessable_entity
@@ -782,6 +784,7 @@ Rails.application.routes.draw do
   # Autocomplete search endpoints (used by the bio editor and elsewhere).
   get "search/users",    to: "search#users",    as: :search_users
   get "search/projects", to: "search#projects", as: :search_projects
+  get "search/global",   to: "search#global",   as: :global_search
 
   get "edu", to: "landing#edu", as: :edu
 

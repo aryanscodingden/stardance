@@ -22,7 +22,9 @@
 class Post::Devlog < ApplicationRecord
   include Postable
   include SoftDeletable
+  include SemanticSearchIndexable
   has_paper_trail ignore: [ :likes_count, :comments_count, :hackatime_pulled_at, :synced_at ]
+  semantic_search_indexable type: "devlog"
 
   # Ignore devlog_review_id column before removing it in migration
   self.ignored_columns += [ "devlog_review_id" ]

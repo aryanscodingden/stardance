@@ -40,8 +40,10 @@ require "net/http"
 class Project < ApplicationRecord
   include AASM
   include SoftDeletable
+  include SemanticSearchIndexable
 
   has_ferret_search :title, :description
+  semantic_search_indexable type: "project"
 
   has_paper_trail
 
