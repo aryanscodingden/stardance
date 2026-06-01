@@ -456,7 +456,10 @@ class ProjectsController < ApplicationController
     if ALLOWLISTED_DOMAINS.any? { |domain| uri.host&.end_with?(domain) }
       return
     end
-
+    unless SafeUrl.safe_to_probe?(uri.to_s)
+      @project.errors.add(attribute, "#{name} does not point to a valid public URL")
+      return
+    end
     conn = Faraday.new(
       url: uri.to_s,
       headers: { "User-Agent" => "Stardance project validator (https://stardance.hackclub.com/)" }
@@ -517,10 +520,11 @@ class ProjectsController < ApplicationController
   rescue URI::InvalidURIError
     @project.errors.add(attribute, "#{name} is not a valid URL")
   rescue Faraday::ConnectionFailed => e
-    @project.errors.add(attribute, "Please make sure the URL is valid and reachable: #{e.message}")
+    Rails.logger.warn("URL validation failed for #{attribute}: #{e.message}")
+    @project.errors.add(attribute, "#{name} could not be reached. Please make sure the URL is valid and publicly accessible.")
   rescue StandardError => e
-    @project.errors.add(attribute, "#{name} could not be verified (idk why, pls let a admin know if this is happening a lot and your sure that the URL is valid): #{e.message}")
-  end
+    Rails.logger.warn("URL validation error for #{attribute}: #{e.class}: #{e.message}")
+    @project.errors.add(attribute, "#{name} could not be verified. Please try again or contact support if the issue persists.")
 
   def link_hackatime_projects
     # Unlink hackatime projects that were removed

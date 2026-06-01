@@ -507,13 +507,11 @@ class Project < ApplicationRecord
   def url_reachable?(url)
     cache_key = "url_reachable_#{Digest::MD5.hexdigest(url)}"
     Rails.cache.fetch(cache_key, expires_in: 5.minutes) do
-      next false unless SafeUrl.safe_to_probe?(url)
-      uri = URI.parse(url)
-      response = head_with_redirects(uri)
+      response = SafeUrl.safe_head(url)
       response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPRedirection)
     end
-  rescue URI::InvalidURIError, SocketError, Errno::ECONNREFUSED, Errno::EHOSTUNREACH,
-         Net::OpenTimeout, Net::ReadTimeout, OpenSSL::SSL::SSLError
+  rescue SafeUrl::Error, URI::InvalidURIError, SocketError, Errno::ECONNREFUSED,
+         Errno::EHOSTUNREACH, Net::OpenTimeout, Net::ReadTimeout, OpenSSL::SSL::SSLError
     false
   end
 
@@ -531,25 +529,5 @@ class Project < ApplicationRecord
 
   def notify_slack_channel
     PostCreationToSlackJob.perform_later(self)
-  end
-
-  def head_with_redirects(uri, limit = 3)
-    if limit <= 0
-      Net::HTTPServiceUnavailable.new("1.1", "503", "Too many redirects")
-    else
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = (uri.scheme == "https")
-      http.open_timeout = 10
-      http.read_timeout = 10
-      response = http.request_head(uri.request_uri)
-
-      if response.is_a?(Net::HTTPRedirection) && response["location"]
-        next_uri = URI.parse(response["location"])
-        return Net::HTTPForbidden.new("1.1", "403", "Redirect target not safe") unless SafeUrl.safe_to_probe?(next_uri.to_s)
-        head_with_redirects(next_uri, limit - 1)
-      else
-        response
-      end
-    end
   end
 end
