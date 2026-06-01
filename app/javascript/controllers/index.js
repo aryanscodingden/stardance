@@ -103,9 +103,6 @@ application.register("faq-accordion", FaqAccordionController);
 import FileUploadController from "./file_upload_controller";
 application.register("file-upload", FileUploadController);
 
-import LikeButtonController from "./like_button_controller";
-application.register("like-button", LikeButtonController);
-
 import FlashController from "./flash_controller";
 application.register("flash", FlashController);
 

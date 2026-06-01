@@ -67,16 +67,6 @@
   </head>
 
   <body class="<%= current_user.present? && !@hide_sidebar ? 'signed-in' : '' %> <%= @body_class %> <%= 'streamer-mode' if session[:streamer_mode] %>">
-    <svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true">
-      <defs>
-        <linearGradient id="like-heart-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%"   stop-color="#ffe564"/>
-          <stop offset="33%"  stop-color="#ffb3ba"/>
-          <stop offset="66%"  stop-color="#d4b4fe"/>
-          <stop offset="100%" stop-color="#bae6fd"/>
-        </linearGradient>
-      </defs>
-    </svg>
     <% if @show_boot_splash %>
       <div class="app-loading" aria-hidden="true">
         <div class="app-loading__inner">
