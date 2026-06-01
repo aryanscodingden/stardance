@@ -8,9 +8,12 @@ export default class extends Controller {
     const file = this.inputTarget.files?.[0];
     if (!file) return;
     this._previewImage().src = URL.createObjectURL(file);
-    if (this.hasEmptyClassValue) this.element.classList.remove(this.emptyClassValue);
+    if (this.hasEmptyClassValue)
+      this.element.classList.remove(this.emptyClassValue);
     if (this.hasPlaceholderSelectorValue) {
-      const placeholder = this.element.querySelector(this.placeholderSelectorValue);
+      const placeholder = this.element.querySelector(
+        this.placeholderSelectorValue,
+      );
       if (placeholder) {
         this.element.appendChild(this.inputTarget);
         this.inputTarget.hidden = true;
