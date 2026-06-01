@@ -76,7 +76,9 @@ class ReviewerPayoutRequest < ApplicationRecord
 
   def self.unclaimed_for(user)
     return 0 unless user
-    total_earned_for(user) - paid_for(user)
+    total_earned = total_earned_for(user)
+    total_deducted = where(user: user, aasm_state: "paid").sum("LEAST(paid_amount, amount)")
+    [total_earned - total_deducted, 0].max
   end
 
   def self.pending_for(user)

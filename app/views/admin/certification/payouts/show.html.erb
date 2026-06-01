@@ -23,7 +23,7 @@
         </div>
         <div class="sw-payouts__detail-row">
           <span class="sw-payouts__label">Unclaimed Balance</span>
-          <span><%= @payout_request.user.unclaimed_review_stardust %> ✦</span>
+          <span><%= ReviewerPayoutRequest.unclaimed_for(@payout_request.user) %> ✦</span>
         </div>
         <div class="sw-payouts__detail-row">
           <span class="sw-payouts__label">Total Reviews</span>

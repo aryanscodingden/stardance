@@ -9,51 +9,89 @@
     </header>
 
     <section class="reviewer-stats__overview">
-      <div class="reviewer-stats__balance-card">
-        <div class="reviewer-stats__balance-item">
-          <span class="reviewer-stats__label">Total Earned</span>
-          <span class="reviewer-stats__balance-value"><%= @total_earned %> ✦</span>
-        </div>
-        <div class="reviewer-stats__balance-item">
-          <span class="reviewer-stats__label">Paid Out</span>
-          <span class="reviewer-stats__balance-value"><%= @total_paid %> ✦</span>
-        </div>
-        <div class="reviewer-stats__balance-item reviewer-stats__balance-item--highlight">
-          <span class="reviewer-stats__label">Unclaimed</span>
-          <span class="reviewer-stats__balance-value"><%= @unclaimed %> ✦</span>
+      <div class="reviewer-stats__stats-card">
+        <h2 class="reviewer-stats__stats-title">Your Stats</h2>
+        
+        <div class="reviewer-stats__stats-list">
+          <div class="reviewer-stats__stats-row">
+            <span class="reviewer-stats__stats-label">Total:</span>
+            <span class="reviewer-stats__stats-value"><%= @total_count %></span>
+          </div>
+          
+          <div class="reviewer-stats__stats-row">
+            <span class="reviewer-stats__stats-label">Approved:</span>
+            <span class="reviewer-stats__stats-value reviewer-stats__stats-value--approved">
+              <%= @approved_count %>
+            </span>
+          </div>
+          
+          <div class="reviewer-stats__stats-row">
+            <span class="reviewer-stats__stats-label">Rejected:</span>
+            <span class="reviewer-stats__stats-value reviewer-stats__stats-value--rejected">
+              <%= @returned_count %>
+            </span>
+          </div>
+          
+          <hr class="reviewer-stats__divider">
+          
+          <div class="reviewer-stats__stats-row">
+            <span class="reviewer-stats__stats-label">Rate:</span>
+            <span class="reviewer-stats__stats-value"><%= @approval_rate %>%</span>
+          </div>
         </div>
       </div>
 
       <div class="reviewer-stats__payout-card">
-        <% if @pending_request %>
-          <div class="reviewer-stats__pending">
-            <span class="reviewer-stats__label">Pending Payout Request</span>
-            <p class="reviewer-stats__pending-detail">
-              You requested <strong><%= @pending_request.amount %> ✦</strong>
-              on <%= @pending_request.created_at.strftime('%b %d, %Y') %>.
-              An admin will review it soon.
-            </p>
-          </div>
-        <% elsif @unclaimed > 0 %>
-          <%= form_with url: admin_certification_mystats_payout_request_path, method: :post, class: "reviewer-stats__form" do %>
-            <label for="payout-amount" class="reviewer-stats__label">Request Payout</label>
-            <div class="reviewer-stats__form-row">
-              <%= number_field_tag :amount, @unclaimed, min: 1, max: @unclaimed,
-                    id: "payout-amount", class: "reviewer-stats__input", required: true, autocomplete: "off" %>
-              <span class="reviewer-stats__input-hint">of <%= @unclaimed %> ✦ available</span>
+        <h2 class="reviewer-stats__payout-title">
+          <span>✦</span> Stardust
+        </h2>
+        
+        <div class="reviewer-stats__balance-container">
+          <div class="reviewer-stats__balance-big"><%= @unclaimed %></div>
+          <div class="reviewer-stats__balance-text">balance</div>
+        </div>
+
+        <div class="reviewer-stats__payout-action" data-controller="modal">
+          <% if @pending_request %>
+            <div class="action-btn action-btn--large action-btn--primary action-btn--disabled reviewer-stats__payout-btn">
+              pending request (<%= @pending_request.amount %> ✦)
             </div>
-            <button type="submit" class="action-btn action-btn--primary"
-                    data-confirm="Request payout of this amount?">
+          <% elsif @unclaimed < 10 %>
+            <div class="action-btn action-btn--large action-btn--primary action-btn--disabled reviewer-stats__payout-btn">
+              need 10+ stardust
+            </div>
+          <% else %>
+            <button type="button" class="action-btn action-btn--large action-btn--primary reviewer-stats__payout-btn" data-action="click->modal#open">
               Request Payout
             </button>
+
+            <dialog data-modal-target="dialog" class="modal reviewer-stats__modal" aria-labelledby="payout-modal-title">
+              <%= form_with url: admin_certification_mystats_payout_request_path, method: :post, class: "reviewer-stats__modal-form" do %>
+                <header class="reviewer-stats__modal-header">
+                  <h3 id="payout-modal-title" class="reviewer-stats__modal-title">Request Payout</h3>
+                  <button type="button" class="reviewer-stats__modal-close" aria-label="Close" data-action="click->modal#close">×</button>
+                </header>
+                
+                <p class="reviewer-stats__modal-desc">
+                  You have <strong><%= @unclaimed %> ✦</strong> stardust available. How much stardust would you like to request?
+                </p>
+                
+                <div class="reviewer-stats__modal-field">
+                  <%= label_tag :amount, "Amount to Request" %>
+                  <%= number_field_tag :amount, @unclaimed, min: 10, max: @unclaimed, required: true, class: "reviewer-stats__modal-input" %>
+                  <span class="reviewer-stats__modal-hint">Minimum 10 ✦, Maximum <%= @unclaimed %> ✦</span>
+                </div>
+                
+                <div class="reviewer-stats__modal-actions">
+                  <button type="button" class="action-btn action-btn--large action-btn--secondary" data-action="click->modal#close">
+                    Cancel
+                  </button>
+                  <%= submit_tag "Submit Request", class: "action-btn action-btn--large action-btn--primary" %>
+                </div>
+              <% end %>
+            </dialog>
           <% end %>
-        <% else %>
-          <% if @total_earned > 0 %>
-            <p class="reviewer-stats__empty-hint">All earnings claimed. Complete more reviews to earn more Stardust!</p>
-          <% else %>
-            <p class="reviewer-stats__empty-hint">Complete reviews to start earning Stardust.</p>
-          <% end %>
-        <% end %>
+        </div>
       </div>
     </section>
 
@@ -97,7 +135,7 @@
         </div>
       <% else %>
         <div class="reviewer-stats__empty">
-          <p>No reviews yet. Start reviewing to earn Stardust!</p>
+          <p>No reviews yet. Start reviewing to earn stardust!</p>
         </div>
       <% end %>
     </section>

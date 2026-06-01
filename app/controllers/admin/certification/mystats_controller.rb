@@ -16,6 +16,11 @@ class Admin::Certification::MystatsController < Admin::Certification::Applicatio
     @total_paid = ReviewerPayoutRequest.paid_for(current_user)
     @unclaimed = ReviewerPayoutRequest.unclaimed_for(current_user)
     @pending_request = ReviewerPayoutRequest.pending_for(current_user)
+
+    @total_count = @reviews.count
+    @approved_count = @reviews.where(status: :approved).count
+    @returned_count = @reviews.where(status: :returned).count
+    @approval_rate = @total_count.zero? ? 0 : (@approved_count * 100.0 / @total_count).round
   end
 
   def create_payout_request
