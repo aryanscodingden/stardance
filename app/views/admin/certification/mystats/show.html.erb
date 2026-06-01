@@ -1,0 +1,105 @@
+<% content_for :title, "My Review Stats" %>
+
+<div class="app-layout app-layout--wide">
+  <div class="app-layout__main app-layout__main--wide reviewer-stats">
+    <%= link_to "← back to review queue", admin_certification_ships_path, class: "reviewer-stats__back" %>
+
+    <header class="reviewer-stats__header">
+      <h1>My Review Stats</h1>
+    </header>
+
+    <section class="reviewer-stats__overview">
+      <div class="reviewer-stats__balance-card">
+        <div class="reviewer-stats__balance-item">
+          <span class="reviewer-stats__label">Total Earned</span>
+          <span class="reviewer-stats__balance-value"><%= @total_earned %> ✦</span>
+        </div>
+        <div class="reviewer-stats__balance-item">
+          <span class="reviewer-stats__label">Paid Out</span>
+          <span class="reviewer-stats__balance-value"><%= @total_paid %> ✦</span>
+        </div>
+        <div class="reviewer-stats__balance-item reviewer-stats__balance-item--highlight">
+          <span class="reviewer-stats__label">Unclaimed</span>
+          <span class="reviewer-stats__balance-value"><%= @unclaimed %> ✦</span>
+        </div>
+      </div>
+
+      <div class="reviewer-stats__payout-card">
+        <% if @pending_request %>
+          <div class="reviewer-stats__pending">
+            <span class="reviewer-stats__label">Pending Payout Request</span>
+            <p class="reviewer-stats__pending-detail">
+              You requested <strong><%= @pending_request.amount %> ✦</strong>
+              on <%= @pending_request.created_at.strftime('%b %d, %Y') %>.
+              An admin will review it soon.
+            </p>
+          </div>
+        <% elsif @unclaimed > 0 %>
+          <%= form_with url: admin_certification_mystats_payout_request_path, method: :post, class: "reviewer-stats__form" do %>
+            <label for="payout-amount" class="reviewer-stats__label">Request Payout</label>
+            <div class="reviewer-stats__form-row">
+              <%= number_field_tag :amount, @unclaimed, min: 1, max: @unclaimed,
+                    id: "payout-amount", class: "reviewer-stats__input", required: true %>
+              <span class="reviewer-stats__input-hint">of <%= @unclaimed %> ✦ available</span>
+            </div>
+            <button type="submit" class="action-btn action-btn--primary"
+                    data-confirm="Request payout of this amount?">
+              Request Payout
+            </button>
+          <% end %>
+        <% else %>
+          <% if @total_earned > 0 %>
+            <p class="reviewer-stats__empty-hint">All earnings claimed. Complete more reviews to earn more Stardust!</p>
+          <% else %>
+            <p class="reviewer-stats__empty-hint">Complete reviews to start earning Stardust.</p>
+          <% end %>
+        <% end %>
+      </div>
+    </section>
+
+    <section class="reviewer-stats__history">
+      <h2>Review History</h2>
+      <% if @reviews.any? %>
+        <div class="reviewer-stats__table-wrap">
+          <table class="reviewer-stats__table">
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th>Verdict</th>
+                <th>Earned</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @reviews.each do |review| %>
+                <tr>
+                  <td class="reviewer-stats__cell-project">
+                    <%= link_to review.project.title,
+                          admin_certification_ship_path(review),
+                          class: "reviewer-stats__project-link" %>
+                    <span class="reviewer-stats__review-id">#<%= review.id %></span>
+                  </td>
+                  <td>
+                    <span class="status-pill status-pill--<%= review.status %>">
+                      <%= review.status.capitalize %>
+                    </span>
+                  </td>
+                  <td class="reviewer-stats__cell-earned">
+                    <%= review.stardust_earned || 0 %> ✦
+                  </td>
+                  <td class="reviewer-stats__cell-date">
+                    <%= review.decided_at&.strftime('%b %d, %Y') || '—' %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="reviewer-stats__empty">
+          <p>No reviews yet. Start reviewing to earn Stardust!</p>
+        </div>
+      <% end %>
+    </section>
+  </div>
+</div>

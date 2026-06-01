@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_01_045057) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_01_194033) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -176,6 +176,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_045057) do
     t.integer "lock_version", default: 0, null: false
     t.bigint "project_id", null: false
     t.bigint "reviewer_id"
+    t.integer "stardust_earned"
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["decided_at"], name: "index_certification_ship_reviews_on_decided_at"
@@ -660,6 +661,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_045057) do
     t.index ["report_id", "action"], name: "index_report_review_tokens_on_report_id_and_action", unique: true
     t.index ["report_id"], name: "index_report_review_tokens_on_report_id"
     t.index ["token"], name: "index_report_review_tokens_on_token", unique: true
+  end
+
+  create_table "reviewer_payout_requests", force: :cascade do |t|
+    t.string "aasm_state", default: "pending", null: false
+    t.text "adjust_reason"
+    t.integer "adjusted_amount"
+    t.bigint "admin_id"
+    t.integer "amount"
+    t.datetime "created_at", null: false
+    t.integer "paid_amount"
+    t.datetime "paid_at"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["admin_id"], name: "index_reviewer_payout_requests_on_admin_id"
+    t.index ["user_id"], name: "index_reviewer_payout_requests_on_user_id"
   end
 
   create_table "rsvp_games", force: :cascade do |t|
@@ -1240,6 +1256,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_045057) do
   add_foreign_key "project_skips", "users"
   add_foreign_key "projects", "users", column: "marked_fire_by_id"
   add_foreign_key "report_review_tokens", "project_reports", column: "report_id"
+  add_foreign_key "reviewer_payout_requests", "users"
+  add_foreign_key "reviewer_payout_requests", "users", column: "admin_id"
   add_foreign_key "rsvp_games", "rsvps"
   add_foreign_key "rsvp_replies", "rsvps"
   add_foreign_key "shop_card_grants", "shop_items"
@@ -1252,7 +1270,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_045057) do
   add_foreign_key "shop_item_sources", "shop_items"
   add_foreign_key "shop_item_sources", "shop_sources"
   add_foreign_key "shop_items", "users"
-  add_foreign_key "shop_items", "users", column: "created_by_user_id", on_delete: :nullify
+  add_foreign_key "shop_items", "users", column: "created_by_user_id", on_delete: :nullify, validate: false
   add_foreign_key "shop_items", "users", column: "default_assigned_user_id", on_delete: :nullify
   add_foreign_key "shop_order_modifier_selections", "shop_item_modifiers"
   add_foreign_key "shop_order_modifier_selections", "shop_orders"
