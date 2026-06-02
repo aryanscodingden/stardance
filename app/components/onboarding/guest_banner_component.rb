@@ -3,6 +3,8 @@ module Onboarding
     GRACE_PERIOD = 1.day
 
     def render?
+      return false if helpers.controller.is_a?(LandingController)
+
       visitor? || stale_guest?
     end
 
