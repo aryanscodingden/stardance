@@ -178,27 +178,6 @@ button.sidebar__nav-link {
   cursor: default;
 }
 
-.sidebar__nav-link--locked {
-  opacity: 0.55;
-  cursor: help;
-
-  &:hover,
-  &:focus-visible {
-    opacity: 0.75;
-  }
-}
-
-.sidebar__nav-lock {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-}
-
-.sidebar__nav-lock-icon {
-  width: 1em;
-  height: 1em;
-  color: inherit;
-}
 
 .sidebar__nav-link {
   transition: font-size 0.15s ease;

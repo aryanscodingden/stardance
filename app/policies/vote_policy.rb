@@ -4,7 +4,7 @@ class VotePolicy < ApplicationPolicy
   end
 
   def new?
-    user.present?
+    true
   end
 
   def create?

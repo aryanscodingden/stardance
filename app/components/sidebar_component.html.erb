@@ -35,23 +35,7 @@
             <% end %>
           <% end %>
 
-          <% if item[:locked] %>
-            <button type="button"
-                    class="<%= link_classes %> sidebar__nav-link--locked"
-                    data-controller="tooltip"
-                    data-tooltip-message-value="<%= item[:locked_message] %>"
-                    data-tooltip-position-value="right"
-                    data-slug="<%= item[:slug] %>"
-                    aria-disabled="true"
-                    aria-haspopup="dialog"
-                    aria-label="<%= item[:label] %> (locked) — click for details">
-              <%= icon_block %>
-              <%= label_block %>
-              <span class="sidebar__nav-lock" aria-hidden="true">
-                <%= inline_svg_tag "icons/lock.svg", class: "sidebar__nav-lock-icon" %>
-              </span>
-            </button>
-          <% elsif item[:path] == "#" %>
+          <% if item[:path] == "#" %>
             <span class="<%= link_classes %> sidebar__nav-link--inert" data-slug="<%= item[:slug] %>" aria-disabled="true">
               <%= icon_block %>
               <%= label_block %>
