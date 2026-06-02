@@ -85,7 +85,7 @@
         <h3>Ship Cert Video</h3>
         <% if @review.ship_cert&.verdict_video&.attached? %>
           <video class="video-card__player" src="<%= url_for(@review.ship_cert.verdict_video) %>"
-                 controls playsinline style="width:100%;border-radius:var(--profile-radius)"></video>
+                 controls playsinline preload="metadata" style="width:100%;border-radius:var(--profile-radius)"></video>
         <% else %>
           <div class="video-placeholder">
             <div class="placeholder-text">No review video recorded</div>
