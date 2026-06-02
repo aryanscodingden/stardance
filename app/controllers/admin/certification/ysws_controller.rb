@@ -32,7 +32,11 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
 
     @devlog_windows = devlog_windows_for_review(@review)
     @devlog_commits = begin
-      load_commits_with_stats(@devlog_windows, @review.project)
+      commits = load_commits_with_stats(@devlog_windows, @review.project)
+      filter_commits_by_author(commits,
+        github_username: @repo_info&.dig(:username),
+        email:           @review.user.email
+      )
     rescue => e
       Rails.logger.error("CommitGraph load failed: #{e.message}")
       {}
@@ -66,6 +70,19 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
 
   private
 
+  # Filters a { devlog_id => [commits] } hash to only commits by the submitting user.
+  # Matches on GitHub login (approach 1: repo owner = their username) or email (approach 2).
+  def filter_commits_by_author(commits_by_devlog, github_username:, email:)
+    return commits_by_devlog if github_username.blank? && email.blank?
+
+    commits_by_devlog.transform_values do |commits|
+      commits.select do |c|
+        (github_username.present? && c[:author_login]&.downcase == github_username.downcase) ||
+          (email.present? && c[:author_email]&.downcase == email.downcase)
+      end
+    end
+  end
+
   # Fetches all commits in the review period and buckets them by devlog ID.
   # Returns { devlog_id (integer) => [commit_hash, ...] }.
   # Adds/deletions are fetched per-commit in parallel threads (not in list response).
@@ -81,9 +98,11 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
     all_commits = provider.fetch_commits(since: all_since, before: all_before)
     return {} if all_commits.empty?
 
-    all_commits_with_stats = all_commits
-      .map { |c| Thread.new { provider.fetch_commit(c[:sha]) || c } }
-      .map(&:value)
+    # Fetch per-commit stats in parallel, capped at 10 concurrent connections
+    # to avoid EMFILE (too many open files) on large commit histories.
+    all_commits_with_stats = all_commits.each_slice(10).flat_map do |batch|
+      batch.map { |c| Thread.new { provider.fetch_commit(c[:sha]) || c } }.map(&:value)
+    end
 
     windows.transform_values do |window|
       since_t  = Time.parse(window[:since])

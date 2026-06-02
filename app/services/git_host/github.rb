@@ -70,6 +70,7 @@ module GitHost
         message: commit_data["message"],
         author_name: author["name"],
         author_email: author["email"],
+        author_login: raw["author"]&.dig("login"),
         authored_at: author["date"] ? Time.parse(author["date"]) : nil,
         url: raw["html_url"],
         additions: stats["additions"],
