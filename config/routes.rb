@@ -420,6 +420,13 @@
 #   rails_performance_resources GET  /resources(.:format)    rails_performance/rails_performance#resources
 
 Rails.application.routes.draw do
+  # Raffle — an independent, GitHub-login app on the `raffle.` subdomain. Mounted
+  # first so raffle-host requests (incl. /auth/github/callback) resolve here
+  # before the platform's generic auth route and the `/:ref` catch-all below.
+  constraints(->(req) { req.host.to_s.start_with?("raffle.") }) do
+    mount Raffle::Engine, at: "/", as: :raffle_engine
+  end
+
   # Sitemap
   get "sitemap.xml", to: "sitemaps#index", as: :sitemap, defaults: { format: :xml }
 
