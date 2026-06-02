@@ -1,6 +1,6 @@
 class ShopPolicy < ApplicationPolicy
   def index?
-    signed_in_any?
+    true
   end
 
   def show?

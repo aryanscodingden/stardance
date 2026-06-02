@@ -393,6 +393,29 @@ button.sidebar__nav-link {
   fill: currentColor;
 }
 
+.sidebar__guest-cta {
+  padding: var(--space-xs) var(--space-s);
+}
+
+.sidebar__guest-cta-btn {
+  display: block;
+  width: 100%;
+  padding: var(--space-xs) var(--space-m);
+  border-radius: 999px;
+  background: var(--color-brand-highlight);
+  color: var(--color-set-1-bg);
+  font-family: var(--font-family-text);
+  font-size: var(--font-size-m);
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 160ms ease, filter 160ms ease;
+
+  &:hover {
+    background: var(--color-brand-highlight-secondary);
+  }
+}
+
 @media (max-width: 1500px) {
   .sidebar {
     --sidebar-width: 194px;

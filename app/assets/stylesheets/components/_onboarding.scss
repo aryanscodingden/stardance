@@ -202,6 +202,16 @@ $onboarding-card-border: rgba(255, 255, 255, 0.5);
     margin: 0;
   }
 
+  &__link {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
   &__cta {
     background: #1a1a2e;
     border-radius: 999px;

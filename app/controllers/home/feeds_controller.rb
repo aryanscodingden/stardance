@@ -5,7 +5,7 @@ class Home::FeedsController < ApplicationController
   RECOMMENDATION_POOL = 100 # after this, we fallback to SQL
 
   skip_before_action :remember_page
-  before_action :resume_or_expire_onboarding!
+  before_action :resume_or_expire_onboarding!, if: -> { current_user.present? }
 
   def show
     authorize :home, :feed?
@@ -131,6 +131,8 @@ class Home::FeedsController < ApplicationController
   end
 
   def liked_devlog_ids_for(posts)
+    return Set.new unless current_user
+
     devlog_posts = posts.select { |p| p.postable_type == "Post::Devlog" }
     return Set.new if devlog_posts.empty?
 
