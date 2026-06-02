@@ -72,21 +72,23 @@
             <span class="admin-user-show__muted">N/A</span>
           <% end %>
         </dd>
-        <% @user.identities.each do |identity| %>
-          <dt><%= identity.provider %></dt>
-          <dd>
-            <%= identity.uid %>
-            <% if identity.provider == "slack" %>
-              <%= link_to "→ Slack", "https://hackclub.slack.com/team/#{identity.uid}", target: "_blank" %>
-            <% end %>
-            <% if identity.provider == "hackatime" %>
-              <%= link_to "→ Billy", "https://billy.3kh0.net/?u=#{identity.uid}", target: "_blank" %>
-              <%= link_to "→ Joe", "https://joe.fraud.hackclub.com/profile/#{identity.uid}", target: "_blank" %>
-            <% end %>
-            <% if identity.provider == "hack_club" %>
-              <%= link_to "→ IDV", "#{HCAService.backend_url("/identities/#{identity.uid}")}", target: "_blank" %>
-            <% end %>
-          </dd>
+        <% if policy(current_user).view_order_full_details? %>
+          <% @user.identities.each do |identity| %>
+            <dt><%= identity.provider %></dt>
+            <dd>
+              <%= identity.uid %>
+              <% if identity.provider == "slack" %>
+                <%= link_to "→ Slack", "https://hackclub.slack.com/team/#{identity.uid}", target: "_blank" %>
+              <% end %>
+              <% if identity.provider == "hackatime" %>
+                <%= link_to "→ Billy", "https://billy.3kh0.net/?u=#{identity.uid}", target: "_blank" %>
+                <%= link_to "→ Joe", "https://joe.fraud.hackclub.com/profile/#{identity.uid}", target: "_blank" %>
+              <% end %>
+              <% if identity.provider == "hack_club" %>
+                <%= link_to "→ IDV", "#{HCAService.backend_url("/identities/#{identity.uid}")}", target: "_blank" %>
+              <% end %>
+            </dd>
+          <% end %>
         <% end %>
       </dl>
     </div>

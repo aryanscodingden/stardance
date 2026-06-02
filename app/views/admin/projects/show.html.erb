@@ -19,7 +19,9 @@
         <dt>Ship status</dt>
         <dd>
           <%= @project.ship_status.titleize %>
-          <button type="button" onclick="document.getElementById('change-ship-status-modal').showModal()">Change</button>
+          <% if policy(current_user).view_order_full_details? %>
+            <button type="button" onclick="document.getElementById('change-ship-status-modal').showModal()">Change</button>
+          <% end %>
         </dd>
         <dt>Type</dt>         <dd><%= @project.project_type.presence || content_tag(:span, "Not set", class: "admin-user-show__muted") %></dd>
         <dt>Categories</dt>   <dd><%= @project.project_categories.any? ? @project.project_categories.join(", ") : content_tag(:span, "None", class: "admin-user-show__muted") %></dd>
@@ -57,7 +59,7 @@
     <div class="mission-panel">
       <h2 class="admin-user-show__section-title">Members</h2>
       <% if @project.users.any? %>
-        <ul>
+        <ul style="color: #e2e8f0;">
           <% @project.users.each do |u| %>
             <li><%= link_to u.display_name, admin_user_path(u) %></li>
           <% end %>
@@ -66,55 +68,61 @@
         <p class="admin-user-show__muted">No members.</p>
       <% end %>
 
-      <h2 class="admin-user-show__section-title" style="margin-top: var(--space-m);">Hackatime Keys</h2>
-      <% if @project.hackatime_projects.any? %>
-        <ul>
-          <% @project.hackatime_projects.each do |hp| %>
-            <li>
-              <code><%= hp.name %></code>
-              <small class="admin-user-show__muted">(<%= link_to hp.user.display_name, admin_user_path(hp.user) %>)</small>
-            </li>
-          <% end %>
-        </ul>
-      <% else %>
-        <p class="admin-user-show__muted">No hackatime keys linked.</p>
+      <% if policy(current_user).view_order_full_details? %>
+        <h2 class="admin-user-show__section-title" style="margin-top: var(--space-m);">Hackatime Keys</h2>
+        <% if @project.hackatime_projects.any? %>
+          <ul>
+            <% @project.hackatime_projects.each do |hp| %>
+              <li>
+                <code><%= hp.name %></code>
+                <small class="admin-user-show__muted">(<%= link_to hp.user.display_name, admin_user_path(hp.user) %>)</small>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="admin-user-show__muted">No hackatime keys linked.</p>
+        <% end %>
       <% end %>
     </div>
   </div>
 
-  <div class="mission-panel">
-    <h2 class="admin-user-show__section-title">Actions</h2>
-    <div class="admin-user-show__actions">
-      <%= render ActionButtonComponent.new(text: "← Back", href: admin_projects_path, size: :small, variant: :secondary) %>
-      <%= render ActionButtonComponent.new(text: "Public Page", href: project_path(@project), size: :small, variant: :secondary) %>
-      <%= render ActionButtonComponent.new(text: "Votes", href: votes_admin_project_path(@project), size: :small, variant: :secondary) %>
-      <% if @project.deleted? %>
-        <%= button_to "Restore Project", restore_admin_project_path(@project), method: :post,
-            data: { confirm: "Restore this project?" } %>
-      <% else %>
-        <%= button_to "Delete Project", delete_admin_project_path(@project), method: :post,
-            data: { confirm: "Delete this project?" } %>
-      <% end %>
+  <% if policy(current_user).view_order_full_details? %>
+    <div class="mission-panel">
+      <h2 class="admin-user-show__section-title">Actions</h2>
+      <div class="admin-user-show__actions">
+        <%= render ActionButtonComponent.new(text: "← Back", href: admin_projects_path, size: :small, variant: :secondary) %>
+        <%= render ActionButtonComponent.new(text: "Public Page", href: project_path(@project), size: :small, variant: :secondary) %>
+        <%= render ActionButtonComponent.new(text: "Votes", href: votes_admin_project_path(@project), size: :small, variant: :secondary) %>
+        <% if @project.deleted? %>
+          <%= button_to "Restore Project", restore_admin_project_path(@project), method: :post,
+              data: { confirm: "Restore this project?" } %>
+        <% else %>
+          <%= button_to "Delete Project", delete_admin_project_path(@project), method: :post,
+              data: { confirm: "Delete this project?" } %>
+        <% end %>
+      </div>
     </div>
-  </div>
 
-  <%= render layout: "shared/modal", locals: { id: "change-ship-status-modal", title: "Change Ship Status", description: "Bypasses AASM transitions and is logged to PaperTrail." } do %>
-    <form action="<%= update_ship_status_admin_project_path(@project) %>" method="post">
-      <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-      <%= label_tag :ship_status, "New Status" %>
-      <%= select_tag :ship_status,
-            options_for_select(
-              Project.aasm.states.map { |s| [s.name.to_s.titleize, s.name.to_s] },
-              @project.ship_status
-            ) %>
-      <button type="submit">Update Status</button>
-      <button type="button" onclick="document.getElementById('change-ship-status-modal').close()">Cancel</button>
-    </form>
+    <%= render layout: "shared/modal", locals: { id: "change-ship-status-modal", title: "Change Ship Status", description: "Bypasses AASM transitions and is logged to PaperTrail." } do %>
+      <form action="<%= update_ship_status_admin_project_path(@project) %>" method="post">
+        <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+        <%= label_tag :ship_status, "New Status" %>
+        <%= select_tag :ship_status,
+              options_for_select(
+                Project.aasm.states.map { |s| [s.name.to_s.titleize, s.name.to_s] },
+                @project.ship_status
+              ) %>
+        <button type="submit">Update Status</button>
+        <button type="button" onclick="document.getElementById('change-ship-status-modal').close()">Cancel</button>
+      </form>
+    <% end %>
+
+    <%= render "admin/shared/ledger_log",
+        entries: LedgerEntry.where(ledgerable_type: "Post::ShipEvent", ledgerable_id: @project.ship_events.select(:id)),
+        title: "Project Ledger" %>
   <% end %>
 
-  <%= render "admin/shared/ledger_log",
-      entries: LedgerEntry.where(ledgerable_type: "Post::ShipEvent", ledgerable_id: @project.ship_events.select(:id)),
-      title: "Project Ledger" %>
-
-  <%= render "admin/shared/audit_log", record: @project %>
+  <% if policy(current_user).audit_log? %>
+    <%= render "admin/shared/audit_log", record: @project %>
+  <% end %>
 </div>
