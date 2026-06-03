@@ -558,6 +558,7 @@ Rails.application.routes.draw do
 
   namespace :admin, constraints: AdminConstraint do
     root to: "application#index"
+    resource :funnel, only: [ :show ], controller: "funnel"
 
     mount Blazer::Engine, at: "blazer", constraints: ->(request) {
       AdminConstraint.allow?(request, :access_blazer?)
