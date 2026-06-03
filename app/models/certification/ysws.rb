@@ -6,6 +6,7 @@
 #  airtable_synced_at    :datetime
 #  approved_minutes      :integer
 #  demo_checked_at       :datetime
+#  in_unified_db         :boolean          default(FALSE), not null
 #  original_minutes      :integer
 #  repo_checked_at       :datetime
 #  reviewed_at           :datetime

@@ -440,7 +440,7 @@
 
   <% unless @review.in_unified_db? %>
     <!-- Action Buttons Section (Full Width) -->
-    <section class="review-card actions-card">
+    <section class="review-card actions-card" data-certification--ysws--review-sidebar-target="actionsCard">
       <div class="checklist-warning">
         <div class="warning-title">Checklist (do this if u don't wanna Alex to get mad..)</div>
         <div class="warning-items">
@@ -450,16 +450,7 @@
       </div>
 
       <div class="action-buttons-grid">
-        <button class="action-btn btn-secondary" disabled>
-          Cap Devlogs to 600 min
-        </button>
-        <button class="action-btn btn-approve-all" disabled>
-          Approve All Devlogs
-        </button>
-        <button class="action-btn btn-reject-all" disabled>
-          Reject All Devlogs
-        </button>
-        <button class="action-btn btn-return" disabled>
+<button class="action-btn btn-return" disabled>
           Return to Ship Certs
         </button>
         <button class="action-btn btn-complete"
