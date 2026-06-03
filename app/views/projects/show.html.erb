@@ -148,10 +148,10 @@
                 <% else %>
                   <div data-controller="hackatime-link">
                     <div class="project-show__hackatime-picker">
-                      <div class="project-show__hackatime-box" data-hackatime-link-target="box">
-                        <button type="button" class="project-show__hackatime-add" data-action="hackatime-link#toggle" data-hackatime-link-target="addBtn" aria-label="Add Hackatime project">
+                      <div class="project-show__hackatime-box" role="button" tabindex="0" aria-pressed="false" data-contoller="addBtn" data-action="click->hackatime-link#toggle keydown.enter->hackatime-link#toggle">
+                        <div  class="project-show__hackatime-add" aria-label="Add Hackatime project">
                           <%= inline_svg_tag "icons/plus.svg", class: "project-show__hackatime-add-icon" %>
-                        </button>
+                        </div>
                         <div class="project-show__hackatime-tags" data-hackatime-link-target="tags">
                           <span class="project-show__hackatime-placeholder"
                                 data-hackatime-link-target="placeholder"
