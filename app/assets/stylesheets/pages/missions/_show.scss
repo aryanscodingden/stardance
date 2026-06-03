@@ -223,8 +223,13 @@
 .mission-home__hero-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 18px;
   flex-wrap: wrap;
+
+  &--spread {
+    justify-content: space-between;
+    gap: 0;
+  }
 }
 
 .mission-home__cta-form {

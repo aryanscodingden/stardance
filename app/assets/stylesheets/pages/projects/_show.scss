@@ -1869,3 +1869,12 @@ turbo-frame#project_hero {
   flex-shrink: 0;
   gap: 6px;
 }
+
+.mission-browse-modal__empty {
+  color: var(--color-space-text-muted, var(--color-space-text));
+  font-size: var(--font-size-m);
+  line-height: 1.5;
+  margin: 0;
+  text-align: center;
+  padding: var(--space-l) 0;
+}

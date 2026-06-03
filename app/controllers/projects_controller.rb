@@ -99,19 +99,21 @@ class ProjectsController < ApplicationController
     @show_project_onboarding = @is_member && @posts.empty?
     @project_onboarding_mission = @project.current_mission
 
-    if @is_member && @project.current_mission.nil? && !@project.shipped?
+    @available_missions = if @is_member && @project.current_mission.nil? && !@project.shipped?
       taken_mission_ids = current_user.projects
                                       .where(deleted_at: nil)
                                       .joins(:mission_attachments)
                                       .where(project_mission_attachments: { detached_at: nil, deleted_at: nil })
                                       .pluck("project_mission_attachments.mission_id")
                                       .uniq
-      @available_missions = Mission.available
-                                   .where.not(id: taken_mission_ids)
-                                   .with_attached_icon
-                                   .order(featured_at: :desc)
-                                   .limit(12)
-                                   .to_a
+      Mission.available
+             .where.not(id: taken_mission_ids)
+             .with_attached_icon
+             .order(featured_at: :desc)
+             .limit(12)
+             .to_a
+    else
+      []
     end
 
     @show_project_tour = params[:welcome] == "1" && current_user.present? && @is_member &&

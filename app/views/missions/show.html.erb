@@ -75,7 +75,8 @@
           </p>
         <% end %>
 
-        <div class="mission-home__hero-actions">
+        <% has_three_actions = !@active_project && @attachable_projects&.any? && @mission.has_guide? %>
+        <div class="mission-home__hero-actions<%= " mission-home__hero-actions--spread" if has_three_actions %>">
           <% if @active_project %>
             <%= link_to "View my project",
                         project_path(@active_project),
