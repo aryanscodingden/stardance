@@ -71,7 +71,10 @@
 
     <div class="shop-item-card__details">
       <% if hours.present? %>
-        <span class="shop-item-card__hours"><%= hours %> hours</span>
+        <span class="shop-item-card__hours"
+              data-controller="tooltip"
+              data-tooltip-message-value="Stardust payout varies based on how your project is rated, so your actual hours may be higher or lower than this estimate."
+              data-tooltip-position-value="top"><%= hours %> hours</span>
       <% end %>
       <% if on_sale && original_price %>
         <span class="shop-item-card__price shop-item-card__price--strike">
