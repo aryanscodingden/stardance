@@ -15,6 +15,7 @@ class Gorse::ProjectPayload
            .where("LOWER(projects.title) NOT IN (?)", PLACEHOLDER_TITLES)
            .where("LOWER(projects.title) NOT LIKE ?", "untitled%")
            .where("projects.devlogs_count > 0 OR projects.shipped_at IS NOT NULL OR projects.duration_seconds > 0")
+           .joins("INNER JOIN active_storage_attachments asa ON asa.record_id = projects.id AND asa.record_type = 'Project' AND asa.name = 'banner'")
   end
 
   def to_h

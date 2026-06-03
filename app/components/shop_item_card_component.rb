@@ -73,7 +73,7 @@ class ShopItemCardComponent < ViewComponent::Base
   end
 
   def order_url
-    logged_in ? helpers.shop_item_path(item_id) : "/"
+    helpers.shop_item_path(item_id)
   end
 
   def display_price

@@ -48,7 +48,7 @@ class Admin::Certification::MystatsController < Admin::Certification::Applicatio
         id: payout.id,
         path: nil,
         status: :paid,
-        amount: payout.paid_amount || payout.amount,
+        amount: payout.amount,
         date: payout.paid_at
       }
     end

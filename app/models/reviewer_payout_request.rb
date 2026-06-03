@@ -8,7 +8,7 @@
 #  aasm_state      :string           default("pending"), not null
 #  adjust_reason   :text
 #  adjusted_amount :integer
-#  amount          :integer
+#  amount          :integer          not null
 #  paid_amount     :integer
 #  paid_at         :datetime
 #  created_at      :datetime         not null
@@ -18,8 +18,9 @@
 #
 # Indexes
 #
-#  index_reviewer_payout_requests_on_admin_id  (admin_id)
-#  index_reviewer_payout_requests_on_user_id   (user_id)
+#  index_reviewer_payout_requests_on_admin_id         (admin_id)
+#  index_reviewer_payout_requests_on_user_id          (user_id)
+#  index_reviewer_payout_requests_on_user_id_pending  (user_id) UNIQUE WHERE ((aasm_state)::text = 'pending'::text)
 #
 # Foreign Keys
 #
@@ -29,15 +30,19 @@
 class ReviewerPayoutRequest < ApplicationRecord
   include AASM
 
+  MINIMUM_AMOUNT = 10
+
   has_paper_trail
 
   belongs_to :user
   belongs_to :admin, class_name: "User", optional: true
 
-  validates :amount, numericality: { greater_than: 0, only_integer: true }
+  validates :amount, numericality: { greater_than_or_equal_to: MINIMUM_AMOUNT, only_integer: true }
   validates :adjusted_amount, numericality: { greater_than: 0, only_integer: true }, allow_nil: true
+  validates :paid_amount, numericality: { greater_than: 0, only_integer: true }, allow_nil: true
   validates :adjust_reason, presence: { message: "is required when adjusting the amount" },
-    if: -> { adjusted_amount.present? && adjusted_amount != amount }
+    if: :adjusted?
+  validate :adjusted_amount_cannot_exceed_amount
   validate :sufficient_balance, on: :create
   validate :no_pending_request, on: :create
 
@@ -61,6 +66,56 @@ class ReviewerPayoutRequest < ApplicationRecord
     adjusted_amount || amount
   end
 
+  def adjusted?
+    adjusted_amount.present? && adjusted_amount != amount
+  end
+
+  def pay_out(admin:, adjusted_amount:, adjust_reason:)
+    with_lock do
+      unless may_pay?
+        errors.add(:base, "This request cannot be paid in its current state")
+        return false
+      end
+
+      self.adjusted_amount = adjusted_amount
+      self.adjust_reason = adjust_reason
+      self.paid_amount = final_amount
+      self.admin = admin
+      self.paid_at = Time.current
+
+      return false unless valid?
+      return false unless requested_amount_available?
+
+      pay!
+      create_payout_ledger_entry!(admin)
+      record_admin_event!("paid", admin, paid_changes)
+
+      true
+    end
+  end
+
+  def reject_with_reason(admin:, reason:)
+    with_lock do
+      unless may_reject?
+        errors.add(:base, "This request cannot be rejected in its current state")
+        return false
+      end
+
+      if reason.blank?
+        errors.add(:adjust_reason, "is required when rejecting a payout request")
+        return false
+      end
+
+      self.admin = admin
+      self.adjust_reason = reason
+
+      reject!
+      record_admin_event!("rejected", admin, rejected_changes(reason))
+
+      true
+    end
+  end
+
   def self.total_earned_for(user)
     return 0 unless user
     Certification::Ship
@@ -76,9 +131,7 @@ class ReviewerPayoutRequest < ApplicationRecord
 
   def self.unclaimed_for(user)
     return 0 unless user
-    total_earned = total_earned_for(user)
-    total_deducted = where(user: user, aasm_state: "paid").sum("LEAST(paid_amount, amount)")
-    [ total_earned - total_deducted, 0 ].max
+    [ total_earned_for(user) - settled_for(user), 0 ].max
   end
 
   def self.pending_for(user)
@@ -86,7 +139,19 @@ class ReviewerPayoutRequest < ApplicationRecord
     find_by(user: user, aasm_state: "pending")
   end
 
+  def self.settled_for(user)
+    return 0 unless user
+    where(user: user, aasm_state: "paid").sum(:amount)
+  end
+
   private
+
+  def adjusted_amount_cannot_exceed_amount
+    return if adjusted_amount.blank? || amount.blank?
+    return if adjusted_amount <= amount
+
+    errors.add(:adjusted_amount, "cannot exceed the requested amount")
+  end
 
   def sufficient_balance
     return unless user
@@ -95,11 +160,61 @@ class ReviewerPayoutRequest < ApplicationRecord
     errors.add(:amount, "exceeds your unclaimed earnings (#{unclaimed} ✦)") if amount.to_i > unclaimed
   end
 
+  def requested_amount_available?
+    return true unless user
+
+    unclaimed = self.class.unclaimed_for(user)
+    return true if amount.to_i <= unclaimed
+
+    errors.add(:amount, "exceeds the reviewer's unclaimed earnings (#{unclaimed} ✦)")
+    false
+  end
+
   def no_pending_request
     return unless user
 
-    if ReviewerPayoutRequest.where(user: user, aasm_state: "pending").exists?
+    if self.class.where(user: user, aasm_state: "pending").exists?
       errors.add(:base, "You already have a pending payout request")
     end
+  end
+
+  def create_payout_ledger_entry!(admin)
+    user.ledger_entries.create!(
+      amount: paid_amount,
+      reason: "Shipwrights payout ##{id}",
+      created_by: "#{admin.display_name} (#{admin.id})",
+      ledgerable: self
+    )
+  end
+
+  def record_admin_event!(event, admin, changes)
+    ::PaperTrail::Version.create!(
+      item_type: self.class.name,
+      item_id: id,
+      event: event,
+      whodunnit: admin.id,
+      object_changes: changes.to_json
+    )
+  end
+
+  def paid_changes
+    changes = {
+      aasm_state: %w[pending paid],
+      admin_id: [ nil, admin_id ],
+      paid_amount: [ nil, paid_amount ],
+      paid_at: [ nil, paid_at ]
+    }
+
+    changes[:adjusted_amount] = [ nil, adjusted_amount ] if adjusted_amount.present?
+    changes[:adjust_reason] = [ nil, adjust_reason ] if adjust_reason.present?
+    changes
+  end
+
+  def rejected_changes(reason)
+    {
+      aasm_state: %w[pending rejected],
+      admin_id: [ nil, admin_id ],
+      adjust_reason: [ nil, reason ]
+    }
   end
 end

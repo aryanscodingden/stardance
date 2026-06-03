@@ -26,44 +26,18 @@ class Admin::Certification::PayoutsController < Admin::Certification::Applicatio
       return
     end
 
-    adjusted = params[:adjusted_amount].presence&.to_i
-    adjust_reason = params[:adjust_reason].presence
-
-    @payout_request.adjusted_amount = adjusted
-    @payout_request.adjust_reason = adjust_reason
-
-    unless @payout_request.valid?
+    unless @payout_request.pay_out(
+      admin: current_user,
+      adjusted_amount: params[:adjusted_amount].presence,
+      adjust_reason: params[:adjust_reason].presence
+    )
       redirect_to admin_certification_payout_path(@payout_request),
         alert: @payout_request.errors.full_messages.to_sentence
       return
     end
 
-    paid_amount = @payout_request.final_amount
-    payout_number = ReviewerPayoutRequest.where(aasm_state: "paid").count + 1
-
-    @payout_request.paid_amount = paid_amount
-    @payout_request.admin = current_user
-    @payout_request.paid_at = Time.current
-    @payout_request.pay!
-
-    # Credit the reviewer's real ledger balance
-    @payout_request.user.ledger_entries.create!(
-      amount: paid_amount,
-      reason: "Shipwrights ##{payout_number} payout",
-      created_by: "Admin (#{current_user.display_name})",
-      ledgerable: @payout_request
-    )
-
-    ::PaperTrail::Version.create!(
-      item_type: "ReviewerPayoutRequest",
-      item_id: @payout_request.id,
-      event: "paid",
-      whodunnit: current_user.id,
-      object_changes: { aasm_state: %w[pending paid], paid_amount: paid_amount }.to_json
-    )
-
     redirect_to admin_certification_payouts_path,
-      notice: "Paid #{paid_amount} ✦ to #{@payout_request.user.display_name} (Shipwrights ##{payout_number})."
+      notice: "Paid #{@payout_request.paid_amount} ✦ to #{@payout_request.user.display_name}."
   end
 
   def reject
@@ -75,29 +49,11 @@ class Admin::Certification::PayoutsController < Admin::Certification::Applicatio
       return
     end
 
-    reject_reason = params[:reject_reason].presence
-
-    if reject_reason.blank?
+    unless @payout_request.reject_with_reason(admin: current_user, reason: params[:reject_reason].presence)
       redirect_to admin_certification_payout_path(@payout_request),
-        alert: "Rejection reason is required when rejecting a payout request."
+        alert: @payout_request.errors.full_messages.to_sentence
       return
     end
-
-    @payout_request.admin = current_user
-    @payout_request.adjust_reason = reject_reason
-    @payout_request.reject!
-
-    ::PaperTrail::Version.create!(
-      item_type: "ReviewerPayoutRequest",
-      item_id: @payout_request.id,
-      event: "rejected",
-      whodunnit: current_user.id,
-      object_changes: {
-        aasm_state: %w[pending rejected],
-        admin_id: [ nil, current_user.id ],
-        adjust_reason: [ nil, reject_reason ]
-      }.to_json
-    )
 
     redirect_to admin_certification_payouts_path,
       notice: "Payout request from #{@payout_request.user.display_name} rejected."

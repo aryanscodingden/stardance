@@ -28,23 +28,16 @@ class Onboarding::WizardController < ApplicationController
     existing = User.find_by(email: normalized)
 
     if existing&.hca_linked?
-      if existing.age_attestation_ineligible?
+      if existing.age_blocked?
         redirect_to onboarding_age_gate_path and return
       end
 
-      if existing.onboarded_at.nil?
-        session[:user_id] = existing.id
-        redirect_to onboarding_resume_path(existing) and return
-      end
-
-      # OmniAuth 2.x with omniauth-rails_csrf_protection blocks GET, so we
-      # render an auto-submitting POST form instead of redirecting.
       @login_hint = normalized
       return render :redirecting_to_hca
     end
 
     if existing
-      session[:user_id] = existing.id
+      sign_in_user(existing)
 
       if onboarding_in_progress?(existing)
         if onboarding_fresh?(existing)
@@ -65,7 +58,7 @@ class Onboarding::WizardController < ApplicationController
     end
 
     user = create_guest!(normalized)
-    session[:user_id] = user.id
+    sign_in_user(user)
     UserMailer.onboarding_start(user).deliver_later
     track_event "onboarding_started", { user_id: user.id }
 
@@ -80,7 +73,7 @@ class Onboarding::WizardController < ApplicationController
   def welcome; end
 
   def birthday
-    if current_user.age_attestation_ineligible?
+    if current_user.age_blocked?
       reset_session
       redirect_to onboarding_age_gate_path
     elsif current_user.age_attestation.present?
@@ -89,7 +82,7 @@ class Onboarding::WizardController < ApplicationController
   end
 
   def submit_birthday
-    if current_user.age_attestation_ineligible?
+    if current_user.age_blocked?
       reset_session
       redirect_to onboarding_age_gate_path and return
     end
@@ -254,7 +247,7 @@ class Onboarding::WizardController < ApplicationController
     owner&.update!(guest_email: nil)
 
     user = create_guest!(claimed_email)
-    session[:user_id] = user.id
+    sign_in_user(user)
     redirect_to onboarding_welcome_path
   end
 
@@ -308,6 +301,7 @@ class Onboarding::WizardController < ApplicationController
 
   def require_teen_attestation!
     return if current_user&.age_attestation_teen_13_18?
+    return if current_user&.manual_ysws_override == true
     redirect_to onboarding_birthday_path
   end
 

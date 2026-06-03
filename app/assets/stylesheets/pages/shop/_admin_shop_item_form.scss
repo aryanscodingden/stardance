@@ -13,9 +13,13 @@
     color: var(--color-space-text);
   }
 
-  &__page-title { @include s.page-title; }
+  &__page-title {
+    @include s.page-title;
+  }
 
-  &__back { @include s.back-link; }
+  &__back {
+    @include s.back-link;
+  }
 
   input[type="date"],
   input[type="datetime-local"] {
@@ -29,9 +33,15 @@
     color: s.$set-fg-secondary;
   }
 
-  &__calc-value { color: var(--color-space-text); }
+  &__calc-value {
+    color: var(--color-space-text);
+  }
 
-  &__toggle-content strong { color: var(--color-space-text); }
+  &__toggle-content strong {
+    color: var(--color-space-text);
+  }
 
-  .modifier-entry__title { color: var(--color-space-text); }
+  .modifier-entry__title {
+    color: var(--color-space-text);
+  }
 }

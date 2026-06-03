@@ -1,4 +1,5 @@
 <% content_for :title, "My Review Stats" %>
+<% minimum_payout = ReviewerPayoutRequest::MINIMUM_AMOUNT %>
 
 <div class="app-layout app-layout--wide">
   <div class="app-layout__main app-layout__main--wide reviewer-stats">
@@ -56,9 +57,9 @@
             <div class="action-btn action-btn--large action-btn--primary action-btn--disabled reviewer-stats__payout-btn">
               pending request (<%= @pending_request.amount %> ✦)
             </div>
-          <% elsif @unclaimed < 10 %>
+          <% elsif @unclaimed < minimum_payout %>
             <div class="action-btn action-btn--large action-btn--primary action-btn--disabled reviewer-stats__payout-btn">
-              need 10+ stardust
+              need <%= minimum_payout %>+ stardust
             </div>
           <% else %>
             <button type="button" class="action-btn action-btn--large action-btn--primary reviewer-stats__payout-btn" data-action="click->modal#open">
@@ -78,8 +79,13 @@
 
                 <div class="reviewer-stats__modal-field">
                   <%= label_tag :amount, "Amount to Request" %>
-                  <%= number_field_tag :amount, @unclaimed, min: 10, max: @unclaimed, required: true, autocomplete: "off", class: "reviewer-stats__modal-input" %>
-                  <span class="reviewer-stats__modal-hint">Minimum 10 ✦, Maximum <%= @unclaimed %> ✦</span>
+                  <%= number_field_tag :amount, @unclaimed,
+                        min: minimum_payout,
+                        max: @unclaimed,
+                        required: true,
+                        autocomplete: "off",
+                        class: "reviewer-stats__modal-input" %>
+                  <span class="reviewer-stats__modal-hint">Minimum <%= minimum_payout %> ✦, Maximum <%= @unclaimed %> ✦</span>
                 </div>
 
                 <div class="reviewer-stats__modal-actions">

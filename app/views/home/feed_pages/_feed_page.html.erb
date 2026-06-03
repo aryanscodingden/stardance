@@ -57,7 +57,13 @@
     <% end %>
   <% end %>
 
-  <p class="feed-home__empty">Nothing here yet. Post a devlog or ship your project to start the feed.</p>
+  <p class="feed-home__empty">
+    <% if current_user.present? %>
+      Nothing here yet. Post a devlog or ship your project to start the feed.
+    <% else %>
+      Nothing here yet. Sign up to start building and see the feed come alive!
+    <% end %>
+  </p>
 <% end %>
 
 <% if @pagy.next %>

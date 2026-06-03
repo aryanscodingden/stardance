@@ -700,15 +700,18 @@ Rails.application.routes.draw do
         collection do
           get :next
         end
-        member do
-          post :claim
+        scope module: :ships do
+          resource :claim, only: [ :create, :destroy ]
         end
       end
 
       resources :devlog_reviews, only: [ :update ]
 
+      get "devlogs/:devlog_id/commits", to: "devlog_commits#index", as: "devlog_commits"
+
       get "review", to: "ysws#index", as: "ysws_reviews"
       get "review/:id", to: "ysws#show", as: "ysws_review"
+      get "review/:id/commits", to: "ysws#commits", as: "ysws_commits"
       post "review/:id/report_fraud", to: "ysws#report_fraud", as: "ysws_report_fraud"
 
       # Admin payout management
@@ -755,6 +758,7 @@ Rails.application.routes.draw do
     resource :ships, only: [ :create ], module: :projects
     resource :mission, only: [ :create, :destroy ], module: :projects, controller: "missions"
     resource :magic, only: [ :create, :destroy ], module: :projects, controller: "magic"
+    resource :fire_nomination, only: [ :create, :destroy ], module: :projects
     resources :mission_section_completions,
               only: [ :create, :destroy ],
               module: :projects,
@@ -763,6 +767,7 @@ Rails.application.routes.draw do
       get :readme
       post :follow
       delete :unfollow
+      get :followers
     end
   end
 

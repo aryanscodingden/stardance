@@ -20,7 +20,10 @@
     gap: var(--space-s);
   }
 
-  &__title { @include s.page-title; margin: 0; }
+  &__title {
+    @include s.page-title;
+    margin: 0;
+  }
 
   &__badges {
     display: flex;
@@ -42,10 +45,14 @@
     gap: 1.5rem;
     align-items: start;
 
-    @media (max-width: 900px) { grid-template-columns: 1fr; }
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+    }
   }
 
-  &__main .card { margin-bottom: 1.5rem; }
+  &__main .card {
+    margin-bottom: 1.5rem;
+  }
 
   &__sidebar .card {
     margin-bottom: 1.5rem;
@@ -58,7 +65,9 @@
     @include s.space-card;
   }
 
-  .table-data { @include s.space-table; }
+  .table-data {
+    @include s.space-table;
+  }
 
   &__stats {
     display: flex;
@@ -91,7 +100,11 @@
     margin-top: 0.125rem;
   }
 
-  &__rows { display: flex; flex-direction: column; gap: 0.5rem; }
+  &__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 
   &__row {
     display: flex;
@@ -100,13 +113,27 @@
     gap: 1rem;
     padding: 0.375rem 0;
     border-bottom: 1px solid rgba(s.$set-fg-secondary, 0.2);
-    &:last-child { border-bottom: none; }
+    &:last-child {
+      border-bottom: none;
+    }
   }
 
-  &__row-label { font-size: 0.875rem; color: s.$set-fg-secondary; flex-shrink: 0; }
-  &__row-value { font-size: 0.875rem; color: var(--color-space-text); text-align: right; }
+  &__row-label {
+    font-size: 0.875rem;
+    color: s.$set-fg-secondary;
+    flex-shrink: 0;
+  }
+  &__row-value {
+    font-size: 0.875rem;
+    color: var(--color-space-text);
+    text-align: right;
+  }
 
-  &__regions { display: flex; flex-direction: column; gap: 0.375rem; }
+  &__regions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
 
   &__region {
     display: flex;
@@ -116,7 +143,9 @@
     border-radius: 4px;
     font-size: 0.875rem;
     color: var(--color-space-text);
-    &--disabled { opacity: 0.5; }
+    &--disabled {
+      opacity: 0.5;
+    }
   }
 
   &__section-header {
@@ -125,8 +154,13 @@
     align-items: center;
     margin-bottom: var(--space-s);
 
-    h3 { margin: 0; }
-    span { font-size: 0.875rem; color: s.$set-fg-secondary; }
+    h3 {
+      margin: 0;
+    }
+    span {
+      font-size: 0.875rem;
+      color: s.$set-fg-secondary;
+    }
   }
 
   &__actions {
@@ -135,12 +169,18 @@
     gap: 0.5rem;
     @include s.pill-buttons;
 
-    .btn-primary, .btn-secondary, .btn-danger, input[type="submit"], button {
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger,
+    input[type="submit"],
+    button {
       width: 100%;
       justify-content: center;
       text-decoration: none;
     }
   }
 
-  &__back { @include s.back-link; }
+  &__back {
+    @include s.back-link;
+  }
 }

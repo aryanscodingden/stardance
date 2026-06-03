@@ -6,21 +6,14 @@ class MissionsController < ApplicationController
   def index
     authorize Mission
 
-    @available_missions = Mission.available
-                                 .includes(:icon_attachment)
-                                 .order(featured_at: :desc, name: :asc)
-    @upcoming_missions = Mission.enabled
-                                .where("start_at IS NOT NULL AND start_at > ?", Time.current)
-                                .includes(:icon_attachment)
-                                .order(:start_at)
-                                .limit(8)
-    @ended_missions = Mission.enabled
-                             .where("end_at IS NOT NULL AND end_at <= ?", Time.current)
-                             .includes(:icon_attachment)
-                             .order(end_at: :desc)
-                             .limit(8)
+    buckets = Mission.visible_for(current_user).with_attached_icon
+                     .order(featured_at: :desc, name: :asc)
+                     .group_by(&:index_bucket)
 
-    @draft_missions = draft_missions_for_current_user
+    @available_missions = buckets[:available] || []
+    @upcoming_missions  = (buckets[:upcoming] || []).sort_by(&:start_at).first(8)
+    @ended_missions     = (buckets[:ended] || []).sort_by { |m| -m.end_at.to_f }.first(8)
+    @draft_missions     = (buckets[:draft] || []).sort_by { |m| -m.updated_at.to_f }
   end
 
   def show
@@ -56,19 +49,6 @@ class MissionsController < ApplicationController
 
   def set_body_class
     @body_class = "app-layout-page"
-  end
-
-  def draft_missions_for_current_user
-    return Mission.none unless current_user
-
-    scope = Mission.where(enabled: false).includes(:icon_attachment)
-
-    if current_user.admin?
-      scope.order(updated_at: :desc)
-    else
-      owned_ids = Mission::Membership.where(user_id: current_user.id, role: :owner).select(:mission_id)
-      scope.where(id: owned_ids).order(updated_at: :desc)
-    end
   end
 
   def set_mission

@@ -34,7 +34,9 @@ $set-fg-secondary: #83828d;
     color: $set-fg-secondary;
     font-size: 0.875rem;
     text-decoration: none;
-    &:hover { color: var(--color-space-text); }
+    &:hover {
+      color: var(--color-space-text);
+    }
   }
 }
 
@@ -58,7 +60,9 @@ $set-fg-secondary: #83828d;
 @mixin space-table {
   border-color: $set-fg-secondary;
 
-  thead { background: var(--color-set-1-bg); }
+  thead {
+    background: var(--color-set-1-bg);
+  }
 
   th {
     color: $set-fg-secondary;
@@ -67,11 +71,19 @@ $set-fg-secondary: #83828d;
     letter-spacing: 0.05em;
   }
 
-  td { color: var(--color-space-text); }
-  tbody tr { background: var(--color-set-2-bg); }
+  td {
+    color: var(--color-space-text);
+  }
+  tbody tr {
+    background: var(--color-set-2-bg);
+  }
 
   tbody tr:nth-child(odd) {
-    background: color-mix(in srgb, var(--color-set-2-bg), var(--color-set-1-bg) 40%);
+    background: color-mix(
+      in srgb,
+      var(--color-set-2-bg),
+      var(--color-set-1-bg) 40%
+    );
   }
 }
 

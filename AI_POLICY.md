@@ -9,13 +9,13 @@ countless other partners.
 
 ## The rules
 
-**You must prove your code works, and understand it**
+### You must prove your code works, and understand it
 
 If you can't explain what your change does and how it fits the larger system
 without an AI tool holding your hand, don't submit it. And if you can't show us
 it runs, we can't merge it. Everything below is just how we apply that.
 
-**Showing it works**
+### Showing it works
 
 Every PR from outside the core team needs evidence you ran the code. Pick
 whatever fits:
@@ -27,11 +27,11 @@ whatever fits:
 This can be fairly simple but should scale with the complexity of the proposed
 change.
 
-**All AI usage in any form must be disclosed.**
+### All AI usage in any form must be disclosed.
 
 Tell us what tools you used so reviewers know what to look for.
 
-**No AI-generated media is allowed (art, images, videos, audio, etc.).**
+### No AI-generated media is allowed (art, images, videos, audio, etc.).
 
 ## How it works depending on who you are
 
