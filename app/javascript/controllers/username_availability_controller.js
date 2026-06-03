@@ -15,7 +15,9 @@ export default class extends Controller {
     this.lastQuery = null;
     this.abortController = null;
     this.timer = null;
-    this._initialValue = this.checkOnConnectValue ? null : this.inputTarget.value;
+    this._initialValue = this.checkOnConnectValue
+      ? null
+      : this.inputTarget.value;
     this._setSubmitDisabled(true);
     this._updateCounter();
     if (this.checkOnConnectValue && this.inputTarget.value.trim() !== "") {
