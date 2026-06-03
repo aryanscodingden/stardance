@@ -198,9 +198,11 @@ module Certification
       return unless owner
       return unless Flipper.enabled?(:week_1_release, owner)
 
-      Post.create_or_find_by!(postable_type: "Post::ShipDecision", postable_id: id) do |post|
+      Post.create_or_find_by!(postable_type: Post::PRIVATE_SHIP_DECISION_TYPE, postable_id: id) do |post|
         post.user = owner
         post.project = project
+        # Keep the card where the first verdict landed; later flips update content,
+        # not timeline order.
         post.created_at = decided_at if decided_at.present?
         post.updated_at = decided_at if decided_at.present?
       end

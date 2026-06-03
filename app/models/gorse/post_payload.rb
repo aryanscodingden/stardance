@@ -93,7 +93,7 @@ class Gorse::PostPayload
     end
 
     def private_ship_decision?
-      post.postable_type == "Post::ShipDecision"
+      post.postable_type == Post::PRIVATE_SHIP_DECISION_TYPE
     end
 
     def has_media?

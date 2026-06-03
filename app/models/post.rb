@@ -78,14 +78,22 @@ class Post < ApplicationRecord
     # cards are private release-flagged posts: project members can see them,
     # public viewers cannot.
     scope :authored_by_verified, -> {
-      without_ship_decisions(left_outer_joins(:user))
+      left_outer_joins(:user)
+        .without_ship_decisions
         .where("posts.user_id IS NULL OR users.verification_status = 'verified'")
+    }
+
+    scope :without_ship_decisions, -> {
+      where(
+        "posts.postable_type IS NULL OR posts.postable_type != ?",
+        PRIVATE_SHIP_DECISION_TYPE
+      )
     }
 
     def self.visible_to(viewer)
       ship_decisions_enabled = viewer.present? && Flipper.enabled?(:week_1_release, viewer)
 
-      return ship_decisions_enabled ? all : without_ship_decisions(all) if viewer&.admin?
+      return ship_decisions_enabled ? all : without_ship_decisions if viewer&.admin?
 
       scope = left_outer_joins(:user)
       if viewer.present?
@@ -119,15 +127,8 @@ class Post < ApplicationRecord
       end
     end
 
-    def self.without_ship_decisions(scope)
-      scope.where(
-        "posts.postable_type IS NULL OR posts.postable_type != ?",
-        PRIVATE_SHIP_DECISION_TYPE
-      )
-    end
-
     def self.regular_posts_visible_to(scope, viewer)
-      scope = without_ship_decisions(scope)
+      scope = scope.without_ship_decisions
 
       if viewer.present?
         scope.where(

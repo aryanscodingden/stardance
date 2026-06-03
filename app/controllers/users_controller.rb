@@ -1,4 +1,6 @@
 class UsersController < ApplicationController
+  include TimelinePostPreloading
+
   before_action :set_user
   before_action :authorize_user, only: %i[update followers following]
 
@@ -97,7 +99,7 @@ class UsersController < ApplicationController
     scope = hide_rejected_ships(scope)
 
     @pagy, posts = pagy(:offset, scope, limit: ACTIVITY_LIMIT)
-    preload_postable_attachments(posts)
+    preload_timeline_postables(posts)
     posts.select { |post| !post.repost? || post.visible_repost_original_for?(current_user) }
   end
 
@@ -124,23 +126,6 @@ class UsersController < ApplicationController
       votes_count:    @user.votes_count || @user.votes.count,
       projects_count: @projects.size
     }
-  end
-
-  def preload_postable_attachments(posts)
-    grouped = posts.group_by(&:postable_type)
-    preloader = ->(records, assocs) { ActiveRecord::Associations::Preloader.new(records: records, associations: assocs).call }
-
-    if (devlogs = grouped["Post::Devlog"])
-      preloader.call(devlogs, postable: :attachments_attachments)
-    end
-
-    if (ships = grouped["Post::ShipEvent"])
-      preloader.call(ships, postable: :attachments_attachments)
-    end
-
-    if (ship_decisions = grouped["Post::ShipDecision"])
-      preloader.call(ship_decisions, postable: :reviewer)
-    end
   end
 
   def user_params

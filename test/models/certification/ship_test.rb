@@ -29,11 +29,11 @@ class Certification::ShipTest < ActiveSupport::TestCase
     Flipper.enable(:week_1_release)
     review = @project.ship_reviews.create!(status: :pending)
 
-    assert_difference -> { Post.where(postable_type: "Post::ShipDecision").count }, 1 do
+    assert_difference -> { Post.where(postable_type: Post::PRIVATE_SHIP_DECISION_TYPE).count }, 1 do
       review.update!(status: :returned, feedback: "Tighten the demo video.", reviewer: @reviewer)
     end
 
-    post = Post.find_by!(postable_type: "Post::ShipDecision", postable_id: review.id)
+    post = Post.find_by!(postable_type: Post::PRIVATE_SHIP_DECISION_TYPE, postable_id: review.id)
     decision = post.postable
 
     assert_equal @owner, post.user
@@ -52,10 +52,46 @@ class Certification::ShipTest < ActiveSupport::TestCase
     assert_not Post.visible_to(@owner).where(id: post.id).exists?
   end
 
+  test "an approved verdict posts a private decision card" do
+    Flipper.enable(:week_1_release)
+    review = @project.ship_reviews.create!(status: :pending)
+
+    assert_difference -> { Post.where(postable_type: Post::PRIVATE_SHIP_DECISION_TYPE).count }, 1 do
+      review.update!(status: :approved, feedback: "Ready for voting.", reviewer: @reviewer)
+    end
+
+    post = Post.find_by!(postable_type: Post::PRIVATE_SHIP_DECISION_TYPE, postable_id: review.id)
+
+    assert_equal "approved", post.postable.verdict
+    assert_equal "Ready for voting.", post.postable.feedback
+    assert_equal @reviewer, post.postable.reviewer
+  end
+
+  test "later verdict changes reuse the same decision card" do
+    Flipper.enable(:week_1_release)
+    review = @project.ship_reviews.create!(status: :pending)
+
+    review.update!(status: :returned, feedback: "Tighten the demo video.", reviewer: @reviewer)
+    post = Post.find_by!(postable_type: Post::PRIVATE_SHIP_DECISION_TYPE, postable_id: review.id)
+
+    assert_no_difference -> { Post.where(postable_type: Post::PRIVATE_SHIP_DECISION_TYPE).count } do
+      review.update!(status: :approved, feedback: "Ready for voting.")
+    end
+
+    decision_post = Post.find_by!(
+      postable_type: Post::PRIVATE_SHIP_DECISION_TYPE,
+      postable_id: review.id
+    )
+
+    assert_equal post.id, decision_post.id
+    assert_equal "approved", post.reload.postable.verdict
+    assert_equal "Ready for voting.", post.postable.feedback
+  end
+
   test "a verdict does not post a decision card while the release flag is off" do
     review = @project.ship_reviews.create!(status: :pending)
 
-    assert_no_difference -> { Post.where(postable_type: "Post::ShipDecision").count } do
+    assert_no_difference -> { Post.where(postable_type: Post::PRIVATE_SHIP_DECISION_TYPE).count } do
       review.update!(status: :returned, feedback: "Tighten the demo video.", reviewer: @reviewer)
     end
   end
@@ -63,7 +99,7 @@ class Certification::ShipTest < ActiveSupport::TestCase
   test "a pending review does not post a decision card" do
     Flipper.enable(:week_1_release)
 
-    assert_no_difference -> { Post.where(postable_type: "Post::ShipDecision").count } do
+    assert_no_difference -> { Post.where(postable_type: Post::PRIVATE_SHIP_DECISION_TYPE).count } do
       @project.ship_reviews.create!(status: :pending, reviewer: @reviewer)
     end
   end

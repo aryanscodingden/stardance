@@ -1,4 +1,6 @@
 class ProjectsController < ApplicationController
+  include TimelinePostPreloading
+
   # Mission + payout-votes render as discover-rail modules on the project page.
   # The expanded mission module also previews the next guide step.
   discover_rail_widgets :project_mission_expanded, :mission_browse, :ship_intro, :payout_votes,
@@ -170,24 +172,6 @@ class ProjectsController < ApplicationController
     end
   end
   private :prepare_project_show_context
-
-  def preload_timeline_postables(posts)
-    grouped = posts.group_by(&:postable_type)
-    preloader = ->(records, associations) { ActiveRecord::Associations::Preloader.new(records: records, associations: associations).call }
-
-    if (devlogs = grouped["Post::Devlog"])
-      preloader.call(devlogs, postable: :attachments_attachments)
-    end
-
-    if (ships = grouped["Post::ShipEvent"])
-      preloader.call(ships, postable: [ :attachments_attachments, { mission_submission: :mission } ])
-    end
-
-    if (ship_decisions = grouped["Post::ShipDecision"])
-      preloader.call(ship_decisions, postable: :reviewer)
-    end
-  end
-  private :preload_timeline_postables
 
   def add_test_time
     authorize @project

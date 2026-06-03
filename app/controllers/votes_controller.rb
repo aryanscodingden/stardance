@@ -1,4 +1,6 @@
 class VotesController < ApplicationController
+  include TimelinePostPreloading
+
   before_action :set_voting_state
 
   def new
@@ -49,30 +51,13 @@ class VotesController < ApplicationController
       return unless assigned_ship_post
 
       @timeline_posts = @project.posts
-        .visible_to(current_user)
+        .without_ship_decisions
         .preload(:project, :user, :postable)
         .where("posts.created_at <= ?", assigned_ship_post.created_at)
         .order(created_at: :desc)
         .select { |post| post.postable.present? }
         .reject { |post| post.postable_type == "Post::ShipEvent" && post.postable.certification_status == "rejected" }
       preload_timeline_postables(@timeline_posts)
-    end
-
-    def preload_timeline_postables(posts)
-      grouped = posts.group_by(&:postable_type)
-      preloader = ->(records, associations) { ActiveRecord::Associations::Preloader.new(records: records, associations: associations).call }
-
-      if (devlogs = grouped["Post::Devlog"])
-        preloader.call(devlogs, postable: :attachments_attachments)
-      end
-
-      if (ships = grouped["Post::ShipEvent"])
-        preloader.call(ships, postable: [ :attachments_attachments, { mission_submission: :mission } ])
-      end
-
-      if (ship_decisions = grouped["Post::ShipDecision"])
-        preloader.call(ship_decisions, postable: :reviewer)
-      end
     end
 
     def vote_params
