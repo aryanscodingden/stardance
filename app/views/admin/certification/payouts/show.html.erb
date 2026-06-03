@@ -78,7 +78,7 @@
           <h2>Approve & Pay</h2>
           <%
             pay_confirmation = [
-              "var amount = this.form.querySelector('#adjusted-amount').value || #{@payout_request.amount.to_json}",
+              "var amount = this.querySelector('#adjusted-amount').value || #{@payout_request.amount.to_json}",
               "return confirm('Pay ' + amount + ' ✦ to ' + #{@payout_request.user.display_name.to_json} + '?')"
             ].join("; ")
           %>
