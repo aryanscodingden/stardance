@@ -526,20 +526,12 @@ class Project < ApplicationRecord
     uri = URI.parse(url)
     return nil if PROBE_SKIP_DOMAINS.any? { |d| uri.host&.end_with?(d) }
 
-    probe = -> {
-      response = SafeUrl.safe_get(
-        url,
-        headers: { "User-Agent" => "Stardance project validator (https://stardance.hackclub.com/)" },
-        open_timeout: 5,
-        read_timeout: 5
-      )
-      response.code.to_i
-    }
-
     if cache
-      Rails.cache.fetch("url_probe_v2_#{Digest::MD5.hexdigest(url)}", expires_in: 5.minutes, &probe)
+      Rails.cache.fetch("url_probe_v2_#{Digest::MD5.hexdigest(url)}", expires_in: 5.minutes) do
+        do_url_probe(url)
+      end
     else
-      probe.call
+      do_url_probe(url)
     end
   end
 
@@ -552,6 +544,16 @@ class Project < ApplicationRecord
   end
 
   private
+
+  def do_url_probe(url)
+    response = SafeUrl.safe_get(
+      url,
+      headers: { "User-Agent" => "Stardance project validator (https://stardance.hackclub.com/)" },
+      open_timeout: 5,
+      read_timeout: 5
+    )
+    response.code.to_i
+  end
 
   def devlog_window_start(at)
     previous_devlog = devlogs.where("post_devlogs.created_at < ?", at).order("post_devlogs.created_at desc").first
