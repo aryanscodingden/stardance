@@ -911,7 +911,6 @@
   }
 
   &__super-star {
-    padding: var(--space-l);
     padding-left: var(--feed-content-offset);
     text-align: center;
     @media (max-width: 640px) {
@@ -931,8 +930,6 @@
 
     background: var(--gradient-extra-highlight) center / cover no-repeat;
     color: var(--color-set-1-bg);
-
-    margin: var(--space-xs);
   }
 
   .like-button,
