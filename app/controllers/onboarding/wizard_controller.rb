@@ -172,7 +172,7 @@ class Onboarding::WizardController < ApplicationController
       current_user.update_column(:ref, rsvp.ref)
     end
 
-    redirect_to onboarding_name_path and return if current_user.user_ref.present?
+    redirect_to onboarding_name_path and return if current_user.user_ref.present? and !params[:back]
 
     @suggested_user_ref = rsvp&.user_ref.presence
   end
