@@ -116,7 +116,7 @@ class Home::FeedsController < ApplicationController
     end
 
     if (ships = grouped["Post::ShipEvent"])
-      preload(ships, postable: { mission_submission: :mission })
+      preload(ships, postable: [ :attachments_attachments, { mission_submission: :mission } ])
     end
 
     if (reposts = grouped["Post::Repost"])

@@ -40,6 +40,10 @@ export default class extends Controller {
         .map((t) => t.trim());
     }
     this.element.addEventListener("turbo:frame-load", this.#onTimeFrameLoad);
+    // Auto-open composer in simple mode (e.g. ship modal)
+    if (this.simpleModeValue) {
+      this.#composerOpen = true;
+    }
     this.#resizeTextarea();
     this.#updateSubmit();
     this.#loadPreviewTime();

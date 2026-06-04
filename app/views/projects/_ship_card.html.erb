@@ -60,6 +60,8 @@
     </div>
   </header>
 
+  <%= render "shared/post_media", attachments: ship.attachments %>
+
   <ul class="feed-post-card__body project-show__latest-ship-stats" aria-label="Project totals">
     <li class="profile-project-card__meta-item">
       <%= inline_svg_tag "icons/devlogs.svg", class: "profile-project-card__meta-icon" %>

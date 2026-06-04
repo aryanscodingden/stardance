@@ -86,6 +86,7 @@ module Admin
       "Like" => "Like",
       "Rsvp" => "Rsvp",
       "FulfillmentPayoutRun" => "FulfillmentPayoutRun",
+      "ReviewerPayoutRequest" => "ReviewerPayoutRequest",
       "Raffle::Participant" => "Raffle::Participant",
       "Raffle::Referral" => "Raffle::Referral",
       "Raffle::Week" => "Raffle::Week"
