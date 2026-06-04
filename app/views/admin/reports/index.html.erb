@@ -1,138 +1,130 @@
 <% content_for :title, "Project Reports" %>
-<h1>🚩 Project Reports</h1>
+<% content_for :stylesheets do %>
+  <%= stylesheet_link_tag "admin", "data-turbo-track": "reload" %>
+<% end %>
 
-<div>
-  <div>
-    <span>⏳</span>
-    <div>
-      <span><%= @counts[:pending] %></span>
-      <span>Pending</span>
+<main class="admin-reports">
+  <h1>🚩 Project Reports</h1>
+
+  <div class="reports-stat-bar">
+    <div class="stat-pill stat-pill--pending">
+      <span class="stat-pill__count"><%= @counts[:pending] %></span>
+      <span class="stat-pill__label">Pending</span>
     </div>
-  </div>
-  <div>
-    <span>✅</span>
-    <div>
-      <span><%= @counts[:reviewed] %></span>
-      <span>Reviewed</span>
+    <div class="stat-pill stat-pill--reviewed">
+      <span class="stat-pill__count"><%= @counts[:reviewed] %></span>
+      <span class="stat-pill__label">Reviewed</span>
     </div>
-  </div>
-  <div>
-    <span>🗑️</span>
-    <div>
-      <span><%= @counts[:dismissed] %></span>
-      <span>Dismissed</span>
+    <div class="stat-pill stat-pill--dismissed">
+      <span class="stat-pill__count"><%= @counts[:dismissed] %></span>
+      <span class="stat-pill__label">Dismissed</span>
     </div>
-  </div>
-  <div>
-    <%= button_to "⚡ Process Demo Broken", process_demo_broken_admin_reports_path, method: :post, data: { confirm: "This will auto-review projects with 5+ pending demo_broken reports and re-certify them. Continue?" } %>
-  </div>
-</div>
-
-<div>
-  <div>
-    <h3>Filters</h3>
-
-    <%= form_with url: admin_reports_path, method: :get, local: true do |f| %>
-      <div>
-        <div>
-          <%= f.label :status, "Status" %>
-          <%= f.select :status, options_for_select([["Pending", "pending"], ["Reviewed", "reviewed"], ["Dismissed", "dismissed"]], params[:status]), { include_blank: "All" } %>
-        </div>
-
-        <div>
-          <%= f.label :reason, "Reason" %>
-          <%= f.select :reason, options_for_select(Project::Report::REASONS.map { |r| [r.titleize, r] }, params[:reason]), { include_blank: "All" } %>
-        </div>
-
-        <div>
-          <%= f.submit "Apply" %>
-          <%= link_to "Clear", admin_reports_path %>
-        </div>
-      </div>
-    <% end %>
+    <%= button_to "⚡ Process Demo Broken", process_demo_broken_admin_reports_path, method: :post,
+        class: "btn-process",
+        data: { confirm: "This will auto-review projects with 5+ pending demo_broken reports and re-certify them. Continue?" } %>
   </div>
 
-  <%= render partial: "action_leaderboard", locals: { time_range: @time_range, limit: @limit } %>
-</div>
+  <div class="reports-toolbar">
+    <section class="report-card reports-filters">
+      <h3>Filters</h3>
+      <%= form_with url: admin_reports_path, method: :get, local: true do |f| %>
+        <div class="filters-grid">
+          <div class="filter-group">
+            <%= f.label :status, "Status" %>
+            <%= f.select :status, options_for_select([["Pending", "pending"], ["Reviewed", "reviewed"], ["Dismissed", "dismissed"]], params[:status]), { include_blank: "All" } %>
+          </div>
+          <div class="filter-group">
+            <%= f.label :reason, "Reason" %>
+            <%= f.select :reason, options_for_select(Project::Report::REASONS.map { |r| [r.titleize, r] }, params[:reason]), { include_blank: "All" } %>
+          </div>
+          <div class="filter-actions">
+            <%= f.submit "Apply", class: "btn-apply" %>
+            <%= link_to "Clear", admin_reports_path, class: "btn-clear" %>
+          </div>
+        </div>
+      <% end %>
+    </section>
 
-<div>
-  <% if @reports.any? %>
-    <table>
-      <thead>
-        <tr>
-          <th>Report</th>
-          <th>Project</th>
-          <th>Reporter</th>
-          <th>Reason</th>
-          <th>Status</th>
-          <th>Actioned By</th>
-          <th>Age</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @reports.each do |report| %>
+    <%= render partial: "action_leaderboard", locals: { time_range: @time_range, limit: @limit } %>
+  </div>
+
+  <section class="report-card reports-table-wrap">
+    <% if @reports.any? %>
+      <table class="reports-table">
+        <thead>
           <tr>
-            <td><code>#<%= report.id %></code></td>
-            <td>
-              <% if report.project %>
-                <%= link_to report.project.title, admin_project_path(report.project) %>
-              <% else %>
-                <span>(Deleted)</span>
-              <% end %>
-            </td>
-            <td>
-              <div>
-                <img src="<%= report.reporter.avatar %>" alt="">
-                <%= link_to report.reporter.display_name, admin_user_path(report.reporter) %>
-              </div>
-            </td>
-            <td>
-              <span>
-                <%= report.reason.titleize %>
-              </span>
-            </td>
-            <td>
-              <span>
-                <%= report.status %>
-              </span>
-            </td>
-            <td>
-              <% reviewer_info = @reviewers_by_report[report.id] %>
-              <% if reviewer_info.is_a?(User) %>
-                <div>
-                  <img src="<%= reviewer_info.avatar %>" alt="">
-                  <span><%= reviewer_info.display_name %></span>
-                </div>
-              <% elsif reviewer_info == :auto %>
-                <span>🤖 Auto</span>
-              <% else %>
-                <span>—</span>
-              <% end %>
-            </td>
-            <td>
-              <span title="<%= report.created_at.strftime('%Y-%m-%d %H:%M') %>">
-                <%= time_ago_in_words(report.created_at) %> ago
-              </span>
-            </td>
-            <td>
-              <div>
-                <%= link_to "View", admin_report_path(report) %>
-                <% if report.pending? %>
-                  <%= button_to "✓", review_admin_report_path(report), method: :post, title: "Mark reviewed" %>
-                  <%= button_to "✗", dismiss_admin_report_path(report), method: :post, title: "Dismiss" %>
-                <% end %>
-              </div>
-            </td>
+            <th>ID</th>
+            <th>Project</th>
+            <th>Reporter</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Actioned By</th>
+            <th>Age</th>
+            <th></th>
           </tr>
-        <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <p>No reports found matching your filters.</p>
-  <% end %>
-</div>
+        </thead>
+        <tbody>
+          <% @reports.each do |report| %>
+            <tr>
+              <td class="col-id"><code>#<%= report.id %></code></td>
+              <td class="col-project">
+                <% if report.project %>
+                  <%= link_to report.project.title, admin_project_path(report.project) %>
+                <% else %>
+                  <span class="deleted-project">(Deleted)</span>
+                <% end %>
+              </td>
+              <td>
+                <div class="user-cell">
+                  <img src="<%= report.reporter.avatar %>" alt="">
+                  <%= link_to report.reporter.display_name, admin_user_path(report.reporter) %>
+                </div>
+              </td>
+              <td>
+                <span class="reason-badge reason-badge--<%= report.reason.parameterize(separator: '_') %>">
+                  <%= report.reason.titleize %>
+                </span>
+              </td>
+              <td>
+                <span class="status-badge status-badge--<%= report.status %>">
+                  <%= report.status %>
+                </span>
+              </td>
+              <td>
+                <% reviewer_info = @reviewers_by_report[report.id] %>
+                <% if reviewer_info.is_a?(User) %>
+                  <div class="user-cell">
+                    <img src="<%= reviewer_info.avatar %>" alt="">
+                    <span><%= reviewer_info.display_name %></span>
+                  </div>
+                <% elsif reviewer_info == :auto %>
+                  <span class="status-badge status-badge--reviewed">🤖 Auto</span>
+                <% else %>
+                  <span style="color: var(--color-space-text-muted);">—</span>
+                <% end %>
+              </td>
+              <td class="col-age" title="<%= report.created_at.strftime('%Y-%m-%d %H:%M') %>">
+                <%= time_ago_in_words(report.created_at) %> ago
+              </td>
+              <td>
+                <div class="row-actions">
+                  <%= link_to "View", admin_report_path(report), class: "btn-view" %>
+                  <% if report.pending? %>
+                    <%= button_to "✓", review_admin_report_path(report), method: :post,
+                        class: "btn-quick-review", title: "Mark reviewed" %>
+                    <%= button_to "✗", dismiss_admin_report_path(report), method: :post,
+                        class: "btn-quick-dismiss", title: "Dismiss" %>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="reports-empty">No reports found matching your filters.</p>
+    <% end %>
+  </section>
 
-<div>
-  <%= link_to "← Back to Users", admin_users_path %>
-</div>
+  <%= link_to "← Back to Users", admin_users_path, class: "btn-back" %>
+</main>
