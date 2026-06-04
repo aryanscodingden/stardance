@@ -54,7 +54,7 @@ class HackatimeService
         filter_by_project: Array(project_keys).join(",")
       }
       params[:end_date] = end_date if end_date
-      
+
       response = stats_request(hackatime_uid, params, access_token: access_token)
       Rails.logger.info(response.env.url)
 
