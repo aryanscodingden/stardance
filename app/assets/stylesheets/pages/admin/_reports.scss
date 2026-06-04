@@ -261,40 +261,6 @@
       }
     }
 
-    .filter-actions {
-      display: flex;
-      gap: var(--space-xs);
-      align-items: center;
-
-      .btn-apply {
-        padding: var(--space-xs) var(--space-m);
-        border-radius: var(--profile-radius);
-        font-size: var(--font-size-s);
-        font-weight: 700;
-        font-family: var(--font-family-sans);
-        background: var(--color-brand-blue);
-        color: var(--color-set-1-bg);
-        border: none;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        @media (prefers-reduced-motion: reduce) { transition: none; }
-
-        &:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(149, 219, 255, 0.3);
-          @media (prefers-reduced-motion: reduce) { transform: none; }
-        }
-      }
-
-      .btn-clear {
-        color: var(--color-space-text-muted);
-        font-size: var(--font-size-s);
-        text-decoration: none;
-        transition: color 0.2s ease;
-
-        &:hover { color: var(--color-space-text); }
-      }
-    }
   }
 
   // Leaderboard card (used in partial)

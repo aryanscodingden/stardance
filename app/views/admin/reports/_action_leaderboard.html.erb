@@ -48,10 +48,10 @@
       <small>(<%= time_range == '7_days' ? '7 days' : 'all time' %>)</small>
     </h3>
     <div class="leaderboard-controls">
-      <%= link_to "7 days", admin_reports_path(time_range: '7_days', limit: limit), class: "lb-filter-link" %>
-      <%= link_to "All time", admin_reports_path(time_range: 'all_time', limit: limit), class: "lb-filter-link" %>
-      <%= link_to "Top 10", admin_reports_path(time_range: time_range, limit: 10), class: "lb-filter-link" %>
-      <%= link_to "All", admin_reports_path(time_range: time_range, limit: nil), class: "lb-filter-link" %>
+      <%= link_to "7 days", admin_reports_path(request.query_parameters.merge(time_range: '7_days', limit: limit)), class: "lb-filter-link" %>
+      <%= link_to "All time", admin_reports_path(request.query_parameters.merge(time_range: 'all_time', limit: limit)), class: "lb-filter-link" %>
+      <%= link_to "Top 10", admin_reports_path(request.query_parameters.merge(time_range: time_range, limit: 10)), class: "lb-filter-link" %>
+      <%= link_to "All", admin_reports_path(request.query_parameters.merge(time_range: time_range, limit: nil)), class: "lb-filter-link" %>
     </div>
   </div>
 

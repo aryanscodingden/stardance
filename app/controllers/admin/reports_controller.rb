@@ -9,11 +9,12 @@ module Admin
       @limit = params[:limit] || "10"
 
       @reports = ::Project::Report.includes(:reporter, :project).order(created_at: :desc)
-      unless params[:show_demo_broken]
+      unless params[:show_demo_broken] || params[:reason] == "demo_broken"
           @reports = @reports.where.not(reason: "demo_broken")
       end
 
-      @reports = @reports.where(status: params[:status]) if params[:status].present?
+      status_filter = params.key?(:status) ? params[:status] : "pending"
+      @reports = @reports.where(status: status_filter) if status_filter.present?
       @reports = @reports.where(reason: params[:reason]) if params[:reason].present?
       @reports = @reports.where(reporter_id: params[:reporter_id]) if params[:reporter_id].present?
 
