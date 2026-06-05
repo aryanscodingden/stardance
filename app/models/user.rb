@@ -105,6 +105,9 @@ class User < ApplicationRecord
   has_many :wishlisted_shop_items, through: :shop_wishlists, source: :shop_item
   has_many :sold_items, class_name: "ShopItem::HackClubberItem", foreign_key: :user_id
 
+  has_one :raffle_participant, class_name: "Raffle::Participant", dependent: :destroy
+  has_one :raffle_referral_as_referred, class_name: "Raffle::Referral", foreign_key: :referred_user_id, dependent: :destroy
+
   has_one_attached :banner
 
   enum :verification_status, {
