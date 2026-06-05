@@ -61,5 +61,4 @@ Rails.application.config.middleware.use OmniAuth::Builder do
         scope: "read:user",
         callback_path: "/auth/github/callback"
       }
-
 end

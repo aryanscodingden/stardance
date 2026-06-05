@@ -5,7 +5,7 @@ module ApplicationHelper
     host = request.host.sub(/\Araffle\./, "")
     port = request.port
     scheme = request.scheme
-    port_suffix = [80, 443].include?(port) ? "" : ":#{port}"
+    port_suffix = [ 80, 443 ].include?(port) ? "" : ":#{port}"
     "#{scheme}://#{host}#{port_suffix}"
   end
 
@@ -13,7 +13,7 @@ module ApplicationHelper
     host = request.host.sub(/\Araffle\./, "")
     port = request.port
     scheme = request.scheme
-    port_suffix = [80, 443].include?(port) ? "" : ":#{port}"
+    port_suffix = [ 80, 443 ].include?(port) ? "" : ":#{port}"
     "#{scheme}://raffle.#{host}#{port_suffix}"
   end
 

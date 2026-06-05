@@ -23,10 +23,13 @@ export default class extends Controller {
     };
 
     if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).then(onDone).catch(() => {
-        this.#fallback(text);
-        onDone();
-      });
+      navigator.clipboard
+        .writeText(text)
+        .then(onDone)
+        .catch(() => {
+          this.#fallback(text);
+          onDone();
+        });
     } else {
       this.#fallback(text);
       onDone();
