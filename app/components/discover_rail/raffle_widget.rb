@@ -5,11 +5,14 @@ module DiscoverRail
     register_as :raffle
 
     def render?
-      user.present? && enrolled?
+      user.present? && participant.present?
     end
 
     def participant
-      @participant ||= Raffle::Participant.find_by(user_id: user.id)
+      return @participant if defined?(@participant)
+      @participant = Raffle::Participant.find_by(user_id: user.id)
+      @participant ||= Raffle::Participant.find_or_enroll!(user) if Raffle::Week.current
+      @participant
     end
 
     def week

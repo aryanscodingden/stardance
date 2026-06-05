@@ -30,12 +30,10 @@ module Raffle
     end
 
     def self.find_or_enroll!(user)
-      return nil unless country_eligible?(user)
-
       participant = find_or_initialize_by(user: user)
       if participant.new_record?
         participant.age_group = :teen
-        participant.signup_week = Raffle::Week.current
+        participant.signup_week = Raffle::Week.current if country_eligible?(user)
         participant.save!
       end
       participant
