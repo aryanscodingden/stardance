@@ -431,13 +431,12 @@
     border: 0;
   }
 
-  // Empty until the controller reports an accepted file or a rejection.
   &__status {
     margin: 0;
     font-size: 0.9rem;
     color: var(--color-space-text-muted, rgba(255, 255, 255, 0.7));
 
-    .video-drop--accepted & {
+    .video-drop--done & {
       color: #22c55e;
     }
 
@@ -445,4 +444,50 @@
       color: var(--color-brand-salmon);
     }
   }
+
+  &__progress {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    overflow: hidden;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  &__progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(
+      90deg,
+      var(--color-brand-mint) 0%,
+      var(--color-brand-blue) 100%
+    );
+    border-radius: 999px;
+    transition: width 120ms linear;
+  }
+
+  &--uploading {
+    border-style: solid;
+    border-color: var(--color-brand-mint);
+    animation: video-drop-pulse 1.4s ease-in-out infinite;
+  }
+
+  &--done {
+    border-style: solid;
+    border-color: #22c55e;
+  }
 }
+
+@keyframes video-drop-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(129, 255, 255, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px rgba(129, 255, 255, 0.18);
+  }
+}
+

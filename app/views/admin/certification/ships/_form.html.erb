@@ -46,7 +46,10 @@
          data-controller="certification--video-drop"
          data-certification--video-drop-over-class="video-drop--over"
          data-certification--video-drop-accepted-class="video-drop--accepted"
+         data-certification--video-drop-uploading-class="video-drop--uploading"
+         data-certification--video-drop-done-class="video-drop--done"
          data-certification--video-drop-error-class="video-drop--error"
+         data-certification--video-drop-direct-upload-url-value="<%= rails_direct_uploads_url %>"
          data-action="dragover->certification--video-drop#over
                       dragleave->certification--video-drop#leave
                       drop->certification--video-drop#drop">
@@ -67,6 +70,9 @@
           Choose a different video
         </button>
       </div>
+      <div class="video-drop__progress" data-certification--video-drop-target="progressWrapper" hidden>
+        <div class="video-drop__progress-bar" data-certification--video-drop-target="progressBar"></div>
+      </div>
       <p class="video-drop__status" role="status" aria-live="polite"
          data-certification--video-drop-target="status"></p>
     </div>
@@ -78,7 +84,8 @@
   </div>
 
   <div class="review-form__actions">
-    <%= f.submit "Submit verdict", class: "action-btn action-btn--large action-btn--primary" %>
+    <%= f.submit "Submit verdict", class: "action-btn action-btn--large action-btn--primary",
+          data: { "certification--video-drop-target": "submitBtn" } %>
     <%= link_to "Skip and get next", next_admin_certification_ships_path(skip: ship.id),
           class: "action-btn action-btn--small action-btn--secondary" %>
     <button type="submit" form="unclaim-form-<%= ship.id %>"
