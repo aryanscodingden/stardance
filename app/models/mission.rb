@@ -67,6 +67,9 @@ class Mission < ApplicationRecord
   validates :estimated_completion_minutes,
             numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: 100_000 },
             allow_nil: true
+  validates :fixed_stardust_payout,
+            numericality: { only_integer: true, greater_than: 0 },
+            allow_nil: true
   validates :default_project_title, length: { maximum: 120 }, allow_blank: true
   validates :default_project_description, length: { maximum: 1_000 }, allow_blank: true
 

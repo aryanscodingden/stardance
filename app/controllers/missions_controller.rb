@@ -79,9 +79,19 @@ class MissionsController < ApplicationController
 
     return :in_progress unless ship
 
+    submission = ship.mission_submission
+
     case ship.certification_status
     when "approved"
-      ship.payout_basis_locked_at.present? ? :completed : :in_voting
+      if submission&.approved?
+        :completed
+      elsif submission&.pending?
+        :in_review
+      elsif ship.payout_basis_locked_at.present?
+        :completed
+      else
+        :in_voting
+      end
     when "pending"
       :in_review
     else

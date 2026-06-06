@@ -126,7 +126,7 @@ class Project < ApplicationRecord
   # ships are regular, non-mission ships.
   def shipped_to_mission?(mission)
     return false if mission.nil?
-    mission_submissions.where(mission_id: mission.id).exists?
+    mission_submissions.where(mission_id: mission.id).where.not(status: "rejected").exists?
   end
 
   # needs to be implemented
@@ -570,7 +570,11 @@ class Project < ApplicationRecord
 
   def previous_ship_event_has_payout?
     return true if last_ship_event.nil?
-    last_ship_event.payout.present?
+    return true if last_ship_event.payout.present?
+    sub = last_ship_event.mission_submission
+    return true if sub&.payout_path == "static_prize"
+    return true if sub&.rejected?
+    false
   end
 
   def notify_slack_channel

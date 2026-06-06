@@ -139,6 +139,7 @@ class Post::ShipEvent < ApplicationRecord
 
   def decrement_user_vote_balance
     return unless post&.user
+    return if mission_submission&.payout_path == "static_prize"
 
     post.user.increment!(:vote_balance, -VOTE_COST_PER_SHIP)
   end

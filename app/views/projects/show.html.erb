@@ -526,13 +526,27 @@
 
     <% if is_member && params[:just_shipped].present? %>
       <%
+        latest_submission = @project.posts
+          .where(postable_type: "Post::ShipEvent")
+          .order(created_at: :desc)
+          .first&.postable&.mission_submission
+        is_fixed_payout = latest_submission&.payout_path == "static_prize" &&
+                          latest_submission&.mission&.fixed_stardust_payout&.positive?
+
+        ship_tour_text = if is_fixed_payout
+          "Your ship is now in review. Once it's approved, you'll earn the mission's prizes!"
+        else
+          "Yay congrats on your first ship! To get your payout, you need to vote at least #{Post::ShipEvent::VOTES_REQUIRED_FOR_PAYOUT} times on other people's projects."
+        end
+
         ship_tour_steps = [
           {
-            selector: "[data-onboarding-target='rate']",
-            text: "Yay congrats on your first ship! To get your payout, you need to vote at least #{Post::ShipEvent::VOTES_REQUIRED_FOR_PAYOUT} times on other people's projects.",
+            selector: is_fixed_payout ? "body" : "[data-onboarding-target='rate']",
+            text: ship_tour_text,
             padding: 12,
-            radius: 12
-          }
+            radius: 12,
+            position: is_fixed_payout ? "center" : nil
+          }.compact
         ]
       %>
       <div class="welcome-tour"

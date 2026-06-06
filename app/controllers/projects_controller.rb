@@ -153,7 +153,9 @@ class ProjectsController < ApplicationController
       if is_owner &&
           latest_ship_event.present? &&
           latest_ship_event.certification_status == "approved" &&
-          latest_ship_event.payout.blank?
+          latest_ship_event.payout.blank? &&
+          latest_ship_event.mission_submission&.payout_path != "static_prize" &&
+          !latest_ship_event.mission_submission&.rejected?
 
         required = Post::ShipEvent::VOTES_REQUIRED_FOR_PAYOUT
         current = latest_ship_event.votes.payout_countable.count

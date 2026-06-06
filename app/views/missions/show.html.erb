@@ -120,7 +120,8 @@
         <% end %>
 
         <%# Prizes card %>
-        <% if @ordered_prizes.any? %>
+        <% has_stardust = @mission.fixed_stardust_payout&.positive? %>
+        <% if @ordered_prizes.any? || has_stardust %>
           <section class="mission-home__card mission-home__rewards"
                    aria-labelledby="mission-home-rewards">
             <h2 id="mission-home-rewards" class="mission-home__card-title">
@@ -128,8 +129,21 @@
             </h2>
             <ul class="mission-home__prize-list">
               <% tones = %w[yellow lilac peach mint] %>
+              <% tone_idx = 0 %>
+              <% if has_stardust %>
+                <li class="mission-home__prize mission-home__prize--<%= tones[tone_idx % tones.length] %>">
+                  <div class="mission-home__prize-tile">
+                    <%= stardust_icon(extra_class: "mission-home__prize-img") %>
+                  </div>
+                  <div class="mission-home__prize-body">
+                    <p class="mission-home__prize-title"><%= @mission.fixed_stardust_payout %> stardust</p>
+                    <p class="mission-home__prize-blurb">Yours to spend in the shop!</p>
+                  </div>
+                </li>
+                <% tone_idx += 1 %>
+              <% end %>
               <% @ordered_prizes.each_with_index do |prize, idx| %>
-                <% tone = tones[idx % tones.length] %>
+                <% tone = tones[(tone_idx + idx) % tones.length] %>
                 <li class="mission-home__prize mission-home__prize--<%= tone %>">
                   <div class="mission-home__prize-tile">
                     <% if prize.shop_item.respond_to?(:image) && prize.shop_item.image.respond_to?(:attached?) && prize.shop_item.image.attached? %>
