@@ -141,7 +141,7 @@ module Admin
         :name, :description, :difficulty, :submission_guide,
         :enabled, :start_at, :end_at, :featured_at,
         :achievement_name, :achievement_description, :icon, :banner,
-        :estimated_completion_minutes,
+        :estimated_completion_minutes, :fixed_stardust_payout, :guide_url,
         :default_project_title, :default_project_description
       ]
       permitted << :slug if policy(@mission).manage_owners?
