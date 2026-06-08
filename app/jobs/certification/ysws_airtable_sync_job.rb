@@ -205,7 +205,12 @@ module Certification
 
       # Get media URLs
       banner_url = banner_url_for_project(project)
-      ship_event_screenshot_url = screenshot_url_for_ship_event(review.post_ship_event)
+      devlog_posts = review.devlog_reviews
+        .filter_map(&:post_devlog)
+        .sort_by(&:created_at)
+        .reverse
+      posts_to_check = [ review.post_ship_event, *devlog_posts ].compact
+      ship_event_screenshot_url = posts_to_check.lazy.filter_map { |p| screenshot_url_for_post(p) }.first
 
       {
         # Identity
@@ -366,10 +371,10 @@ module Certification
       nil
     end
 
-    def screenshot_url_for_ship_event(ship_event)
-      return nil unless ship_event
+    def screenshot_url_for_post(post)
+      return nil unless post
 
-      screenshot = ship_event.attachments.find { |a| a.image? }
+      screenshot = post.attachments.find { |a| a.image? }
       return nil unless screenshot
 
       host = ENV["APP_HOST"]

@@ -14,6 +14,11 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
       .find(params[:id])
     authorize @review
 
+    if @review.project.nil?
+      redirect_to admin_certification_ysws_reviews_path, alert: "Review ##{@review.id} has no associated project."
+      return
+    end
+
     # Check if review is already in unified DB
     @review.check_and_update_unified_db_status!
 
@@ -50,6 +55,8 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
   def commits
     @review = ::Certification::Ysws.includes(:project).find(params[:id])
     authorize @review, :show?
+
+    return render json: { by_devlog: {}, repo_url: nil } if @review.project.nil?
 
     windows = devlog_windows_for_review(@review)
     commits_by_devlog = load_commits_with_stats(windows, @review.project)
