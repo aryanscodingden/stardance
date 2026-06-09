@@ -9,11 +9,13 @@
 #  feedback         :text
 #  internal_reason  :text
 #  lock_version     :integer          default(0), not null
+#  recert_reason    :text
 #  stardust_earned  :integer
 #  status           :integer          default("pending"), not null
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #  project_id       :bigint           not null
+#  returned_by_id   :bigint
 #  reviewer_id      :bigint
 #
 # Indexes
