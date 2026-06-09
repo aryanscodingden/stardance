@@ -13,6 +13,12 @@ application.register("address-select", AddressSelectController);
 import BioEditorController from "./bio_editor_controller";
 application.register("bio-editor", BioEditorController);
 
+import Certification__Ysws__CompleteReviewController from "./certification/ysws/complete_review_controller";
+application.register(
+  "certification--ysws--complete-review",
+  Certification__Ysws__CompleteReviewController,
+);
+
 import Certification__Ysws__DevlogReviewController from "./certification/ysws/devlog_review_controller";
 application.register(
   "certification--ysws--devlog-review",
@@ -99,6 +105,9 @@ application.register("falling-star", FallingStarController);
 
 import FeedEngagementController from "./feed_engagement_controller";
 application.register("feed-engagement", FeedEngagementController);
+
+import FeedKeyboardController from "./feed_keyboard_controller";
+application.register("feed-keyboard", FeedKeyboardController);
 
 import HorizontalScrollController from "./horizontal_scroll_controller";
 application.register("horizontal-scroll", HorizontalScrollController);

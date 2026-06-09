@@ -1,5 +1,4 @@
-module Admin
-  class ReportsController < Admin::ApplicationController
+class Admin::Certification::ReportsController < Admin::Certification::ApplicationController
     before_action :set_report, only: [ :show, :review, :dismiss ]
 
     def index
@@ -9,11 +8,12 @@ module Admin
       @limit = params[:limit] || "10"
 
       @reports = ::Project::Report.includes(:reporter, :project).order(created_at: :desc)
-      unless params[:show_demo_broken]
+      unless params[:show_demo_broken] || params[:reason] == "demo_broken"
           @reports = @reports.where.not(reason: "demo_broken")
       end
 
-      @reports = @reports.where(status: params[:status]) if params[:status].present?
+      status_filter = params.key?(:status) ? params[:status] : "pending"
+      @reports = @reports.where(status: status_filter) if status_filter.present?
       @reports = @reports.where(reason: params[:reason]) if params[:reason].present?
       @reports = @reports.where(reporter_id: params[:reporter_id]) if params[:reporter_id].present?
 
@@ -59,7 +59,7 @@ module Admin
     def process_demo_broken
       authorize ::Project::Report
       ProcessDemoBrokenReportsJob.perform_later
-      redirect_to admin_reports_path, notice: "Demo broken reports processing job has been queued"
+      redirect_to admin_certification_reports_path, notice: "Demo broken reports processing job has been queued"
     end
 
     private
@@ -81,10 +81,9 @@ module Admin
             status: [ old_status, @report.status ]
           }
         )
-        redirect_to admin_reports_path, notice: notice_message
+        redirect_to admin_certification_reports_path, notice: notice_message
       else
-        redirect_to admin_report_path(@report), alert: "Failed to update report"
+        redirect_to admin_certification_report_path(@report), alert: "Failed to update report"
       end
     end
-  end
 end

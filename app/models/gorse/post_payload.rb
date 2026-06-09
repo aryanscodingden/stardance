@@ -45,7 +45,8 @@ class Gorse::PostPayload
       hidden_devlog? ||
       hidden_ship_event? ||
       post.project&.deleted_at.present? ||
-      post.user&.identity_verified? == false
+      post.user&.identity_verified? == false ||
+      post.user&.banned?
   end
 
   private

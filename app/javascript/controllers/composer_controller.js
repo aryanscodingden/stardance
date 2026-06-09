@@ -230,7 +230,7 @@ export default class extends Controller {
       if (editUrl) this.warnTarget.href = editUrl;
     }
 
-    if (this.#composerOpen) this.#loadPreviewTime();
+    this.#loadPreviewTime();
     this.#updateSubmit();
   }
 

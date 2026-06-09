@@ -28,9 +28,16 @@ Some examples are:
 
 ---
 
-## X tier
+## X tier ($350+ USD in funding, case-by-case)
 
-Have a big idea you want to work on? This is the place! Comes with Outpost ticket + extra travel stipend. DM @alexren if you have an idea
+Have a big idea you want to work on? This is the place! Comes with Outpost ticket + extra travel stipend. You should make a pitch that includes:
+
+- Roughly what your project will do
+- A sketch of what you're thinking!
+
+Send it in [#outpost-idea-pool](https://hackclub.enterprise.slack.com/archives/C0B0CADUV3P), and then tag @alexren with it!
+
+Here's some example projects that would be great X tier projects:
 
 - [@Allen D's Ender-X4](https://github.com/ading2210/ender-x4)
 - [@koeg's Meko MP3 Player](https://github.com/KOEGlike/meko)

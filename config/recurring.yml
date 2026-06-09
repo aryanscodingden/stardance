@@ -14,6 +14,12 @@ production:
     command: "SolidQueue::Job.clear_finished_in_batches(sleep_between_batches: 0.3)"
     schedule: every hour at minute 12
 
+  refresh_materialized_all_signups:
+    class: RefreshMaterializedAllSignupsJob
+    schedule: every 2 minutes
+    concurrency: 1
+    description: "Refresh materialized_all_signups reporting view every 2 minutes (concurrent refresh)"
+
   sync_user_to_airtable:
     class: Airtable::UserSyncJob
     schedule: every minute

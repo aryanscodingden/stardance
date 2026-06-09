@@ -34,7 +34,7 @@
             <% if idv_done %>
               Verify your identity
             <% else %>
-              <%= button_to "Verify your identity", my_verification_refresh_path(idv_check: 1), method: :post, class: "shop-hub__progress-link", form: { class: "shop-hub__progress-form" } %>
+              <button type="button" class="shop-hub__progress-link" onclick="document.getElementById('idv-verify-modal')?.showModal()">Verify your identity</button>
             <% end %>
           </div>
           <% devlog_done = Post.where(user: current_user, postable_type: "Post::Devlog").exists? %>

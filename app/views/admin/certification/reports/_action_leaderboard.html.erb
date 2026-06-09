@@ -42,30 +42,27 @@
   users_by_id = User.where(id: user_ids).index_by(&:id)
 %>
 
-<div>
-  <div>
-    <h3>
-      🕵️ Fraud Team Leaderboard
+<section class="report-card reports-leaderboard">
+  <div class="leaderboard-header">
+    <h3>🕵️ Fraud Team Leaderboard
       <small>(<%= time_range == '7_days' ? '7 days' : 'all time' %>)</small>
     </h3>
-    <div>
-      <%= link_to "7 days", admin_reports_path(time_range: '7_days', limit: limit) %>
-      <%= link_to "All time", admin_reports_path(time_range: 'all_time', limit: limit) %>
-    </div>
-    <div>
-      <%= link_to "Top 10", admin_reports_path(time_range: time_range, limit: 10) %>
-      <%= link_to "All", admin_reports_path(time_range: time_range, limit: nil) %>
+    <div class="leaderboard-controls">
+      <%= link_to "7 days", admin_certification_reports_path(request.query_parameters.merge(time_range: '7_days', limit: limit)), class: "lb-filter-link" %>
+      <%= link_to "All time", admin_certification_reports_path(request.query_parameters.merge(time_range: 'all_time', limit: limit)), class: "lb-filter-link" %>
+      <%= link_to "Top 10", admin_certification_reports_path(request.query_parameters.merge(time_range: time_range, limit: 10)), class: "lb-filter-link" %>
+      <%= link_to "All", admin_certification_reports_path(request.query_parameters.merge(time_range: time_range, limit: nil)), class: "lb-filter-link" %>
     </div>
   </div>
 
   <% if top_users.any? %>
-    <table>
+    <table class="leaderboard-table">
       <thead>
         <tr>
           <th>#</th>
           <th>User</th>
-          <th title="Reviewed">✓</th>
-          <th title="Dismissed">✗</th>
+          <th title="Reviewed">✓ Reviewed</th>
+          <th title="Dismissed">✗ Dismissed</th>
           <th>Total</th>
         </tr>
       </thead>
@@ -84,17 +81,17 @@
               <% if user %>
                 <%= link_to user.display_name || user.email, admin_user_path(user) %>
               <% else %>
-                <span>User #<%= user_id %></span>
+                <span style="color: var(--color-space-text-muted);">User #<%= user_id %></span>
               <% end %>
             </td>
-            <td><%= stats[:reviewed] %></td>
-            <td><%= stats[:dismissed] %></td>
-            <td><%= stats[:total] %></td>
+            <td><span class="lb-reviewed"><%= stats[:reviewed] %></span></td>
+            <td><span class="lb-dismissed"><%= stats[:dismissed] %></span></td>
+            <td><span class="lb-total"><%= stats[:total] %></span></td>
           </tr>
         <% end %>
       </tbody>
     </table>
   <% else %>
-    <p>No report actions <%= time_range == '7_days' ? 'in the last 7 days' : 'recorded' %>.</p>
+    <p class="leaderboard-empty">No report actions <%= time_range == '7_days' ? 'in the last 7 days' : 'recorded' %>.</p>
   <% end %>
-</div>
+</section>

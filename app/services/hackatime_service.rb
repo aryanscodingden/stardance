@@ -75,8 +75,19 @@ class HackatimeService
         if access_token.present?
           api_key = resolve_api_key(hackatime_uid, access_token)
           if api_key
-            return connection.get("users/my/stats", params) do |req|
+            response = connection.get("users/my/stats", params) do |req|
               req.headers["Authorization"] = "Bearer #{api_key}"
+            end
+            return response if response.success?
+
+            Rails.cache.delete("hackatime_api_key:#{hackatime_uid}")
+            fresh_key = fetch_api_key(access_token)
+            if fresh_key
+              Rails.cache.write("hackatime_api_key:#{hackatime_uid}", fresh_key, expires_in: 1.week)
+              response = connection.get("users/my/stats", params) do |req|
+                req.headers["Authorization"] = "Bearer #{fresh_key}"
+              end
+              return response if response.success?
             end
           end
         end

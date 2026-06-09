@@ -52,16 +52,19 @@
         </div>
       </div>
 
+      <% guide_link = mission.external_guide? ? mission.guide_url : guide_mission_path(mission.slug) %>
+      <% guide_target = mission.external_guide? ? "_blank" : nil %>
+      <% guide_rel = mission.external_guide? ? "noopener" : nil %>
       <div class="mission-panel__actions">
         <% if mission.has_guide? %>
           <% if shipped %>
-            <%= link_to "View guide",
-                        guide_mission_path(mission.slug),
+            <%= link_to "View guide", guide_link,
+                        target: guide_target, rel: guide_rel,
                         data: { turbo: false },
                         class: "action-btn action-btn--small action-btn--secondary" %>
           <% else %>
-            <%= link_to (all_done ? "Review guide" : "Continue guide"),
-                        guide_mission_path(mission.slug),
+            <%= link_to (all_done ? "Review guide" : "Continue guide"), guide_link,
+                        target: guide_target, rel: guide_rel,
                         data: { turbo: false },
                         class: "action-btn action-btn--small action-btn--primary" %>
           <% end %>
@@ -101,7 +104,8 @@
             <%= render MarkdownContentComponent.new(markdown: next_step_body, flavor: :guide) %>
           </div>
           <%= link_to "Continue reading →",
-                      guide_mission_path(mission.slug, anchor: "step-#{next_step.id}"),
+                      mission.external_guide? ? mission.guide_url : guide_mission_path(mission.slug, anchor: "step-#{next_step.id}"),
+                      target: guide_target, rel: guide_rel,
                       data: { turbo: false },
                       class: "mission-panel__next-step-more" %>
         <% end %>

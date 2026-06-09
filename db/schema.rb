@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_05_203545) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_09_150529) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -175,6 +175,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_203545) do
     t.text "internal_reason"
     t.integer "lock_version", default: 0, null: false
     t.bigint "project_id", null: false
+    t.text "recert_reason"
+    t.bigint "returned_by_id"
     t.bigint "reviewer_id"
     t.integer "stardust_earned"
     t.integer "status", default: 0, null: false
@@ -190,10 +192,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_203545) do
     t.integer "approved_minutes"
     t.datetime "created_at", null: false
     t.datetime "demo_checked_at", precision: nil
+    t.string "in_unified_db"
     t.integer "original_minutes"
     t.bigint "post_ship_event_id", null: false
     t.bigint "project_id", null: false
     t.datetime "repo_checked_at", precision: nil
+    t.datetime "returned_at"
     t.datetime "reviewed_at", precision: nil
     t.bigint "reviewer_id"
     t.bigint "ship_cert_id"
@@ -357,6 +361,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_203545) do
     t.index ["user_id"], name: "index_mission_memberships_on_user_id"
   end
 
+  create_table "mission_prerequisites", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "dependent_mission_id", null: false
+    t.bigint "prerequisite_mission_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["dependent_mission_id"], name: "index_mission_prerequisites_on_dependent_mission_id"
+    t.index ["prerequisite_mission_id", "dependent_mission_id"], name: "idx_mission_prereqs_unique", unique: true
+    t.index ["prerequisite_mission_id"], name: "index_mission_prerequisites_on_prerequisite_mission_id"
+  end
+
   create_table "mission_prizes", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "deleted_at"
@@ -455,6 +469,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_203545) do
     t.datetime "end_at"
     t.integer "estimated_completion_minutes"
     t.datetime "featured_at"
+    t.integer "fixed_stardust_payout"
+    t.integer "guide_sections_count"
+    t.string "guide_url"
     t.string "name", null: false
     t.integer "prizes_count", default: 0, null: false
     t.string "slug", null: false
@@ -1279,6 +1296,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_203545) do
   add_foreign_key "mission_guide_variants", "missions"
   add_foreign_key "mission_memberships", "missions"
   add_foreign_key "mission_memberships", "users"
+  add_foreign_key "mission_prerequisites", "missions", column: "dependent_mission_id"
+  add_foreign_key "mission_prerequisites", "missions", column: "prerequisite_mission_id"
   add_foreign_key "mission_prizes", "missions"
   add_foreign_key "mission_prizes", "shop_items"
   add_foreign_key "mission_section_completions", "mission_steps", on_delete: :cascade
@@ -1310,8 +1329,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_203545) do
   add_foreign_key "projects", "users", column: "marked_fire_by_id"
   add_foreign_key "projects", "users", column: "nominated_fire_by_id"
   add_foreign_key "raffle_participants", "raffle_weeks", column: "signup_week_id"
+  add_foreign_key "raffle_participants", "users"
   add_foreign_key "raffle_referrals", "raffle_participants", column: "participant_id"
   add_foreign_key "raffle_referrals", "raffle_weeks", column: "credited_week_id"
+  add_foreign_key "raffle_referrals", "users", column: "referred_user_id"
   add_foreign_key "raffle_weeks", "raffle_participants", column: "winner_participant_id"
   add_foreign_key "report_review_tokens", "project_reports", column: "report_id"
   add_foreign_key "reviewer_payout_requests", "users"

@@ -7,6 +7,7 @@
   ship_text   = ship.body.to_s
   total_hours = (project.duration_seconds / 3600.0).round
   ship_number      = local_assigns[:ship_number]
+  recert_modal_id  = local_assigns[:recert_modal_id]
   pending_review   = ship.certification_status == "pending"
   engagement_data = {
     controller: "feed-engagement",
@@ -27,6 +28,17 @@
     <span><%= ship_number ? "Ship ##{ship_number}" : "Ship" %></span>
     <% if pending_review %>
       <span class="project-show__latest-ship-status project-show__latest-ship-status--pending">Pending review</span>
+    <% elsif ship.certification_status == "returned" %>
+      <% if recert_modal_id %>
+        <button type="button"
+                class="project-show__latest-ship-status project-show__latest-ship-status--returned project-show__latest-ship-status--clickable"
+                onclick="document.getElementById(<%= recert_modal_id.to_json %>).showModal()"
+                aria-haspopup="dialog">
+          Changes requested ↗
+        </button>
+      <% else %>
+        <span class="project-show__latest-ship-status project-show__latest-ship-status--returned">Changes requested</span>
+      <% end %>
     <% end %>
   </div>
 

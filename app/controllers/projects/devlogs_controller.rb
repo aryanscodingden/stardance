@@ -12,7 +12,7 @@ class Projects::DevlogsController < ApplicationController
     authorize @devlog
     @body_class = "app-layout-page"
     @post = @project.posts.visible_to(current_user).find_by!(postable: @devlog)
-    @comments = @devlog.comments.not_deleted.includes(:user).order(created_at: :asc)
+    @comments = @devlog.comments.not_deleted.joins(:user).where(users: { banned: false }).includes(:user).order(created_at: :asc)
   end
 
   def create

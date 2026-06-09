@@ -869,6 +869,35 @@
   }
 }
 
+.raffle-claim {
+  margin-bottom: var(--space-l);
+  padding: var(--space-m) var(--space-l);
+  background: var(--color-set-1-card);
+  border: 2px solid var(--color-brand-teal);
+  border-radius: var(--profile-radius);
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+}
+
+.raffle-claim__form {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+}
+
+.raffle-claim__hint {
+  font-size: var(--font-size-s);
+  color: var(--color-space-text-muted);
+}
+
+.raffle-claim__done {
+  margin: 0;
+  font-size: var(--font-size-s);
+  color: var(--color-brand-teal);
+  font-weight: 600;
+}
+
 .raffle-odds {
   margin: 0 0 var(--space-l);
 }

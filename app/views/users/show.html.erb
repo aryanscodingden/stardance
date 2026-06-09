@@ -225,8 +225,8 @@
           <li class="project-list__item">
             <%= link_to project_path(project), class: "profile-project-card" do %>
               <div class="profile-project-card__banner">
-                <% if project.display_banner %>
-                  <%= image_tag project.display_banner, alt: "", class: "profile-project-card__banner-img" %>
+                <% if project.banner.attached? %>
+                  <%= image_tag project.banner, alt: "", class: "profile-project-card__banner-img" %>
                 <% else %>
                   <%= image_tag "default-banner.png", alt: "", class: "profile-project-card__banner-img" %>
                 <% end %>

@@ -165,9 +165,9 @@ class User < ApplicationRecord
   validate :interests_must_be_allowed
   after_commit :enqueue_geocode_job, on: :create
 
-  scope :discoverable, -> { joins(:hack_club_identity).distinct }
+  scope :discoverable, -> { where(banned: false).joins(:hack_club_identity).distinct }
   scope :on_leaderboard, -> {
-    discoverable.joins(:preference).where(user_preferences: { leaderboard_optin: true }, banned: false)
+    discoverable.joins(:preference).where(user_preferences: { leaderboard_optin: true })
   }
   scope :ambassador_referrals, -> {
     where(arel_table[:ref].lower.matches("#{Rsvp::AMBASSADOR_REFERRAL_PREFIX}%"))

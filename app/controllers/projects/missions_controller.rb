@@ -5,6 +5,11 @@ class Projects::MissionsController < ApplicationController
     authorize @project, :update?
     mission = Mission.available.find_by!(slug: params[:mission_slug])
 
+    unless mission.prerequisites_met_by?(current_user)
+      unmet = mission.unmet_prerequisites_for(current_user).map(&:name).to_sentence
+      redirect_to project_path(@project), alert: "Complete #{unmet} first to unlock this mission." and return
+    end
+
     @project.mission_attachments.create!(mission: mission, attached_at: Time.current)
 
     redirect_to project_path(@project), notice: "Attached to the #{mission.name} mission."

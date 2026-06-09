@@ -4,8 +4,8 @@ module Raffle
 
     has_many :credited_referrals, class_name: "Raffle::Referral",
              foreign_key: :credited_week_id, dependent: :nullify, inverse_of: :credited_week
-    has_many :signup_participants, class_name: "Raffle::Participant",
-             foreign_key: :signup_week_id, dependent: :nullify, inverse_of: :signup_week
+    has_many :draws, class_name: "Raffle::Draw", foreign_key: :week_id, dependent: :destroy
+    has_many :weekly_claims, class_name: "Raffle::WeeklyClaim", foreign_key: :week_id, dependent: :destroy
     belongs_to :winner_participant, class_name: "Raffle::Participant", optional: true
 
     enum :status, { active: "active", archived: "archived" }, prefix: :status
@@ -27,7 +27,9 @@ module Raffle
     def standings
       hca_linked_user_ids = ::User::Identity.where(provider: "hack_club").pluck(:user_id)
 
-      base = signup_participants.where(eligible: true).each_with_object({}) do |p, h|
+      claimed_pids = weekly_claims.pluck(:participant_id)
+      claimed_participants = Raffle::Participant.where(id: claimed_pids, eligible: true)
+      base = claimed_participants.each_with_object({}) do |p, h|
         next if p.age_group_teen? && !hca_linked_user_ids.include?(p.user_id)
         h[p.id] = 1
       end
@@ -71,6 +73,14 @@ module Raffle
 
     def drawn?
       winner_participant_id.present?
+    end
+
+    def voided_draws
+      draws.status_voided.chronological
+    end
+
+    def voided_winner_ids
+      draws.status_voided.pluck(:winner_participant_id)
     end
   end
 end

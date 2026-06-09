@@ -3,14 +3,14 @@ class Api::V1::AmbassadorReferralsController < Api::V1::BaseController
   private_constant :BOOLEAN
 
   def index
-    render json: payload(User.ambassador_referrals, rsvp_scope: Rsvp.ambassador_referrals)
+    render json: payload(User.ambassador_referrals.where(banned: false), rsvp_scope: Rsvp.ambassador_referrals)
   end
 
   def show
     code = params[:id].to_s
     if code.start_with?(Rsvp::AMBASSADOR_REFERRAL_PREFIX)
       render json: payload(
-        User.ambassador_referrals.matching_ref(code),
+        User.ambassador_referrals.where(banned: false).matching_ref(code),
         rsvp_scope: Rsvp.ambassador_referrals.matching_ref(code)
       )
     else

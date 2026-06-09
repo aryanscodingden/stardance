@@ -1,7 +1,7 @@
 <%# Read-only project hero shown to a voter. Mirrors the read-mode of
     projects/show.html.erb minus edit/follow actions. %>
 <%
-  members        = project.users.to_a
+  members        = project.users.where(banned: false).to_a
   display        = project.display_banner
   banner_url     = display ? url_for(display) : image_path("profile/default-banner.png")
   total_hours    = (project.duration_seconds / 3600.0).round

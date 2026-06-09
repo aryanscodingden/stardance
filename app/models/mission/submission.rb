@@ -42,6 +42,7 @@ class Mission::Submission < ApplicationRecord
   self.table_name = "mission_submissions"
 
   include SoftDeletable
+  include Ledgerable
   include AASM
 
   has_paper_trail

@@ -1,6 +1,11 @@
 // YSWS Review Queue - Cosmic-themed styling matching Stardance design system
 // Architecture: BEM methodology with mobile-first responsive design
 // References: config/_variables.scss for all design tokenss
+
+body:has(.certification-ysws) {
+  overflow-x: clip;
+}
+
 .certification-ysws {
   background: var(--color-set-1-bg);
   color: var(--color-space-text);
@@ -1468,6 +1473,19 @@
         margin-bottom: var(--space-xs);
         text-transform: uppercase;
         letter-spacing: 0.05em;
+
+        a {
+          color: var(--color-brand-mint);
+          font-size: var(--font-size-m);
+          font-weight: 700;
+          text-decoration: underline;
+          text-transform: none;
+          letter-spacing: 0;
+
+          &:hover {
+            opacity: 0.8;
+          }
+        }
       }
     }
 
@@ -1684,21 +1702,37 @@
 
   // Actions Card (Full Width - Outside Grid)
   .actions-card {
-    margin-top: calc(var(--space-l) + 10px);
+    position: fixed;
+    bottom: var(--space-l);
+    right: var(--space-l);
+    z-index: 100;
+    width: 340px;
+    background: rgb(5, 4, 24);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    padding: var(--space-s) !important;
+    pointer-events: none;
+    transform: translateX(calc(100% + var(--space-l)));
+    transition: transform 0.35s ease 0ms;
+
+    &.is-visible {
+      pointer-events: auto;
+      transform: translateX(0);
+      transition: transform 0.35s ease 600ms;
+    }
 
     .checklist-warning {
       background: rgba(0, 0, 0, 0.3);
       border: 2px solid var(--color-brand-salmon);
       border-radius: var(--profile-radius);
-      padding: var(--space-m);
-      margin-bottom: var(--space-m);
+      padding: var(--space-xs) var(--space-s);
+      margin-bottom: var(--space-s);
 
       .warning-title {
         color: var(--color-brand-salmon);
-        font-size: var(--font-size-s);
+        font-size: var(--font-size-xs);
         font-weight: 700;
         font-family: var(--font-family-sans);
-        margin-bottom: var(--space-xs);
+        margin-bottom: var(--space-xxxs);
       }
 
       .warning-items {
@@ -1707,24 +1741,20 @@
         font-family: var(--font-family-sans);
 
         div {
-          margin-bottom: var(--space-xxxs);
-
-          &:last-child {
-            margin-bottom: 0;
-          }
+          margin-bottom: 0;
         }
       }
     }
 
     .action-buttons-grid {
       display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-s);
-      justify-content: center;
+      flex-direction: row;
+      gap: var(--space-xs);
     }
 
     .action-btn {
-      padding: var(--space-s) var(--space-m);
+      width: 50%;
+      padding: var(--space-xs) var(--space-s);
       border-radius: var(--profile-radius);
       font-size: var(--font-size-s);
       font-weight: 700;

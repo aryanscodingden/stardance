@@ -23,6 +23,8 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class Post < ApplicationRecord
+    PRIVATE_SHIP_DECISION_TYPE = "Post::ShipDecision"
+
     include Gorse::SyncablePost
 
     has_paper_trail
@@ -72,17 +74,62 @@ class Post < ApplicationRecord
     # Restrict to posts whose author has finished identity verification.
     # System posts (user_id IS NULL) are always allowed through — they aren't
     # user-authored. The viewer-aware variant additionally lets a logged-in
-    # user see their own posts even before they verify, and short-circuits to
-    # `all` for admins (who can see everything).
+    # user see their own posts even before they verify. Shipwright decision
+    # cards are private release-flagged posts: project members can see them,
+    # public viewers cannot.
     scope :authored_by_verified, -> {
       left_outer_joins(:user)
+        .without_ship_decisions
         .where("posts.user_id IS NULL OR users.verification_status = 'verified'")
     }
 
+    scope :without_ship_decisions, -> {
+      where(
+        "posts.postable_type IS NULL OR posts.postable_type != ?",
+        PRIVATE_SHIP_DECISION_TYPE
+      )
+    }
+
     def self.visible_to(viewer)
-      return all if viewer&.admin?
+      ship_decisions_enabled = viewer.present? && Flipper.enabled?(:week_1_release, viewer)
+
+      return ship_decisions_enabled ? all : without_ship_decisions if viewer&.admin?
 
       scope = left_outer_joins(:user)
+      if viewer.present?
+        return regular_posts_visible_to(scope, viewer) unless ship_decisions_enabled
+
+        scope.where(
+          <<~SQL.squish,
+            (
+              posts.postable_type = :ship_decision_type
+              AND EXISTS (
+                SELECT 1
+                FROM project_memberships
+                WHERE project_memberships.project_id = posts.project_id
+                  AND project_memberships.user_id = :viewer_id
+              )
+            )
+            OR (
+              (posts.postable_type IS NULL OR posts.postable_type != :ship_decision_type)
+              AND (
+                posts.user_id IS NULL
+                OR posts.user_id = :viewer_id
+                OR users.verification_status = 'verified'
+              )
+            )
+          SQL
+          ship_decision_type: PRIVATE_SHIP_DECISION_TYPE,
+          viewer_id: viewer.id
+        )
+      else
+        regular_posts_visible_to(scope, nil)
+      end
+    end
+
+    def self.regular_posts_visible_to(scope, viewer)
+      scope = scope.without_ship_decisions
+
       if viewer.present?
         scope.where(
           "posts.user_id IS NULL OR posts.user_id = ? OR users.verification_status = 'verified'",

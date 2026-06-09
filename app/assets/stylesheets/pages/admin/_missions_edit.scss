@@ -208,6 +208,12 @@
   }
 }
 
+.admin-mission-edit__guide-url-form {
+  margin-bottom: var(--space-l);
+  padding-bottom: var(--space-l);
+  border-bottom: 1px solid var(--color-space-border, rgba(255, 255, 255, 0.1));
+}
+
 // Explicit fixed centering — showModal()'s default margin: auto is unreliable
 // across Safari + Firefox + Chromium without an explicit transform.
 .admin-mission-edit__paste-dialog {
