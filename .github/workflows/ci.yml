@@ -51,7 +51,7 @@ jobs:
     name: ${{ matrix.name }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
 
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y ${{ matrix.system_packages }}
@@ -100,7 +100,7 @@ jobs:
       RAILS_ENV: test
       DATABASE_URL: postgresql://postgres:password@localhost:5432/stardance_test
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
 
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y libblas-dev liblapack-dev
