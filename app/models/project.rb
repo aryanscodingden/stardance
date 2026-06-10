@@ -217,7 +217,7 @@ class Project < ApplicationRecord
       update!(deleted_at: now)
 
       devlogs.find_each { |d| d.update_columns(deleted_at: now) }
-      
+
       Post::Repost.unscoped.where(original_post_id: posts.pluck(:id)).find_each do |repost|
         repost.update_columns(deleted_at: now)
       end
@@ -236,7 +236,7 @@ class Project < ApplicationRecord
       repost_ids = Post::Repost.unscoped.where(deleted_at: deleted_at_was)
                                .where(original_post_id: posts.pluck(:id))
                                .pluck(:id)
-      
+
       Post::Repost.unscoped.where(id: repost_ids).update_all(deleted_at: nil)
     end
   end
