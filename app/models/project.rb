@@ -211,7 +211,17 @@ class Project < ApplicationRecord
       errors.add(:base, "Cannot delete a project that has been shipped")
       raise ActiveRecord::RecordInvalid.new(self)
     end
-    update!(deleted_at: Time.current)
+
+    transaction do
+      now = Time.current
+      update!(deleted_at: now)
+
+      devlogs.find_each { |d| d.update_columns(deleted_at: now) }
+      
+      Post::Repost.unscoped.where(original_post_id: posts.pluck(:id)).find_each do |repost|
+        repost.update_columns(deleted_at: now)
+      end
+    end
   end
 
   def shipped?
