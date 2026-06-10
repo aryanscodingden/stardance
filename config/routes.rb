@@ -520,6 +520,9 @@ Rails.application.routes.draw do
   # Leaderboard
   get "leaderboard", to: "leaderboard#index"
 
+  # Contributors — merged-PR leaderboard for the Stardance repo itself.
+  get "contributors", to: "contributors#index"
+
   # Events — listing of missions and (eventually) other themed events.
   resources :events, only: [ :index ]
 
