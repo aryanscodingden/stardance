@@ -224,6 +224,23 @@ class Project < ApplicationRecord
     end
   end
 
+  def restore!
+    transaction do
+      deleted_at_was = deleted_at
+      update!(deleted_at: nil)
+
+      Post::Devlog.unscoped.where(deleted_at: deleted_at_was)
+                  .where(id: posts.of_devlogs.pluck(:postable_id))
+                  .update_all(deleted_at: nil)
+
+      repost_ids = Post::Repost.unscoped.where(deleted_at: deleted_at_was)
+                               .where(original_post_id: posts.pluck(:id))
+                               .pluck(:id)
+      
+      Post::Repost.unscoped.where(id: repost_ids).update_all(deleted_at: nil)
+    end
+  end
+
   def shipped?
     shipped_at.present? || !draft?
   end
