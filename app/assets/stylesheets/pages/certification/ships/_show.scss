@@ -44,9 +44,9 @@
     }
   }
 
-  // Progress banner, styled after .top-banner--beta but green to read as
-  // momentum rather than a warning. Re-renders on every page load, so the
-  // count pops as it ticks up after each verdict.
+  // Progress banner, mint like the claim banner so it reads as momentum
+  // without leaving the brand palette. Re-renders on every page load, so
+  // the count pops as it ticks up after each verdict.
   &__momentum {
     display: flex;
     flex-wrap: wrap;
@@ -55,13 +55,12 @@
     gap: var(--space-xs);
     margin-bottom: var(--space-l);
     padding: 0.6rem 1rem;
-    color: #fff;
+    color: var(--color-brand-mint);
     font-size: 1rem;
     font-weight: 600;
     text-align: center;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(129, 255, 255, 0.08);
+    border: 1px solid rgba(129, 255, 255, 0.2);
     border-radius: 10px;
   }
 
@@ -101,14 +100,14 @@
   }
 
   &__panel {
-    padding: var(--space-l);
+    padding: var(--space-m) var(--space-l);
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 12px;
   }
 
   &__panel-title {
-    margin: 0 0 var(--space-s);
+    margin: 0 0 var(--space-xs);
     font-size: var(--font-size-l);
   }
 
@@ -461,7 +460,7 @@
 
   &--accepted {
     border-style: solid;
-    border-color: #22c55e;
+    border-color: var(--color-brand-mint);
   }
 
   &--error {
@@ -537,7 +536,7 @@
     color: var(--color-space-text-muted, rgba(255, 255, 255, 0.7));
 
     .video-drop--done & {
-      color: #22c55e;
+      color: var(--color-brand-mint);
     }
 
     .video-drop--error & {
@@ -576,7 +575,7 @@
 
   &--done {
     border-style: solid;
-    border-color: #22c55e;
+    border-color: var(--color-brand-mint);
   }
 }
 
