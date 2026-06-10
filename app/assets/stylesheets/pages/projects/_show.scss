@@ -578,7 +578,8 @@ turbo-frame#project_hero {
 // Destructive action (Unfollow / Delete). Per branding §4.1 destructive uses
 // salmon (`--color-brand-salmon`) — transparent + salmon-bordered when
 // resting, salmon-filled on hover so the destructive intent is unambiguous.
-.project-show__pill--following {
+.project-show__pill--following,
+.project-show__pill--destructive {
   border-color: var(--color-brand-salmon);
   color: var(--color-brand-salmon);
 
