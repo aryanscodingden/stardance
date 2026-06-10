@@ -157,7 +157,7 @@ production:
     class: Certification::YswsAirtableResyncJob
     schedule: every day at 4pm America/New_York
     concurrency: 1
-    description: "Re-enqueue Airtable syncs for YSWS reviews reviewed after their last sync"
+    description: "Enqueue airtable sync for reviews where sync initially failed"
 
   ahoy_backfill_project_created_ahoy_events:
     class: AhoyBackfillProjectCreatedJob
