@@ -1,10 +1,11 @@
 class VotesController < ApplicationController
-  before_action :set_voting_state
-
   def new
     authorize Vote
 
-    load_assignment
+    @vote_policy = policy(Vote)
+    if @vote_policy.open?
+      load_assignment
+    end
   end
 
   def create
@@ -18,17 +19,13 @@ class VotesController < ApplicationController
     else
       @ship_event = @assignment.ship_event
       @project = @ship_event.project
+      @vote_policy = policy(Vote)
       load_timeline_posts
       render :new, status: :unprocessable_entity
     end
   end
 
   private
-    def set_voting_state
-      @has_shipped = current_user&.shipped_projects&.exists? || false
-      @voting_open = Flipper.enabled?(:voting, current_user)
-    end
-
     def load_assignment
       return unless current_user
 

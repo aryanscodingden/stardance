@@ -1,6 +1,6 @@
 <% content_for :title, "Rate this project" %>
 
-<% if @voting_open && @assignment.present? %>
+<% if @vote_policy.open? && @assignment.present? %>
   <main class="vote-page" aria-labelledby="vote-page-title">
     <div class="vote-page__layout">
       <section class="vote-page__main" aria-label="Project context">
@@ -14,7 +14,7 @@
       </aside>
     </div>
   </main>
-<% elsif @voting_open && current_user && @has_shipped %>
+<% elsif @vote_policy.open? %>
   <main class="vote-page" aria-labelledby="vote-page-title">
     <%= render "votes/empty_state" %>
   </main>
@@ -34,9 +34,6 @@
           <% if !current_user %>
             Sign up for Stardance to build and ship your own projects,
             then rate what others have made!
-          <% elsif @has_shipped %>
-            For now, you can continue working on your project.
-            We'll send an announcement once it's open!
           <% else %>
             For now, you can still work on and ship your project.
             We'll send an announcement once it's open!
