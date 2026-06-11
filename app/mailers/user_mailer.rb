@@ -6,6 +6,6 @@ class UserMailer < ApplicationMailer
 
   def outpost(user)
     @user = user
-    mail(to: user.email, from: "stardance@hackclub.com", reply_to: "team@stardance.hackclub.com")
+    mail(to: user.email, from: "alexren@hackclub.com", reply_to: "outpost@hackclub.com")
   end
 end
