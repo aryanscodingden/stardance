@@ -282,10 +282,10 @@ class User < ApplicationRecord
   def deliver_outpost_email!
     return if email.blank?
 
-    with_lock do
+    with_lock("FOR UPDATE OF users") do
       return if outpost_email_sent_at.present?
 
-      update!(outpost_email_sent_at: Time.current)
+      update_column(:outpost_email_sent_at, Time.current)
     end
 
     UserMailer.outpost(self).deliver_later
