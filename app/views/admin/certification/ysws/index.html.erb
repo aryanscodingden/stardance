@@ -24,8 +24,8 @@
         <tbody>
           <% @reviews.each do |review| %>
             <tr>
-              <td>#<%= review.id %></td>
-              <td>
+              <td data-label="ID">#<%= review.id %></td>
+              <td data-label="Type">
                 <%= review.project&.project_type.presence || tag.span("—", style: "opacity: 0.5;") %>
               </td>
               <td>
