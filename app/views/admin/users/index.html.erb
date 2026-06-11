@@ -30,7 +30,7 @@
           <% @users.each do |user| %>
             <tr>
               <td class="space-table__muted"><%= user.id %></td>
-              <td><%= link_to user.display_name, admin_reports_path(reporter_id: user.id) %></td>
+              <td><%= link_to user.display_name, admin_certification_reports_path(reporter_id: user.id) %></td>
               <% if policy(user).view_email? %>
                 <td class="space-table__muted"><%= user.email %></td>
               <% end %>

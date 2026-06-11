@@ -419,7 +419,64 @@ a.super-mega-dashboard-btn {
   }
 }
 
+/* Tables */
+.admin-content .table-data {
+  width: 100%;
+  border: 1px solid var(--color-space-border);
+  border-radius: 8px;
+  overflow: hidden;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: var(--space-m) 0;
+
+  thead {
+    background: var(--color-overlay-light-soft);
+  }
+
+  th {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: var(--color-space-text-muted);
+    text-align: left;
+    padding: var(--space-s) var(--space-m);
+    border-bottom: 1px solid var(--color-space-border);
+    border-radius: 0;
+  }
+
+  td {
+    padding: var(--space-s) var(--space-m);
+    color: var(--color-space-text);
+    border-bottom: 1px solid var(--color-space-surface-faint);
+    vertical-align: middle;
+  }
+
+  tbody tr {
+    transition: background 120ms ease;
+
+    &:hover {
+      background: var(--color-overlay-light-soft);
+    }
+
+    &:last-child td {
+      border-bottom: 0;
+    }
+  }
+
+  tbody tr:nth-child(odd) {
+    background: hsla(228, 18%, 45%, 0.06);
+  }
+}
+
 /* Layout Utilities */
+.admin-workspace {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: var(--space-m) 0;
+}
+
 .button-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
