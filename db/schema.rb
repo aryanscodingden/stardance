@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_172657) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_11_001546) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -178,7 +178,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_172657) do
     t.text "recert_reason"
     t.bigint "returned_by_id"
     t.bigint "reviewer_id"
-    t.integer "stardust_earned"
+    t.float "stardust_earned"
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["decided_at"], name: "index_certification_ship_reviews_on_decided_at"
@@ -759,7 +759,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_172657) do
     t.text "adjust_reason"
     t.integer "adjusted_amount"
     t.bigint "admin_id"
-    t.integer "amount", null: false
+    t.integer "amount"
     t.datetime "created_at", null: false
     t.integer "paid_amount"
     t.datetime "paid_at"
@@ -767,7 +767,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_172657) do
     t.bigint "user_id", null: false
     t.index ["admin_id"], name: "index_reviewer_payout_requests_on_admin_id"
     t.index ["user_id"], name: "index_reviewer_payout_requests_on_user_id"
-    t.index ["user_id"], name: "index_reviewer_payout_requests_on_user_id_pending", unique: true, where: "((aasm_state)::text = 'pending'::text)"
   end
 
   create_table "rsvp_games", force: :cascade do |t|
@@ -1357,8 +1356,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_172657) do
   add_foreign_key "raffle_draws", "raffle_participants", column: "winner_participant_id"
   add_foreign_key "raffle_draws", "raffle_weeks", column: "week_id"
   add_foreign_key "raffle_participants", "raffle_weeks", column: "signup_week_id"
+  add_foreign_key "raffle_participants", "users"
   add_foreign_key "raffle_referrals", "raffle_participants", column: "participant_id"
   add_foreign_key "raffle_referrals", "raffle_weeks", column: "credited_week_id"
+  add_foreign_key "raffle_referrals", "users", column: "referred_user_id"
   add_foreign_key "raffle_weekly_claims", "raffle_participants", column: "participant_id"
   add_foreign_key "raffle_weekly_claims", "raffle_weeks", column: "week_id"
   add_foreign_key "raffle_weeks", "raffle_participants", column: "winner_participant_id"
@@ -1377,7 +1378,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_172657) do
   add_foreign_key "shop_item_sources", "shop_items"
   add_foreign_key "shop_item_sources", "shop_sources"
   add_foreign_key "shop_items", "users"
-  add_foreign_key "shop_items", "users", column: "created_by_user_id", on_delete: :nullify
+  add_foreign_key "shop_items", "users", column: "created_by_user_id", on_delete: :nullify, validate: false
   add_foreign_key "shop_items", "users", column: "default_assigned_user_id", on_delete: :nullify
   add_foreign_key "shop_order_modifier_selections", "shop_item_modifiers"
   add_foreign_key "shop_order_modifier_selections", "shop_orders"

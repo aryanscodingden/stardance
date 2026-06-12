@@ -35,6 +35,8 @@ class Admin::Certification::ShipsController < Admin::Certification::ApplicationC
   def show
     authorize @ship
     @reviewed_today = ::Certification::Ship.reviewed_today(current_user)
+    @next_rank = ::Certification::Ship.rank_for_reviewer_with_count(current_user.id, @reviewed_today + 1)
+    @next_multiplier = ::Certification::Ship.multiplier_for_rank(@next_rank)
   end
 
   def update

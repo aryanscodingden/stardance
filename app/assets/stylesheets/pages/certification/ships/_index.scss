@@ -254,7 +254,7 @@
 
   &__rank {
     display: grid;
-    grid-template-columns: 1.75rem 1fr auto;
+    grid-template-columns: 1.75rem 1fr auto auto;
     align-items: center;
     gap: var(--space-s);
     padding: var(--space-xs) var(--space-s);
@@ -295,6 +295,16 @@
     color: var(--accent);
     font-weight: 700;
     font-size: 1.05rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__rank-mult {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--color-brand-yellow);
+    background: rgba(255, 229, 100, 0.12);
+    padding: 1px 6px;
+    border-radius: 999px;
     font-variant-numeric: tabular-nums;
   }
 

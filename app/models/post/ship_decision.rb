@@ -12,7 +12,7 @@
 #  internal_reason  :text
 #  lock_version     :integer          default(0), not null
 #  recert_reason    :text
-#  stardust_earned  :integer
+#  stardust_earned  :float
 #  status           :integer          default("pending"), not null
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null

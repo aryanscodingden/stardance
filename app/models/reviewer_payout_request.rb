@@ -8,7 +8,7 @@
 #  aasm_state      :string           default("pending"), not null
 #  adjust_reason   :text
 #  adjusted_amount :integer
-#  amount          :integer          not null
+#  amount          :integer
 #  paid_amount     :integer
 #  paid_at         :datetime
 #  created_at      :datetime         not null
@@ -18,9 +18,8 @@
 #
 # Indexes
 #
-#  index_reviewer_payout_requests_on_admin_id         (admin_id)
-#  index_reviewer_payout_requests_on_user_id          (user_id)
-#  index_reviewer_payout_requests_on_user_id_pending  (user_id) UNIQUE WHERE ((aasm_state)::text = 'pending'::text)
+#  index_reviewer_payout_requests_on_admin_id  (admin_id)
+#  index_reviewer_payout_requests_on_user_id   (user_id)
 #
 # Foreign Keys
 #

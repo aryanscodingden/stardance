@@ -10,7 +10,7 @@
 #  internal_reason  :text
 #  lock_version     :integer          default(0), not null
 #  recert_reason    :text
-#  stardust_earned  :integer
+#  stardust_earned  :float
 #  status           :integer          default("pending"), not null
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
@@ -36,7 +36,7 @@ module Certification
 
     include Certification::Reviewable
 
-    belongs_to :project
+    belongs_to :project, -> { with_deleted }
     belongs_to :reviewer, class_name: "User", optional: true
     belongs_to :returned_by, class_name: "User", optional: true
 
@@ -153,8 +153,41 @@ module Certification
         .count
     end
 
+    def self.rank_for_reviewer_with_count(reviewer_id, new_count, now: Time.current)
+      other_counts = where.not(reviewer_id: [nil, reviewer_id])
+                       .where.not(status: :pending)
+                       .where(decided_at: now.beginning_of_day..)
+                       .joins(:reviewer)
+                       .group(:reviewer_id, "users.display_name")
+                       .order(Arel.sql("COUNT(*) DESC"), Arel.sql("users.display_name ASC"))
+                       .count
+
+      reviewer_name = where(reviewer_id: reviewer_id)
+                       .joins(:reviewer)
+                       .where(decided_at: now.beginning_of_day..)
+                       .where.not(status: :pending)
+                       .pick("users.display_name") || ""
+
+      list = other_counts.map { |(rid, name), count| { id: rid, name: name, count: count } }
+      list << { id: reviewer_id, name: reviewer_name, count: new_count }
+
+      sorted = list.sort_by { |item| [-item[:count], item[:name] || ""] }
+
+      index = sorted.index { |item| item[:id] == reviewer_id }
+      index ? index + 1 : 1
+    end
+
+    def self.multiplier_for_rank(rank)
+      case rank
+      when 1 then 1.75
+      when 2 then 1.5
+      when 3 then 1.25
+      else 1.0
+      end
+    end
+
     # Stardust earned per completed review
-    REVIEW_BOUNTY = 1 # This will be updated once we add the project types.
+    REVIEW_BOUNTY = 1.0 # This will be updated once we add the project types.
 
     before_save :stamp_claimed_at, if: -> { will_save_change_to_reviewer_id? && reviewer_id.present? && claimed_at.nil? }
     before_save :stamp_decided_at, if: -> { will_save_change_to_status? && status_change&.last != "pending" && decided_at.nil? }
@@ -166,7 +199,14 @@ module Certification
     private
 
     def assign_stardust_earned
-      self.stardust_earned = REVIEW_BOUNTY
+      now = Time.current
+      my_count = Certification::Ship.where(reviewer_id: reviewer_id)
+                                    .where.not(status: :pending)
+                                    .where(decided_at: now.beginning_of_day..)
+                                    .count
+      rank = Certification::Ship.rank_for_reviewer_with_count(reviewer_id, my_count + 1, now: now)
+      multiplier = Certification::Ship.multiplier_for_rank(rank)
+      self.stardust_earned = REVIEW_BOUNTY * multiplier
     end
 
     def stamp_claimed_at

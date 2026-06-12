@@ -13,10 +13,10 @@
 
     <div class="ship-review__momentum" role="status" aria-live="polite">
       <% if @reviewed_today.zero? %>
-        <span class="ship-review__momentum-label">First review of the day. Let's go.</span>
+        <span class="ship-review__momentum-label">First review of the day. Let's go. Next multiplier: <strong><%= @next_multiplier %>x</strong> (Estimated rank: <%= @next_rank.ordinalize %>)</span>
       <% else %>
         <span class="ship-review__momentum-count"><%= @reviewed_today %></span>
-        <span class="ship-review__momentum-label">reviewed today. Keep the momentum going.</span>
+        <span class="ship-review__momentum-label">reviewed today. Keep the momentum going. Next multiplier: <strong><%= @next_multiplier %>x</strong> (Estimated rank: <%= @next_rank.ordinalize %>)</span>
       <% end %>
     </div>
 
