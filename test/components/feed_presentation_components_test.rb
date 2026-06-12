@@ -52,6 +52,21 @@ class FeedPresentationComponentsTest < ViewComponent::TestCase
     assert_no_selector ".like-button__btn--liked"
   end
 
+  test "post card hides the view count without week_2_release" do
+    render_inline Posts::CardComponent.new(post: @post, current_user: @user)
+
+    assert_no_selector "[title='Unique viewers']"
+  end
+
+  test "post card shows the unique view count with week_2_release" do
+    Flipper.enable(:week_2_release)
+    @post.update!(views_count: 3)
+
+    render_inline Posts::CardComponent.new(post: @post, current_user: @user)
+
+    assert_selector "[title='Unique viewers']", text: "3"
+  end
+
   test "shelf renders project cards" do
     render_inline Feed::ShelfComponent.new(title: "Recommended projects", items: [ @project ], href: "/projects") do |shelf|
       shelf.with_item do

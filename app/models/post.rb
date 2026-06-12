@@ -5,6 +5,7 @@
 #  id            :bigint           not null, primary key
 #  postable_type :string
 #  reposts_count :integer          default(0), not null
+#  views_count   :integer          default(0), not null
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  postable_id   :bigint
@@ -39,10 +40,11 @@ class Post < ApplicationRecord
 
     delegated_type :postable, types: Postable.types
 
+    has_many :post_views, dependent: :delete_all
+
     validates :postable_id, presence: true, if: :postable_type?
     validates :project, presence: true, unless: :repost?
 
-    after_commit :invalidate_project_time_cache, on: [ :create, :destroy ]
     after_commit :increment_devlogs_count, on: :create
     after_commit :decrement_devlogs_count, on: :destroy
     after_commit :update_project_duration_seconds, on: [ :create, :destroy ]
@@ -144,6 +146,12 @@ class Post < ApplicationRecord
       postable_type == "Post::Repost"
     end
 
+    # Reposts surface the original post's content, so a view of the repost
+    # also counts as a unique view of the original.
+    def view_credited_posts
+      [ self, repost? ? postable&.original_post : nil ].compact
+    end
+
     def visible_repost_original_for?(viewer)
       if repost?
         original_post = postable&.original_post
@@ -167,12 +175,6 @@ class Post < ApplicationRecord
     #   ).from("available_posts AS posts")
 
     private
-
-    def invalidate_project_time_cache
-      return unless postable_type == "Post::Devlog"
-
-      Rails.cache.delete("project/#{project_id}/time_seconds")
-    end
 
     def increment_devlogs_count
       return unless postable_type == "Post::Devlog"

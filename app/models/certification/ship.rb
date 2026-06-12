@@ -37,6 +37,10 @@ module Certification
     include Certification::Reviewable
 
     belongs_to :project
+    # Same record as :project but visible through soft deletion, so submitter
+    # history can still name projects deleted after a verdict.
+    belongs_to :project_with_deleted, -> { with_deleted }, class_name: "Project",
+               foreign_key: :project_id, optional: true
     belongs_to :reviewer, class_name: "User", optional: true
     belongs_to :returned_by, class_name: "User", optional: true
 
@@ -44,6 +48,17 @@ module Certification
 
     # The reviewer records a walkthrough and passes it along with the verdict.
     has_one_attached :verdict_video
+
+    # Admins can force-delete shipped projects; fall through to the deleted
+    # record so review pages (and submitter history cards linking to them)
+    # still render instead of crashing on a nil project.
+    def project
+      super || project_with_deleted
+    end
+
+    def owner
+      @owner ||= project.memberships.owner.first&.user
+    end
 
     enum :status, {
       pending: 0,
@@ -144,6 +159,25 @@ module Certification
            .map { |name, count| { name: name, count: count } }
     end
 
+    # Verdict history across every project this user owns. Shown beside the
+    # review form so Shipwrights judging a gray-area project can see whether
+    # the submitter keeps getting returned for low quality. Goes through
+    # memberships rather than joining projects so reviews keep counting after
+    # their project is soft-deleted — deleting a returned project and
+    # resubmitting is exactly the pattern this panel exists to surface.
+    def self.submitter_history(user)
+      owned = Project::Membership.where(user_id: user.id, role: :owner).select(:project_id)
+      scope = where(project_id: owned)
+      counts = scope.group(:status).count
+      {
+        total: counts.values.sum,
+        projects: scope.distinct.count(:project_id),
+        approved: counts["approved"].to_i,
+        returned: counts["returned"].to_i,
+        recent: scope.includes(:project_with_deleted, :reviewer, :returned_by).order(created_at: :desc).limit(6)
+      }
+    end
+
     # How many reviews this reviewer has decided today. Drives the momentum
     # counter on the review page, so it's scoped to the user, not the queue.
     def self.reviewed_today(user, now: Time.current)
@@ -216,10 +250,6 @@ module Certification
         project: project,
         ship_cert_id: id
       ).call
-    end
-
-    def owner
-      @owner ||= project.memberships.owner.first&.user
     end
 
     def post_decision_to_timeline!

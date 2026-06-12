@@ -14,6 +14,7 @@ module ActiveSupport
     fixtures :all
 
     include UserFactory
+    include MissionFactory
   end
 end
 
