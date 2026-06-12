@@ -3,6 +3,8 @@
 # The rng widget and page post here to roll; the leaderboard action renders
 # /rng (day-browsable board), and history renders /rng/history (your rolls).
 class DailyRollsController < ApplicationController
+  PAGE_SIZE = 50
+
   before_action :require_week_2_release
 
   def create
@@ -26,8 +28,6 @@ class DailyRollsController < ApplicationController
     redirect_back fallback_location: rng_path
   end
 
-  PAGE_SIZE = 50
-
   def leaderboard
     authorize :daily_roll
 
@@ -50,7 +50,7 @@ class DailyRollsController < ApplicationController
         @viewer_page = ((@viewer_rank - 1) / PAGE_SIZE) + 1
       end
     else
-      anonymous_roll # memoizes @anonymous_roll for the hero
+      @anonymous_roll = AnonymousRoll.new(cookies).today
     end
 
     record = DailyRoll.order(value: :desc, created_at: :asc).includes(:user).first
@@ -70,8 +70,6 @@ class DailyRollsController < ApplicationController
 
   private
 
-  ANON_COOKIE = :rng_roll
-
   # Signed-in: one real roll per day, streamed to the rail widget + hero.
   def roll_for_user
     already_rolled = DailyRoll.for_today(current_user).present?
@@ -90,36 +88,17 @@ class DailyRollsController < ApplicationController
     ]
   end
 
-  # Logged-out: one cookie-backed roll per day (not in the DB, so it never
-  # touches the leaderboard). It's claimed onto their account when they sign in
-  # (see ApplicationController#claim_anonymous_daily_roll).
+  # Logged-out: one cookie-backed roll per day. It lives in a signed cookie
+  # (never the DB, so it stays off the leaderboard) and is claimed onto the
+  # account at sign-in — see AnonymousRoll.
   def roll_for_anonymous
-    roll = anonymous_roll
+    anon = AnonymousRoll.new(cookies)
+    roll = anon.today
     just_rolled = roll.nil?
-    if just_rolled
-      roll = DailyRoll.new(value: DailyRoll.random_value, rolled_on: Date.current)
-      cookies.signed[ANON_COOKIE] = {
-        value: "#{roll.value}|#{Date.current.iso8601}",
-        expires: 2.days.from_now,
-        httponly: true,
-        same_site: :lax
-      }
-    end
+    roll = anon.store(DailyRoll.random_value) if just_rolled
 
     [ turbo_stream.replace("rng-hero", partial: "daily_rolls/hero",
                            locals: { roll: roll, just_rolled: just_rolled, anonymous: true }) ]
-  end
-
-  # Today's logged-out roll as an unsaved DailyRoll (so tone/flavor work), or
-  # nil. Stored signed so the value can't be forged.
-  def anonymous_roll
-    return @anonymous_roll if defined?(@anonymous_roll)
-
-    value_s, date_s = cookies.signed[ANON_COOKIE].to_s.split("|", 2)
-    @anonymous_roll =
-      if date_s == Date.current.iso8601 && value_s.present?
-        DailyRoll.new(value: value_s.to_i, rolled_on: Date.current)
-      end
   end
 
   # rng ships with the week 2 release; until then it 404s for everyone.

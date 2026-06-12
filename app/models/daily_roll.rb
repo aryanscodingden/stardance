@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# One random roll per user per (UTC) day. The discover rail's daily-roll
-# widget creates these and ranks the day's highest values.
+# One random roll per user per day, rolled from /rng or the discover-rail
+# widget. The day's biggest values top the leaderboard.
 # == Schema Information
 #
 # Table name: daily_rolls

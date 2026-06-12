@@ -103,24 +103,8 @@ class ApplicationController < ActionController::Base
   def sign_in_user(user, auth_level: "guest")
     session[:user_id] = user.id
     session[:auth_level] = auth_level
-    claim_anonymous_daily_roll(user)
-  end
-
-  # If they rolled the daily number while logged out (stored in a signed
-  # cookie), save that roll onto their account on sign-in — so signing up
-  # "keeps" the number they just rolled. No-op when there's no pending roll.
-  def claim_anonymous_daily_roll(user)
-    raw = cookies.signed[:rng_roll]
-    return if raw.blank?
-
-    value_s, date_s = raw.to_s.split("|", 2)
-    cookies.delete(:rng_roll)
-    return unless date_s == Date.current.iso8601 && value_s.present?
-    return if DailyRoll.exists?(user: user, rolled_on: Date.current)
-
-    DailyRoll.create!(user: user, value: value_s.to_i.clamp(0, DailyRoll::MAX_VALUE), rolled_on: Date.current)
-  rescue ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid
-    nil
+    # Keep a daily number they rolled while logged out (see AnonymousRoll).
+    AnonymousRoll.new(cookies).claim!(user)
   end
 
   # https://stackoverflow.com/questions/70960161/ruby-on-rails-back-button-that-will-take-you-back-to-the-previous-page
