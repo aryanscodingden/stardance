@@ -161,11 +161,7 @@ Guide = Data.define(:slug, :title, :description, :category, :icon, :reading_minu
 
   class << self
     def all
-      if Flipper.enabled?(:hardware_flow)
-        self::ALL
-      else
-        self::ALL.reject { |g| g.category == :outpost || g.slug == :tiers }
-      end
+      self::ALL
     end
     def find(s)
       guide = self::SLUGGED[s.to_sym] or raise ActiveRecord::RecordNotFound, "Unknown guide: #{s}"
