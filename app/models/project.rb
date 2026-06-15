@@ -254,13 +254,21 @@ class Project < ApplicationRecord
   # toggle submits an empty string when Software is selected; coerce it to nil
   # so the column actually clears and passes the inclusion validation (which
   # allows nil, but not "").
-  normalizes :hardware_stage, with: ->(value) { value.presence }
+  normalizes :hardware_stage, with: -> (value) { value.presence }
   validates :hardware_stage, inclusion: { in: HARDWARE_STAGES }, allow_nil: true
   validate :hardware_stage_locked_after_funding_request
+  validate :required_shipping_fields_locked_while_pending_review
 
   def hardware_stage_locked_after_funding_request
     return unless hardware_stage_changed? && has_any_funding_request?
     errors.add(:hardware_stage, "cannot be changed after a funding request has been submitted")
+  end
+
+  def required_shipping_fields_locked_while_pending_review
+    return unless ship_reviews.pending.exists?
+    return if shippable?
+
+    errors.add(:base, "Cannot save: #{ship_blocker_message&.downcase}. Fix this before your review completes.")
   end
 
   def validate_repo_cloneable
