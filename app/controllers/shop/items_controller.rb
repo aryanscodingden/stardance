@@ -49,6 +49,7 @@ class Shop::ItemsController < Shop::BaseController
       return
     end
 
+    @user_addresses ||= current_user&.addresses || []
     @sale_price = @shop_item.price_for_user(current_user, @user_region)
     @regional_base_price = @shop_item.base_price_for_region(@user_region)
     @accessories = @shop_item.available_accessories.includes(:image_attachment)
@@ -127,7 +128,7 @@ class Shop::ItemsController < Shop::BaseController
 
     return "shop/items/tutorial_project" unless current_user.projects.exists?
     return "shop/items/tutorial_verify"  unless current_user.identity_submitted?
-    return "shop/items/tutorial_address" if current_user.addresses.empty?
+    return "shop/items/tutorial_address" if (@user_addresses ||= current_user.addresses).empty?
 
     nil
   end

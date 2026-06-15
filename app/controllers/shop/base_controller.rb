@@ -6,7 +6,7 @@ class Shop::BaseController < ApplicationController
       return current_user.shop_region if current_user.shop_region.present?
       return current_user.regions.first if current_user.has_regions?
 
-      primary_address = current_user.addresses.find { |a| a["primary"] } || current_user.addresses.first
+      primary_address = (@user_addresses ||= current_user.addresses).find { |a| a["primary"] } || @user_addresses.first
       country = primary_address&.dig("country")
       region_from_address = Shop::Regionalizable.country_to_region(country)
       return region_from_address if region_from_address != "XX" || country.present?
