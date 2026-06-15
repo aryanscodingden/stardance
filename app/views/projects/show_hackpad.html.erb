@@ -604,23 +604,23 @@
       </div>
     <% end %>
 
-    <% if @posts.any? %>
+    <% if @timeline_entries.any? %>
       <section class="project-show__feed" aria-label="Project feed">
         <% ship_count = @posts.count { |p| p.postable_type == "Post::ShipEvent" } %>
         <% ship_index = 0 %>
-        <% @posts.each do |post| %>
-          <% if post.postable_type == "Post::ShipEvent" %>
+        <% @timeline_entries.each do |entry| %>
+          <% if entry.is_a?(Certification::Ship) %>
+            <%= render "projects/ship_decision_card", decision: entry %>
+          <% elsif entry.postable_type == "Post::ShipEvent" %>
             <% ship_index += 1 %>
             <% recert_id = ((is_member || current_user&.can_review?) && @project.needs_changes? && ship_index == 1) ? "recert-modal-#{@project.id}" : nil %>
             <%= render "projects/ship_card",
-                       post: post,
+                       post: entry,
                        project: @project,
                        ship_number: ship_count - ship_index + 1,
                        recert_modal_id: recert_id %>
-          <% elsif post.postable_type == Post::PRIVATE_SHIP_DECISION_TYPE %>
-            <%= render "users/ship_decision_card", post: post, decision: post.postable, project: @project %>
           <% else %>
-            <%= render PostComponent.new(post: post, current_user: current_user, theme: :profile_dark) %>
+            <%= render PostComponent.new(post: entry, current_user: current_user, theme: :profile_dark) %>
           <% end %>
         <% end %>
       </section>
@@ -853,7 +853,7 @@
                 <% if @project.demo_url.present? || @project.repo_url.present? %>
                   <div class="project-show__latest-ship-cta">
                     <% if @project.demo_url.present? %>
-                      <%= link_to "Try project →", @project.demo_url,
+                      <%= link_to @project.hardware? ? "Video of Project →" : "Try project →", @project.demo_url,
                                   target: "_blank", rel: "noopener",
                                   class: "project-show__latest-ship-btn project-show__latest-ship-btn--primary" %>
                     <% end %>

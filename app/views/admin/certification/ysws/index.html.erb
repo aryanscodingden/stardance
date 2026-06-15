@@ -27,11 +27,7 @@
             <tr>
               <td data-label="ID">#<%= review.id %></td>
               <td data-label="Type">
-                <% if review.project&.project_categories&.present? %>
-                  <%= review.project.project_categories.join(", ") %>
-                <% else %>
-                  <span class="ysws-queue__placeholder">—</span>
-                <% end %>
+                <%= review.project&.project_type.presence || tag.span("—", style: "opacity: 0.5;") %>
               </td>
               <td data-label="Project">
                 <% if review.project %>

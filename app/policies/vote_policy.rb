@@ -11,6 +11,10 @@ class VotePolicy < ApplicationPolicy
     user_can_vote?
   end
 
+  def open?
+    Flipper.enabled?(:voting, user)
+  end
+
   private
 
   def user_can_vote?

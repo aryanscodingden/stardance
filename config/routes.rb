@@ -477,6 +477,13 @@ Rails.application.routes.draw do
   resources :votes, only: [ :new, :create ]
   namespace :votes do
     resource :skip, only: :create
+    resources :assignments, only: [] do
+      member do
+        get :demo
+        get :repo
+      end
+    end
+    resources :events, only: :create
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -513,6 +520,10 @@ Rails.application.routes.draw do
   # Home
   get "home", to: "home#index"
   resources :feed_events, only: [ :create ]
+  resource :daily_roll, only: [ :create ]
+  get "rng", to: "daily_rolls#leaderboard", as: :rng
+  get "rng/history", to: "daily_rolls#history", as: :rng_history
+  delete "daily_roll/clear", to: "daily_rolls#clear", as: :clear_daily_roll if Rails.env.development? || Rails.env.test?
   namespace :home do
     resource :feed, only: [ :show ]
   end
@@ -532,6 +543,12 @@ Rails.application.routes.draw do
     resources :dismissals, only: [ :create ]
     post "verification/refresh", to: "verifications#refresh", as: :verification_refresh
     post "dev/pretend_idv", to: "dev_tools#pretend_idv", as: :pretend_idv_dev
+    resources :notifications, only: [ :index ] do
+      collection do
+        post :mark_all_seen
+      end
+    end
+    resource :notification_settings, only: [ :show, :update ], controller: "notification_settings"
   end
   get "my/achievements", to: "achievements#index", as: :my_achievements
 
@@ -587,6 +604,7 @@ Rails.application.routes.draw do
         resource  :ban,                 only: [ :create, :destroy ]
         resource  :impersonation,       only: [ :create ]
         resources :feature_flags,       only: [ :create, :destroy ], param: :feature
+        resource  :presentable_hardware_flag, only: [ :create, :destroy ]
         resource  :hackatime_sync,      only: [ :create ]
         resource  :order_rejection,     only: [ :create ]
         resources :balance_adjustments, only: [ :create ]
@@ -741,6 +759,15 @@ Rails.application.routes.draw do
         end
       end
 
+      resources :funding_requests, path: "funding", only: [ :index, :show, :update ] do
+        collection do
+          get :next
+        end
+        scope module: :funding_requests do
+          resource :claim, only: [ :create, :destroy ]
+        end
+      end
+
       resources :devlog_reviews, only: [ :update ]
 
       get "devlogs/:devlog_id/commits", to: "devlog_commits#index", as: "devlog_commits"
@@ -802,15 +829,26 @@ Rails.application.routes.draw do
       end
     end
     resources :reports, only: [ :create ], module: :projects
+    resources :lookout_sessions, only: %i[create show], module: :projects, shallow: false do
+      get  :record, on: :member
+      post :stop, on: :member
+      post :set_mode, on: :member
+      post :forward_heartbeats, on: :member
+      get  :status, on: :collection
+    end
     resource :og_image, only: [ :show ], module: :projects, defaults: { format: :png }
     resource :ships, only: [ :create ], module: :projects
     resource :recertification, only: [ :create ], module: :projects
+    resource :funding_request, only: [ :create ], module: :projects
     resource :mission, only: [ :create, :destroy ], module: :projects, controller: "missions"
     resource :magic, only: [ :create, :destroy ], module: :projects, controller: "magic"
     resource :fire_nomination, only: [ :create, :destroy ], module: :projects
+    # shallow: false — the guide JS deletes at the nested path, and the
+    # controller needs :project_id to scope the completion.
     resources :mission_section_completions,
               only: [ :create, :destroy ],
               module: :projects,
+              shallow: false,
               param: :mission_step_id
     member do
       get :readme

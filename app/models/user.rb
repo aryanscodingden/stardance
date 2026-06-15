@@ -2,53 +2,56 @@
 #
 # Table name: users
 #
-#  id                           :bigint           not null, primary key
-#  age_attestation              :string
-#  approx_balance               :integer          default(0), not null
-#  approx_total_earned          :integer          default(0), not null
-#  banned                       :boolean          default(FALSE), not null
-#  banned_at                    :datetime
-#  banned_reason                :text
-#  bio                          :text
-#  display_name                 :string
-#  email                        :string
-#  enriched_ref                 :string
-#  experience_level             :string
-#  first_name                   :string
-#  geocoded_country             :string
-#  geocoded_lat                 :float
-#  geocoded_lon                 :float
-#  geocoded_subdivision         :string
-#  granted_roles                :string           default([]), not null, is an Array
-#  guest_email                  :string
-#  has_gotten_free_stickers     :boolean          default(FALSE)
-#  has_pending_achievements     :boolean          default(FALSE), not null
-#  hcb_email                    :string
-#  interests                    :string           default([]), is an Array
-#  internal_notes               :text
-#  ip_address                   :string
-#  last_name                    :string
-#  manual_ysws_override         :boolean
-#  mission_review_notifications :boolean          default(TRUE), not null
-#  onboarded_at                 :datetime
-#  ref                          :string
-#  regions                      :string           default([]), is an Array
-#  session_token                :string
-#  shop_region                  :enum
-#  shop_tutorial_completed_at   :datetime
-#  shop_tutorial_started_at     :datetime
-#  synced_at                    :datetime
-#  things_dismissed             :string           default([]), not null, is an Array
-#  user_agent                   :string
-#  user_ref                     :string
-#  verification_checked_at      :datetime
-#  verification_status          :string           default("needs_submission"), not null
-#  vote_balance                 :integer          default(0), not null
-#  votes_count                  :integer
-#  ysws_eligible                :boolean          default(FALSE), not null
-#  created_at                   :datetime         not null
-#  updated_at                   :datetime         not null
-#  slack_id                     :string
+#  id                             :bigint           not null, primary key
+#  age_attestation                :string
+#  approx_balance                 :integer          default(0), not null
+#  approx_total_earned            :integer          default(0), not null
+#  banned                         :boolean          default(FALSE), not null
+#  banned_at                      :datetime
+#  banned_reason                  :text
+#  bio                            :text
+#  display_name                   :string
+#  email                          :string
+#  enriched_ref                   :string
+#  experience_level               :string
+#  first_name                     :string
+#  geocoded_country               :string
+#  geocoded_lat                   :float
+#  geocoded_lon                   :float
+#  geocoded_subdivision           :string
+#  granted_roles                  :string           default([]), not null, is an Array
+#  guest_email                    :string
+#  has_gotten_free_stickers       :boolean          default(FALSE)
+#  has_pending_achievements       :boolean          default(FALSE), not null
+#  hcb_email                      :string
+#  interests                      :string           default([]), is an Array
+#  internal_notes                 :text
+#  ip_address                     :string
+#  last_name                      :string
+#  manual_outpost_ticket_approval :string
+#  manual_ysws_override           :boolean
+#  mission_review_notifications   :boolean          default(TRUE), not null
+#  onboarded_at                   :datetime
+#  outpost_discount_stardust      :integer          default(0), not null
+#  outpost_email_sent_at          :datetime
+#  ref                            :string
+#  regions                        :string           default([]), is an Array
+#  session_token                  :string
+#  shop_region                    :enum
+#  shop_tutorial_completed_at     :datetime
+#  shop_tutorial_started_at       :datetime
+#  synced_at                      :datetime
+#  things_dismissed               :string           default([]), not null, is an Array
+#  user_agent                     :string
+#  user_ref                       :string
+#  verification_checked_at        :datetime
+#  verification_status            :string           default("needs_submission"), not null
+#  vote_balance                   :integer          default(0), not null
+#  votes_count                    :integer
+#  ysws_eligible                  :boolean          default(FALSE), not null
+#  created_at                     :datetime         not null
+#  updated_at                     :datetime         not null
+#  slack_id                       :string
 #
 # Indexes
 #
@@ -78,15 +81,18 @@ class User < ApplicationRecord
   has_many :memberships, class_name: "Project::Membership", dependent: :destroy
   has_many :projects, through: :memberships
   has_many :shipped_projects, -> { with_ship_events }, through: :memberships, source: :project
+  has_many :approved_ship_events, -> { where(certification_status: "approved") }, through: :projects, source: :ship_events
   has_many :hackatime_projects, class_name: "User::HackatimeProject", dependent: :destroy
   has_many :shop_orders, dependent: :destroy
   has_many :shop_card_grants, dependent: :destroy
   has_many :votes, dependent: :destroy
   has_many :vote_assignments, class_name: "Vote::Assignment", dependent: :destroy
+  has_many :vote_events, class_name: "Vote::Event", dependent: :destroy
   has_many :reports, class_name: "Project::Report", foreign_key: :reporter_id, dependent: :destroy
   has_many :project_skips, class_name: "Project::Skip", dependent: :destroy
   has_many :likes, dependent: :destroy
   has_many :comments, dependent: :destroy
+  has_many :post_views, dependent: :delete_all
   has_many :ledger_entries, dependent: :destroy
   has_many :project_follows, dependent: :destroy
   has_many :followed_projects, through: :project_follows, source: :project
@@ -96,6 +102,10 @@ class User < ApplicationRecord
   has_many :follows_as_followed, class_name: "Follow", foreign_key: :followed_id, dependent: :destroy, inverse_of: :followed
   has_many :following, through: :follows_as_follower, source: :followed
   has_many :followers, through: :follows_as_followed, source: :follower
+
+  has_many :notifications, foreign_key: :recipient_id, dependent: :destroy, inverse_of: :recipient
+  has_many :actor_notifications, class_name: "Notification", foreign_key: :actor_id, dependent: :nullify, inverse_of: :actor
+  has_many :notification_preferences, class_name: "User::NotificationPreference", dependent: :destroy
 
   has_many :mission_memberships, class_name: "Mission::Membership", dependent: :destroy
   has_many :owned_missions,      -> { merge(Mission::Membership.owner_role) },
@@ -176,11 +186,16 @@ class User < ApplicationRecord
   scope :matching_ref, ->(ref) {
     where(arel_table[:ref].lower.eq(ref.to_s.downcase))
   }
-  scope :matching_emails, ->(emails) {
-    normalized_emails = Array(emails).map { |email| email.to_s.downcase }.select(&:present?)
 
-    normalized_emails.empty? ? none : where(arel_table[:email].lower.in(normalized_emails))
-  }
+  # The landing-page signup counter: distinct emails across non-banned users
+  # and RSVPs.
+  def self.deduplicated_signup_count
+    user_emails = where.not(email: [ nil, "" ]).where(banned: false).select("LOWER(email) AS email")
+    rsvp_emails = Rsvp.select("LOWER(email) AS email")
+    connection.select_value(
+      "SELECT COUNT(*) FROM (#{user_emails.to_sql} UNION #{rsvp_emails.to_sql}) AS combined"
+    )
+  end
 
   validates :banner, content_type: [ "image/png", "image/jpeg", "image/webp", "image/gif" ],
                      size: { less_than: 8.megabytes }
@@ -202,10 +217,12 @@ class User < ApplicationRecord
   validates :display_name, format: { with: USERNAME_FORMAT, message: "can only contain letters, numbers, hyphens, and underscores" }, if: :display_name_changed?
   validates :hcb_email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
   validates :user_ref, length: { maximum: 100 }, allow_blank: true
+  validates :manual_outpost_ticket_approval, format: { with: /\Ahttps?:\/\/.+\z/i, message: "must be an HTTP(S) URL" }, allow_blank: true
 
   include User::Notifications
   include User::Roles
   include User::Identities
+  include User::AmbassadorReferrals
   include User::Verification
   include User::HackatimeSync
   include User::ShopAccess
@@ -275,6 +292,8 @@ class User < ApplicationRecord
       email: email,
       ref: ref,
       user_ref: user_ref,
+      slack_id: slack_id,
+      display_name: display_name,
       verification_status: verification_status,
       hours_logged: hours_logged,
       hours_approved: hours_approved,
@@ -284,6 +303,9 @@ class User < ApplicationRecord
     }
   end
 
+  # The project the user is running this mission with: the actively attached
+  # one, or failing that one that already shipped to it (the attachment may
+  # have moved on to a follow-up mission since).
   def active_project_for_mission(mission)
     return nil if mission.nil?
     projects
@@ -291,10 +313,48 @@ class User < ApplicationRecord
       .where(project_mission_attachments: { mission_id: mission.id, detached_at: nil })
       .where(deleted_at: nil)
       .order("project_mission_attachments.attached_at DESC")
-      .first
+      .first || shipped_project_for_mission(mission)
+  end
+
+  # Missions this user has completed (an approved submission on any of
+  # their projects). The currency for prerequisite checks; memoized because
+  # mission lists filter with prerequisites_met_by? in a loop.
+  def completed_mission_ids
+    @completed_mission_ids ||= Mission::Submission.approved
+                                                  .joins(ship_event: :post)
+                                                  .where(posts: { user_id: id })
+                                                  .distinct
+                                                  .pluck(:mission_id)
+  end
+
+  # Fires the Outpost email at most once per user, and adds them to the #outpost
+  # Slack channel. Locks the row so concurrent /outpost hits can't enqueue the
+  # work twice.
+  def deliver_outpost_email!
+    return if email.blank?
+
+    with_lock("FOR UPDATE OF users") do
+      return if outpost_email_sent_at.present?
+
+      update_column(:outpost_email_sent_at, Time.current)
+    end
+
+    UserMailer.outpost(self).deliver_later
+    # Slack invite temporarily disabled — re-enable to auto-add users to the #outpost channel.
+    # AddUserToOutpostChannelJob.perform_later(id)
   end
 
   private
+
+  def shipped_project_for_mission(mission)
+    projects
+      .joins(:mission_submissions)
+      .merge(Mission::Submission.not_rejected)
+      .where(mission_submissions: { mission_id: mission.id })
+      .where(deleted_at: nil)
+      .order(updated_at: :desc)
+      .first
+  end
 
   def increment_signup_counter
     Rails.cache.increment("landing/signup_count", 1, expires_in: 30.seconds)

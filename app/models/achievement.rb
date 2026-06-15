@@ -34,6 +34,14 @@ Achievement = Data.define(:slug, :name, :description, :icon, :earned_check, :pro
       icon: "referral_5",
       earned_check: ->(user) { user.verified_referral_count >= 5 },
       progress: ->(user) { { current: [ user.verified_referral_count, 5 ].min, target: 5 } }
+    ),
+    new(
+      slug: :manual_outpost_ticket_approval,
+      name: "Presentable Hardware Project",
+      description: "Got a hardware project polished enough to show off. Unlocks the Outpost Ticket.",
+      icon: "rocket",
+      earned_check: ->(user) { user.manual_outpost_ticket_approval.present? },
+      visibility: :visible
     )
   ].freeze
 

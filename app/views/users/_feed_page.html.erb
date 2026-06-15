@@ -2,8 +2,6 @@
   <% @activity.each do |post| %>
     <% if post.postable_type == "Post::ShipEvent" %>
       <%= render "projects/ship_card", post: post, project: post.project %>
-    <% elsif post.postable_type == Post::PRIVATE_SHIP_DECISION_TYPE %>
-      <%= render "users/ship_decision_card", post: post, decision: post.postable, project: post.project %>
     <% else %>
       <%= render PostComponent.new(post: post, current_user: current_user, theme: :profile_dark) %>
     <% end %>

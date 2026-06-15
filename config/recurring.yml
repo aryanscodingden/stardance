@@ -99,11 +99,11 @@ production:
     concurrency: 1
     description: "Process demo_broken reports: auto-review and re-certify projects with 5+ pending, notify Slack for 15+ total"
 
-  rsvp_daily_summary:
-    class: RsvpDailySummaryJob
+  activity_daily_summary:
+    class: ActivityDailySummaryJob
     schedule: every day at 10am America/New_York
     concurrency: 1
-    description: "Send daily RSVP summary to Slack with signups, ref breakdown, and game stats"
+    description: "Send daily activity summary to Slack with signups, active users, interactions, and virality"
 
   fraud_daily_summary:
     class: FraudDailySummaryJob

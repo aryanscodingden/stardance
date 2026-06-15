@@ -70,8 +70,6 @@ class LedgerEntry < ApplicationRecord
   end
 
   def notify_balance_change
-    return unless user.preference.stardust_balance_notifications?
-
     source = case ledgerable_type
     when "ShopOrder" then "shop purchase"
     when "Post::ShipEvent" then "ship event payout"
@@ -85,8 +83,15 @@ class LedgerEntry < ApplicationRecord
     change_emoji = amount.positive? ? "📈" : "📉"
     message = "#{change_emoji} Balance #{amount.positive? ? '+' : ''}#{amount} :stardust: (#{source}) → #{user.balance} :stardust:"
 
-    SendSlackDmJob.perform_later(user.slack_id, message)
-    SendSlackDmJob.perform_later("C0A3JN1CMNE", "<@#{user.slack_id}>: #{message}")
+    Notifications::StardustBalanceChanged.notify(
+      recipient: user,
+      record: self,
+      params: { "message" => message, "amount" => amount, "source" => source }
+    )
+
+    # Audit broadcast to the finance review channel — not a user notification,
+    # not preference-gated, intentional separate path.
+    SendSlackDmJob.perform_later("C0A3JN1CMNE", "<@#{user.slack_id}>: #{message}") if user.slack_id.present?
   end
 
   def invalidate_user_balance_cache = user.invalidate_balance_cache!

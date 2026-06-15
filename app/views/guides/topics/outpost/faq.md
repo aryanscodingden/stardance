@@ -23,10 +23,10 @@ Nope! Those are general admission tickets. You will be able to attend the main e
 
 Yes, if you can no longer attend those events!
 
-## I have existing hardware and don't need funding!
-
-Awesome! You can collect points by submitting your build [here]
-
 ### Can I pay visa fees with the travel stipend?
 
 Yes, after qualifying!
+
+### When can I get a visa letter?
+
+You can get a visa letter after qualifying! If you need one sooner, please message @CAN on the slack.

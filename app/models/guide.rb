@@ -145,16 +145,34 @@ Guide = Data.define(:slug, :title, :description, :category, :icon, :reading_minu
       reading_minutes: 4,
       related: %i[outpost starting-hardware],
       markdown: "outpost/super-hardware-builder.md"
+    ),
+    new(
+      slug: :tiers,
+      title: "Hardware funding tiers",
+      description: "How Outpost funds hardware builds: the B/A/S/X tiers, what each covers, and how unspent budget turns into Stardust toward the Outpost Ticket.",
+      category: :program,
+      icon: "info",
+      reading_minutes: 3,
+      related: %i[how_to_ship]
     )
   ].freeze
 
   self::SLUGGED = self::ALL.index_by(&:slug).freeze
 
   class << self
-    def all = self::ALL
-    def find(s) = self::SLUGGED[s.to_sym] or raise ActiveRecord::RecordNotFound, "Unknown guide: #{s}"
-    def find_by_slug(s) = self::SLUGGED[s&.to_sym]
-    def by_category = self::ALL.group_by(&:category)
+    def all
+      self::ALL
+    end
+    def find(s)
+      guide = self::SLUGGED[s.to_sym] or raise ActiveRecord::RecordNotFound, "Unknown guide: #{s}"
+      raise ActiveRecord::RecordNotFound, "Unknown guide: #{s}" unless all.include?(guide)
+      guide
+    end
+    def find_by_slug(s)
+      guide = self::SLUGGED[s&.to_sym]
+      guide if guide && all.include?(guide)
+    end
+    def by_category = all.group_by(&:category)
     def category_label(c) = self::CATEGORY_LABELS[c.to_sym]
     def category_order = self::CATEGORY_ORDER
   end

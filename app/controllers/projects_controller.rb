@@ -100,7 +100,13 @@ class ProjectsController < ApplicationController
 
     @posts = @posts.reject { |post| post.postable_type == "Post::ShipEvent" && post.postable.certification_status == "rejected" }
 
-    @show_project_onboarding = @is_member && @posts.empty?
+    # Shipwright verdicts are rendered straight from the review records —
+    # they're private to project members, so they never become Post rows.
+    @timeline_entries = (@posts + visible_ship_decisions).sort_by do |entry|
+      entry.is_a?(Certification::Ship) ? entry.decided_on : entry.created_at
+    end.reverse
+
+    @show_project_onboarding = @is_member && @timeline_entries.empty?
     @project_onboarding_mission = @project.current_mission
 
     @available_missions = if @is_member && @project.current_mission.nil? && !@project.shipped?
@@ -175,6 +181,21 @@ class ProjectsController < ApplicationController
     end
   end
   private :prepare_project_show_context
+
+  # Decided Shipwright reviews, shown only to project members (and admins)
+  # while the release flag is on.
+  def visible_ship_decisions
+    return [] unless current_user
+    return [] unless @is_member || current_user.admin?
+    return [] unless Flipper.enabled?(:week_1_release, current_user)
+
+    @project.ship_reviews
+            .where.not(status: :pending)
+            .includes(:reviewer)
+            .with_attached_verdict_video
+            .to_a
+  end
+  private :visible_ship_decisions
 
   def add_test_time
     authorize @project
@@ -365,19 +386,8 @@ class ProjectsController < ApplicationController
 
     follow = current_user.project_follows.build(project: @project)
     if follow.save
-      @project.users.includes(:preference).each do |member|
-        if member.preference&.send_notifications_for_new_followers && current_user.slack_id && member.slack_id
-          SendSlackDmJob.perform_later(
-            member.slack_id,
-            "#{current_user.display_name} is now following your project #{@project.title}!",
-            blocks_path: "notifications/new_follower",
-            locals: {
-              project_title: @project.title,
-              project_url: project_url(@project, host: "stardance.hackclub.com", protocol: "https"),
-              follower_id: current_user.slack_id
-            }
-          )
-        end
+      @project.users.find_each do |member|
+        Notifications::ProjectFollowed.notify(recipient: member, actor: current_user, record: @project)
       end
       redirect_to project_path(@project), notice: "You are now following this project."
     else
@@ -443,7 +453,7 @@ class ProjectsController < ApplicationController
   end
 
   def project_params
-    params.require(:project).permit(:title, :description, :demo_url, :repo_url, :readme_url, :banner, :ai_declaration, :update_description, hackatime_project_ids: [])
+    params.require(:project).permit(:title, :description, :demo_url, :repo_url, :readme_url, :banner, :ai_declaration, :update_description, :hardware_stage, hackatime_project_ids: [])
   end
 
   def hackatime_project_ids
