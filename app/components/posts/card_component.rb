@@ -4,9 +4,9 @@ module Posts
   class CardComponent < ViewComponent::Base
     delegate :inline_svg_tag, to: :helpers
 
-    attr_reader :post, :current_user, :theme, :compact, :show_likes, :show_comments, :show_reposts, :show_actions, :source, :position, :page, :feed_request_id
+    attr_reader :post, :current_user, :theme, :compact, :show_likes, :show_comments, :show_reposts, :show_actions, :source, :position, :page, :feed_request_id, :track_engagement
 
-    def initialize(post:, current_user: nil, theme: :feed, compact: false, show_likes: true, show_comments: true, show_reposts: true, show_actions: true, source: nil, position: nil, page: nil, feed_request_id: nil)
+    def initialize(post:, current_user: nil, theme: :feed, compact: false, show_likes: true, show_comments: true, show_reposts: true, show_actions: true, source: nil, position: nil, page: nil, feed_request_id: nil, track_engagement: true)
       @post = post
       @current_user = current_user
       @theme = theme
@@ -19,6 +19,7 @@ module Posts
       @position = position
       @page = page
       @feed_request_id = feed_request_id
+      @track_engagement = track_engagement
     end
 
     def render?
@@ -52,6 +53,8 @@ module Posts
     end
 
     def engagement_data
+      return {} unless track_engagement
+
       {
         controller: "feed-engagement",
         feed_engagement_item_type_value: "post",
@@ -117,6 +120,14 @@ module Posts
 
     def show_footer?
       show_comments || show_reposts || show_likes || show_actions
+    end
+
+    def show_views?
+      helpers.show_post_views?
+    end
+
+    def views_count
+      display_post&.views_count.to_i
     end
 
     def comments_count_id
@@ -211,8 +222,8 @@ module Posts
         post_menu_url_value: post_url,
         post_menu_post_id_value: display_post&.id,
         post_menu_project_id_value: project&.id,
-        post_menu_source_value: source,
-        post_menu_feed_request_id_value: feed_request_id
+        post_menu_source_value: track_engagement ? source : nil,
+        post_menu_feed_request_id_value: track_engagement ? feed_request_id : nil
       }.compact
     end
 

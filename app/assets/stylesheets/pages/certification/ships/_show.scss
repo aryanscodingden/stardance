@@ -149,12 +149,75 @@
   }
 
   &__sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
     position: sticky;
     top: var(--space-l);
 
     @media (max-width: 900px) {
       position: static;
     }
+  }
+
+  &__return-alert {
+    position: relative;
+    padding: var(--space-l);
+    background: linear-gradient(
+      135deg,
+      rgba(220, 38, 38, 0.18) 0%,
+      rgba(139, 0, 0, 0.25) 100%
+    );
+    border: 1px solid rgba(220, 38, 38, 0.6);
+    border-radius: 12px;
+    box-shadow:
+      0 0 24px rgba(220, 38, 38, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+
+    &::before {
+      content: "⚠";
+      position: absolute;
+      top: -10px;
+      right: 16px;
+      font-size: 80px;
+      opacity: 0.06;
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+    }
+  }
+
+  &__return-alert-title {
+    margin: 0 0 var(--space-xs);
+    font-size: var(--font-size-xl);
+    font-weight: 800;
+    font-family: var(--font-family-sans);
+    color: #fca5a5;
+    letter-spacing: -0.01em;
+    text-shadow: 0 0 20px rgba(252, 165, 165, 0.4);
+  }
+
+  &__return-alert-meta {
+    margin: 0 0 var(--space-m);
+    font-size: var(--font-size-s);
+    font-weight: 600;
+    color: rgba(252, 165, 165, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__return-alert-reason {
+    margin: 0;
+    padding: var(--space-m);
+    background: rgba(0, 0, 0, 0.25);
+    border-left: 3px solid rgba(220, 38, 38, 0.8);
+    border-radius: 0 6px 6px 0;
+    line-height: var(--line-height-body);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: #fecaca;
+    font-style: italic;
   }
 
   &__badge {
@@ -294,6 +357,93 @@
   }
 }
 
+// Submitter track record in the review sidebar, after sw-dash's cert history:
+// one linked card per review with verdict pill, reviewer, and feedback. The
+// review being shown is highlighted as the "you're here" card.
+.submitter-history {
+  &__summary {
+    margin: 0 0 var(--space-m);
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+
+  &__cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+    max-height: 340px;
+    overflow-y: auto;
+  }
+
+  &__card {
+    display: block;
+    padding: var(--space-s) var(--space-m);
+    color: inherit;
+    text-decoration: none;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    transition: border-color 120ms ease;
+
+    &:hover,
+    &:focus-visible {
+      border-color: var(--accent);
+    }
+
+    &--current {
+      background: rgba(129, 255, 255, 0.06);
+      border-color: rgba(129, 255, 255, 0.45);
+    }
+  }
+
+  &__card-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+  }
+
+  &__card-id {
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
+
+  &__card-here {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  &__card-date {
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  &__card-meta {
+    margin-top: var(--space-xs);
+    font-size: 0.875rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  &__card-deleted {
+    font-weight: 400;
+    color: var(--color-brand-salmon);
+  }
+
+  &__card-feedback {
+    margin: var(--space-xs) 0 0;
+    font-size: 0.85rem;
+    line-height: var(--line-height-body);
+    color: var(--muted);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
+
 // Verdict form (_form.html.erb), shown in the review sidebar.
 .review-form {
   display: flex;
@@ -360,6 +510,46 @@
     gap: var(--space-s);
     align-items: center;
     cursor: pointer;
+  }
+
+  &__template-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    align-items: center;
+  }
+
+  &__templates,
+  &__template-action {
+    padding: var(--space-xs) var(--space-s);
+    font-family: inherit;
+    font-size: 0.85rem;
+    color: var(--color-space-text);
+    cursor: pointer;
+    background: var(--color-space-surface, rgba(255, 255, 255, 0.04));
+    border: 1px solid var(--color-space-border, rgba(255, 255, 255, 0.18));
+    border-radius: 8px;
+
+    &:focus-visible {
+      outline: 2px solid var(--color-brand-highlight);
+      outline-offset: 1px;
+    }
+  }
+
+  &__template-action {
+    color: var(--color-brand-mint);
+
+    &:hover {
+      background: rgba(129, 255, 255, 0.08);
+    }
+
+    &--danger {
+      color: var(--color-brand-salmon);
+
+      &:hover {
+        background: rgba(255, 141, 157, 0.08);
+      }
+    }
   }
 
   &__field {
@@ -508,18 +698,62 @@
     border: 0;
   }
 
-  // Empty until the controller reports an accepted file or a rejection.
   &__status {
     margin: 0;
     font-size: 0.9rem;
     color: var(--color-space-text-muted, rgba(255, 255, 255, 0.7));
 
-    .video-drop--accepted & {
+    .video-drop--done & {
       color: #22c55e;
     }
 
     .video-drop--error & {
       color: var(--color-brand-salmon);
     }
+  }
+
+  &__progress {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    overflow: hidden;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  &__progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(
+      90deg,
+      var(--color-brand-mint) 0%,
+      var(--color-brand-blue) 100%
+    );
+    border-radius: 999px;
+    transition: width 120ms linear;
+  }
+
+  &--uploading {
+    border-style: solid;
+    border-color: var(--color-brand-mint);
+    animation: video-drop-pulse 1.4s ease-in-out infinite;
+  }
+
+  &--done {
+    border-style: solid;
+    border-color: #22c55e;
+  }
+}
+
+@keyframes video-drop-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(129, 255, 255, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px rgba(129, 255, 255, 0.18);
   }
 }

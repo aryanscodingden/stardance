@@ -1,0 +1,32 @@
+# Outpost FAQ
+
+Join [#outpost](https://hackclub.enterprise.slack.com/archives/C0B04RP43TQ) if you have anything not answered!
+
+### I don't need funding & just want to build my project directly / I have parts from a previous program
+
+Log your project through [Lapse](https://lapse.hackclub.com). If you're having trouble with lapse, you can journal your project using a JOURNAL.md file. Support for adding it to the platform will be available later!
+
+### There's a lot of channels! Which one do I use?
+
+tl;dr:
+
+- [#outpost](https://hackclub.enterprise.slack.com/archives/C0B04RP43TQ) - general discussion!
+- [#outpost-experts](https://hackclub.enterprise.slack.com/archives/C0B0CADUV3P) - get design help, or get your project reviewed!
+- [#outpost-idea-pool](https://hackclub.enterprise.slack.com/archives/C0B1MBF96GZ) - share ideas!
+- [#outpost-projects](https://hackclub.enterprise.slack.com/archives/C0B09B5UBV1) - post your project ships!
+
+### I bought Open Sauce tickets from Flavortown/Stasis/Etc! Is it valid for this event?
+
+Nope! Those are general admission tickets. You will be able to attend the main expo but you will not be able to participate in the Sauceathon or demo your project at the booths
+
+### Can I transfer my projects from Stasis/Fallout/Blueprint/etc?
+
+Yes, if you can no longer attend those events!
+
+### Can I pay visa fees with the travel stipend?
+
+Yes, after qualifying!
+
+### When can I get a visa letter?
+
+You can get a visa letter after qualifying! If you need one sooner, please message @CAN on the slack.

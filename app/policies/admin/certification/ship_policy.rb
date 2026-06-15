@@ -15,7 +15,7 @@ class Admin::Certification::ShipPolicy < ApplicationPolicy
   class Scope < ApplicationPolicy::Scope
     def resolve
       return scope.none unless user&.can_review?
-      scope.for_reviewer(user)
+      scope.joins(:project).where(projects: { deleted_at: nil })
     end
   end
 

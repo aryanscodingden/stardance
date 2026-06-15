@@ -3,7 +3,7 @@
 <% content_for :og_description, "#{@stats[:projects_count]} projects · #{@stats[:ships_count]} ships · #{@stats[:devlogs_count]} devlogs" %>
 <% content_for :og_image, user_og_image_url(@user, format: :png) %>
 
-<% if @user.preference.search_engine_indexing_off? %>
+<% if @user.preference&.search_engine_indexing_off? %>
   <% content_for :head do %>
     <meta name="robots" content="noindex, nofollow">
   <% end %>
@@ -227,12 +227,19 @@
               <div class="profile-project-card__banner">
                 <% if project.banner.attached? %>
                   <%= image_tag project.banner, alt: "", class: "profile-project-card__banner-img" %>
+                <% else %>
+                  <%= image_tag "default-banner.png", alt: "", class: "profile-project-card__banner-img" %>
                 <% end %>
               </div>
 
               <div class="profile-project-card__body">
                 <div class="profile-project-card__header">
-                  <h3 class="profile-project-card__title"><%= project.title %></h3>
+                  <div class="profile-project-card__title-row">
+                    <h3 class="profile-project-card__title"><%= project.title %></h3>
+                    <% if project.hardware? %>
+                      <span class="profile-project-card__tag profile-project-card__tag--hardware">Hardware</span>
+                    <% end %>
+                  </div>
                   <ul class="profile-project-card__meta">
                     <li class="profile-project-card__meta-item">
                       <%= inline_svg_tag "icons/devlogs.svg", class: "profile-project-card__meta-icon" %>

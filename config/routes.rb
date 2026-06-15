@@ -420,6 +420,15 @@
 #   rails_performance_resources GET  /resources(.:format)    rails_performance/rails_performance#resources
 
 Rails.application.routes.draw do
+  # Raffle — an independent, GitHub-login app on the `raffle.` subdomain. Mounted
+  # first so raffle-host requests (incl. /auth/github/callback) resolve here
+  # before the platform's generic auth route and the `/:ref` catch-all below.
+  constraints(->(req) { req.host.to_s.start_with?("raffle.") }) do
+    mount Raffle::Engine, at: "/", as: :raffle_engine
+  end
+
+  delete "dismiss_raffle_banner", to: "sessions#dismiss_raffle_banner", as: :dismiss_raffle_banner
+
   # Sitemap
   get "sitemap.xml", to: "sitemaps#index", as: :sitemap, defaults: { format: :xml }
 
@@ -468,6 +477,13 @@ Rails.application.routes.draw do
   resources :votes, only: [ :new, :create ]
   namespace :votes do
     resource :skip, only: :create
+    resources :assignments, only: [] do
+      member do
+        get :demo
+        get :repo
+      end
+    end
+    resources :events, only: :create
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -504,6 +520,10 @@ Rails.application.routes.draw do
   # Home
   get "home", to: "home#index"
   resources :feed_events, only: [ :create ]
+  resource :daily_roll, only: [ :create ]
+  get "rng", to: "daily_rolls#leaderboard", as: :rng
+  get "rng/history", to: "daily_rolls#history", as: :rng_history
+  delete "daily_roll/clear", to: "daily_rolls#clear", as: :clear_daily_roll if Rails.env.development? || Rails.env.test?
   namespace :home do
     resource :feed, only: [ :show ]
   end
@@ -523,6 +543,12 @@ Rails.application.routes.draw do
     resources :dismissals, only: [ :create ]
     post "verification/refresh", to: "verifications#refresh", as: :verification_refresh
     post "dev/pretend_idv", to: "dev_tools#pretend_idv", as: :pretend_idv_dev
+    resources :notifications, only: [ :index ] do
+      collection do
+        post :mark_all_seen
+      end
+    end
+    resource :notification_settings, only: [ :show, :update ], controller: "notification_settings"
   end
   get "my/achievements", to: "achievements#index", as: :my_achievements
 
@@ -578,6 +604,7 @@ Rails.application.routes.draw do
         resource  :ban,                 only: [ :create, :destroy ]
         resource  :impersonation,       only: [ :create ]
         resources :feature_flags,       only: [ :create, :destroy ], param: :feature
+        resource  :presentable_hardware_flag, only: [ :create, :destroy ]
         resource  :hackatime_sync,      only: [ :create ]
         resource  :order_rejection,     only: [ :create ]
         resources :balance_adjustments, only: [ :create ]
@@ -585,6 +612,7 @@ Rails.application.routes.draw do
         resource  :verification,        only: [ :create ]
         resource  :vote_balance,        only: [ :update ]
         resource  :ysws_override,       only: [ :update ]
+        resources :identities,          only: [ :destroy ]
         resources :votes,               only: [ :index ]
       end
     end
@@ -599,9 +627,43 @@ Rails.application.routes.draw do
         get  :votes
       end
     end
+    get "super_stars", to: "super_stars#show", as: :super_stars
     get "user-perms", to: "users#user_perms"
     resource :support, only: [ :show ], controller: "support/dashboards"
     resource :fraud, only: [ :show ], controller: "fraud/dashboards"
+
+    # Referral raffle management (reads the Raffle engine's models).
+    get "raffles", to: "raffles/dashboard#show", as: :raffles
+    namespace :raffles do
+      resource :fraud, only: [ :show ], controller: "fraud" do
+        get :cleared, controller: "fraud"
+        post :reject_all_flagged, controller: "fraud"
+        post :reject_and_ban_all_flagged, controller: "fraud"
+      end
+      resources :participants, only: [ :index, :show ] do
+        member do
+          post :reject_referrals
+          post :ban_participant
+          post :ban_user
+          post :ban_referred_users
+          post :reject_selected
+          post :ban_selected
+          post :reject_referral
+          post :ban_referred_user
+          post :clear_fraud
+          post :unclear_fraud
+        end
+      end
+      resources :referrals, only: [ :index, :update ]
+      resources :weeks, only: [ :index, :show ] do
+        member do
+          post :close
+          post :draw
+          post :void_draw
+        end
+      end
+    end
+
     resource :shop, only: [ :show ], controller: "shop/dashboard"
     post "shop/clear-carousel-cache", to: "shop/dashboard#clear_carousel_cache", as: :clear_carousel_cache
     namespace :shop do
@@ -644,15 +706,6 @@ Rails.application.routes.draw do
     resources :sw_vibes, only: [ :index ]
     resources :suspicious_votes, only: [ :index ]
     resources :audit_logs, only: [ :index, :show ]
-    resources :reports, only: [ :index, :show ] do
-      collection do
-        post :process_demo_broken
-      end
-      member do
-        post :review
-        post :dismiss
-      end
-    end
     resources :fulfillment_payouts, only: [ :index, :show ] do
       member do
         post :approve
@@ -706,6 +759,15 @@ Rails.application.routes.draw do
         end
       end
 
+      resources :funding_requests, path: "funding", only: [ :index, :show, :update ] do
+        collection do
+          get :next
+        end
+        scope module: :funding_requests do
+          resource :claim, only: [ :create, :destroy ]
+        end
+      end
+
       resources :devlog_reviews, only: [ :update ]
 
       get "devlogs/:devlog_id/commits", to: "devlog_commits#index", as: "devlog_commits"
@@ -714,12 +776,24 @@ Rails.application.routes.draw do
       get "review/:id", to: "ysws#show", as: "ysws_review"
       get "review/:id/commits", to: "ysws#commits", as: "ysws_commits"
       post "review/:id/report_fraud", to: "ysws#report_fraud", as: "ysws_report_fraud"
+      post "review/:id/complete", to: "ysws#complete", as: "complete_ysws_review"
+      post "review/:id/return_to_ship_cert", to: "ysws#return_to_ship_cert", as: "return_to_ship_cert_ysws_review"
 
       # Admin payout management
       resources :payouts, only: [ :index, :show ] do
         member do
           post :pay
           post :reject
+        end
+      end
+
+      resources :reports, path: "report", only: [ :index, :show ] do
+        collection do
+          post :process_demo_broken
+        end
+        member do
+          post :review
+          post :dismiss
         end
       end
     end
@@ -755,14 +829,26 @@ Rails.application.routes.draw do
       end
     end
     resources :reports, only: [ :create ], module: :projects
+    resources :lookout_sessions, only: %i[create show], module: :projects, shallow: false do
+      get  :record, on: :member
+      post :stop, on: :member
+      post :set_mode, on: :member
+      post :forward_heartbeats, on: :member
+      get  :status, on: :collection
+    end
     resource :og_image, only: [ :show ], module: :projects, defaults: { format: :png }
     resource :ships, only: [ :create ], module: :projects
+    resource :recertification, only: [ :create ], module: :projects
+    resource :funding_request, only: [ :create ], module: :projects
     resource :mission, only: [ :create, :destroy ], module: :projects, controller: "missions"
     resource :magic, only: [ :create, :destroy ], module: :projects, controller: "magic"
     resource :fire_nomination, only: [ :create, :destroy ], module: :projects
+    # shallow: false — the guide JS deletes at the nested path, and the
+    # controller needs :project_id to scope the completion.
     resources :mission_section_completions,
               only: [ :create, :destroy ],
               module: :projects,
+              shallow: false,
               param: :mission_step_id
     member do
       get :readme
@@ -820,6 +906,7 @@ Rails.application.routes.draw do
     resource :og_image, only: [ :show ], module: :missions, defaults: { format: :png }
     member do
       get :guide
+      get :gallery
     end
   end
 

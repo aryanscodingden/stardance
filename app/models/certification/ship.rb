@@ -9,11 +9,13 @@
 #  feedback         :text
 #  internal_reason  :text
 #  lock_version     :integer          default(0), not null
+#  recert_reason    :text
 #  stardust_earned  :integer
 #  status           :integer          default("pending"), not null
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #  project_id       :bigint           not null
+#  returned_by_id   :bigint
 #  reviewer_id      :bigint
 #
 # Indexes
@@ -35,12 +37,28 @@ module Certification
     include Certification::Reviewable
 
     belongs_to :project
+    # Same record as :project but visible through soft deletion, so submitter
+    # history can still name projects deleted after a verdict.
+    belongs_to :project_with_deleted, -> { with_deleted }, class_name: "Project",
+               foreign_key: :project_id, optional: true
     belongs_to :reviewer, class_name: "User", optional: true
+    belongs_to :returned_by, class_name: "User", optional: true
 
     has_paper_trail
 
     # The reviewer records a walkthrough and passes it along with the verdict.
     has_one_attached :verdict_video
+
+    # Admins can force-delete shipped projects; fall through to the deleted
+    # record so review pages (and submitter history cards linking to them)
+    # still render instead of crashing on a nil project.
+    def project
+      super || project_with_deleted
+    end
+
+    def owner
+      @owner ||= project.memberships.owner.first&.user
+    end
 
     enum :status, {
       pending: 0,
@@ -49,17 +67,46 @@ module Certification
     }, default: :pending
 
     ACCEPTED_VIDEO_TYPES = %w[video/mp4 video/webm video/quicktime].freeze
-    MAX_VIDEO_SIZE = 250.megabytes
+
+    # Canned request-changes responses offered on the review form. The opener
+    # is the standard wording Shipwrights use for low-quality submissions;
+    # reviewers replace the bullets with the specific changes they want.
+    FEEDBACK_TEMPLATES = [
+      {
+        label: "Doesn't meet quality standards",
+        body: <<~TEXT.strip
+          Hey! Thanks for shipping your project. It's not quite ready for voting yet, so here's what we'd like you to change:
+          - Change 1
+          - Change 2
+          - Change 3
+          Once you've made these, ship it again and we'll take another look!
+        TEXT
+      },
+      {
+        label: "AI-generated look & feel",
+        body: <<~TEXT.strip
+          Hey! Thanks for shipping your project. It's not quite ready for voting yet, so here's what we'd like you to change:
+          - Rework the CSS, right now it looks like every other AI-made site. Give it your own style.
+          - Add a couple of features you came up with yourself to make it more fun to use.
+          Once you've made these, ship it again and we'll take another look!
+        TEXT
+      }
+    ].freeze
 
     validates :feedback, length: { maximum: 10_000 }, allow_blank: true
     validates :verdict_video,
-              content_type: { in: ACCEPTED_VIDEO_TYPES, spoofing_protection: true },
-              size: { less_than: MAX_VIDEO_SIZE, message: "is too large (max 250 MB)" }
+              content_type: { in: ACCEPTED_VIDEO_TYPES, spoofing_protection: true }
 
     scope :for_reviewer, ->(user) {
       joins(:project)
         .where(projects: { deleted_at: nil })
         .where.not(project_id: user.memberships.select(:project_id))
+    }
+
+    scope :by_project_type, ->(type) {
+      type == "unclassified" \
+        ? joins(:project).where(projects: { project_type: nil })
+        : joins(:project).where(projects: { project_type: type })
     }
 
     def self.available_for(user)
@@ -118,6 +165,25 @@ module Certification
            .map { |name, count| { name: name, count: count } }
     end
 
+    # Verdict history across every project this user owns. Shown beside the
+    # review form so Shipwrights judging a gray-area project can see whether
+    # the submitter keeps getting returned for low quality. Goes through
+    # memberships rather than joining projects so reviews keep counting after
+    # their project is soft-deleted — deleting a returned project and
+    # resubmitting is exactly the pattern this panel exists to surface.
+    def self.submitter_history(user)
+      owned = Project::Membership.where(user_id: user.id, role: :owner).select(:project_id)
+      scope = where(project_id: owned)
+      counts = scope.group(:status).count
+      {
+        total: counts.values.sum,
+        projects: scope.distinct.count(:project_id),
+        approved: counts["approved"].to_i,
+        returned: counts["returned"].to_i,
+        recent: scope.includes(:project_with_deleted, :reviewer, :returned_by).order(created_at: :desc).limit(6)
+      }
+    end
+
     # How many reviews this reviewer has decided today. Drives the momentum
     # counter on the review page, so it's scoped to the user, not the queue.
     def self.reviewed_today(user, now: Time.current)
@@ -135,6 +201,11 @@ module Certification
     before_save :assign_stardust_earned, if: -> { will_save_change_to_status? && status_change&.last != "pending" && reviewer_id.present? }
     after_save :apply_verdict_to_project!, if: :saved_change_to_status?
     after_save_commit :notify_owner!, if: -> { saved_change_to_status? && !pending? }
+
+    # Timeline cards for decided reviews sort by when the verdict landed.
+    def decided_on
+      decided_at || updated_at
+    end
 
     private
 
@@ -162,14 +233,13 @@ module Certification
           create_ysws_review_for_ship(ship_event) if ship_event
         when :returned
           project.return_for_changes! if project.may_return_for_changes?
+          ship_event = project.last_ship_event
+          ship_event&.update!(certification_status: "returned")
         end
       end
     end
 
     def create_ysws_review_for_ship(ship_event)
-      # Get the project owner who shipped the project
-      owner = project.memberships.owner.first&.user
-
       unless owner
         Sentry.capture_message(
           "Ship certification approved but no owner found to create YSWS review",
@@ -193,7 +263,6 @@ module Certification
     end
 
     def notify_owner!
-      owner = project.memberships.owner.first&.user
       return unless owner&.slack_id.present?
 
       case status.to_sym

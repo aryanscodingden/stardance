@@ -5,13 +5,15 @@
 <% end %>
 
 <div class="app-layout">
-  <main class="app-layout__main feed-home" aria-label="Home feed">
+  <main class="app-layout__main feed-home" aria-label="Home feed" data-controller="feed-keyboard">
+    <%= render "shared/raffle_referral_banner" %>
     <% if current_user.present? %>
       <%= render Posts::ComposerComponent.new(
             post: @devlog,
             current_user: current_user,
             projects: @composer_projects,
-            selected_project: @selected_project
+            selected_project: @selected_project,
+            show_record: true
           ) %>
     <% end %>
 

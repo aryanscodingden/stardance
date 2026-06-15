@@ -13,7 +13,8 @@
 <% end %>
 
 <%
-  banner_url = @project.banner.attached? ? url_for(@project.banner) : image_path("profile/default-banner.png")
+  display = @project.display_banner
+  banner_url = display ? url_for(display) : image_path("profile/default-banner.png")
   members = @members || @project.users.to_a
   is_member = @is_member
   follower_count = @follower_count || @project.project_follows.size
@@ -186,12 +187,14 @@
               </div>
 
               <label class="project-show__field project-show__field--inline">
-                <span>AI usage declaration <%= render "projects/help_tooltip", text: "Describe how you used AI in this project (e.g. \"Used ChatGPT for debugging\", \"GitHub Copilot for code completion\"). AI use is OK, but it should feel like your own work! If you didn't use AI, you can state that." %></span>
+                <span>AI usage declaration <%= render "projects/help_tooltip", text: "Describe how you used AI in this project (e.g. \"Used ChatGPT for debugging\", \"GitHub Copilot for code completion\"). AI use is OK, but it should feel like your own work! If you didn't use AI, write \"None\"." %></span>
                 <%= form.text_area :ai_declaration,
                                    rows: 2,
                                    maxlength: 1000,
                                    class: "project-show__control project-show__textarea",
-                                   aria: { label: "AI usage declaration" } %>
+                                   placeholder: "How did you use AI? Write \"None\" if you didn't.",
+                                   aria: { label: "AI usage declaration" },
+                                   data: { "project-form-target": "aiDeclaration" } %>
               </label>
 
               <label class="project-show__started-check">
@@ -601,19 +604,23 @@
       </div>
     <% end %>
 
-    <% if @posts.any? %>
+    <% if @timeline_entries.any? %>
       <section class="project-show__feed" aria-label="Project feed">
         <% ship_count = @posts.count { |p| p.postable_type == "Post::ShipEvent" } %>
         <% ship_index = 0 %>
-        <% @posts.each do |post| %>
-          <% if post.postable_type == "Post::ShipEvent" %>
+        <% @timeline_entries.each do |entry| %>
+          <% if entry.is_a?(Certification::Ship) %>
+            <%= render "projects/ship_decision_card", decision: entry %>
+          <% elsif entry.postable_type == "Post::ShipEvent" %>
             <% ship_index += 1 %>
+            <% recert_id = ((is_member || current_user&.can_review?) && @project.needs_changes? && ship_index == 1) ? "recert-modal-#{@project.id}" : nil %>
             <%= render "projects/ship_card",
-                       post: post,
+                       post: entry,
                        project: @project,
-                       ship_number: ship_count - ship_index + 1 %>
+                       ship_number: ship_count - ship_index + 1,
+                       recert_modal_id: recert_id %>
           <% else %>
-            <%= render PostComponent.new(post: post, current_user: current_user, theme: :profile_dark) %>
+            <%= render PostComponent.new(post: entry, current_user: current_user, theme: :profile_dark) %>
           <% end %>
         <% end %>
       </section>
@@ -662,6 +669,10 @@
     <% end %>
 
   </div>
+
+  <% if (is_member || current_user&.can_review?) && @project.needs_changes? %>
+    <%= render "projects/recert_modal", project: @project, is_member: is_member %>
+  <% end %>
 
   <% if is_member && @composer_devlog && @composer_projects %>
     <dialog id="composer-modal-<%= @project.id %>"
@@ -842,7 +853,7 @@
                 <% if @project.demo_url.present? || @project.repo_url.present? %>
                   <div class="project-show__latest-ship-cta">
                     <% if @project.demo_url.present? %>
-                      <%= link_to "Try project →", @project.demo_url,
+                      <%= link_to @project.hardware? ? "Video of Project →" : "Try project →", @project.demo_url,
                                   target: "_blank", rel: "noopener",
                                   class: "project-show__latest-ship-btn project-show__latest-ship-btn--primary" %>
                     <% end %>

@@ -1,19 +1,24 @@
-Guide = Data.define(:slug, :title, :description, :category, :icon, :reading_minutes, :related) do
+Guide = Data.define(:slug, :title, :description, :category, :icon, :reading_minutes, :related, :markdown) do
   include ActiveModel::Conversion
   extend ActiveModel::Naming
 
-  self::CATEGORY_ORDER = %i[shipping craft program].freeze
+  self::CATEGORY_ORDER = %i[shipping craft program outpost].freeze
 
   self::CATEGORY_LABELS = {
     shipping: "Shipping",
     craft: "Craft",
-    program: "Program"
+    program: "Program",
+    outpost: "Hardware | Outpost"
   }.freeze
+
+  # Root directory that `markdown:` paths are resolved against.
+  self::TOPICS_ROOT = "app/views/guides/topics".freeze
 
   def initialize(params = {})
     params[:related] ||= []
     params[:icon] ||= "info"
     params[:reading_minutes] ||= 5
+    params[:markdown] ||= nil
     super(**params)
   end
 
@@ -80,16 +85,94 @@ Guide = Data.define(:slug, :title, :description, :category, :icon, :reading_minu
       icon: "info",
       reading_minutes: 3,
       related: []
+    ),
+    new(
+      slug: :outpost,
+      title: "Outpost",
+      description: "Stardance's hardware track — a 6-day hardware hackathon and expo with Open Sauce in San Francisco.",
+      category: :outpost,
+      icon: "rocket",
+      reading_minutes: 5,
+      related: %i[starting-hardware shipping-hardware outpost-tiers outpost-faq],
+      markdown: "outpost/outpost.md"
+    ),
+    new(
+      slug: :"starting-hardware",
+      title: "Starting your hardware project",
+      description: "How to get started with your hardware project — coming up with an idea and advice for working on it.",
+      category: :outpost,
+      icon: "compass_fill",
+      reading_minutes: 5,
+      related: %i[outpost shipping-hardware outpost-tiers],
+      markdown: "outpost/starting-hardware.md"
+    ),
+    new(
+      slug: :"shipping-hardware",
+      title: "Shipping your hardware project",
+      description: "Get your project ready to ship — required files, repository structure, and the step-by-step.",
+      category: :outpost,
+      icon: "ship",
+      reading_minutes: 5,
+      related: %i[starting-hardware outpost outpost-tiers],
+      markdown: "outpost/shipping-hardware.md"
+    ),
+    new(
+      slug: :"outpost-tiers",
+      title: "Project tier examples",
+      description: "What the different Outpost project tiers look like, with budgets, points, and examples for each.",
+      category: :outpost,
+      icon: "code",
+      reading_minutes: 4,
+      related: %i[outpost starting-hardware],
+      markdown: "outpost/tiers.md"
+    ),
+    new(
+      slug: :"outpost-faq",
+      title: "Outpost FAQ",
+      description: "Frequently asked questions about Outpost — channels, logistics, and more.",
+      category: :outpost,
+      icon: "info",
+      reading_minutes: 4,
+      related: %i[outpost starting-hardware shipping-hardware],
+      markdown: "outpost/faq.md"
+    ),
+    new(
+      slug: :"super-hardware-builder",
+      title: "Becoming a Super Hardware Builder",
+      description: "How to earn Super Hardware Builder status — the requirement to qualify for Outpost.",
+      category: :outpost,
+      icon: "rocket",
+      reading_minutes: 4,
+      related: %i[outpost starting-hardware],
+      markdown: "outpost/super-hardware-builder.md"
+    ),
+    new(
+      slug: :tiers,
+      title: "Hardware funding tiers",
+      description: "How Outpost funds hardware builds: the B/A/S/X tiers, what each covers, and how unspent budget turns into Stardust toward the Outpost Ticket.",
+      category: :program,
+      icon: "info",
+      reading_minutes: 3,
+      related: %i[how_to_ship]
     )
   ].freeze
 
   self::SLUGGED = self::ALL.index_by(&:slug).freeze
 
   class << self
-    def all = self::ALL
-    def find(s) = self::SLUGGED[s.to_sym] or raise ActiveRecord::RecordNotFound, "Unknown guide: #{s}"
-    def find_by_slug(s) = self::SLUGGED[s&.to_sym]
-    def by_category = self::ALL.group_by(&:category)
+    def all
+      self::ALL
+    end
+    def find(s)
+      guide = self::SLUGGED[s.to_sym] or raise ActiveRecord::RecordNotFound, "Unknown guide: #{s}"
+      raise ActiveRecord::RecordNotFound, "Unknown guide: #{s}" unless all.include?(guide)
+      guide
+    end
+    def find_by_slug(s)
+      guide = self::SLUGGED[s&.to_sym]
+      guide if guide && all.include?(guide)
+    end
+    def by_category = all.group_by(&:category)
     def category_label(c) = self::CATEGORY_LABELS[c.to_sym]
     def category_order = self::CATEGORY_ORDER
   end
@@ -102,4 +185,20 @@ Guide = Data.define(:slug, :title, :description, :category, :icon, :reading_minu
   def related_guides = related.map { |s| Guide.find_by_slug(s) }.compact
 
   def partial_path = "guides/topics/#{slug}"
+
+  # A guide renders from a markdown file when `markdown:` points at one;
+  # otherwise it falls back to its `_<slug>.html.erb` partial (see show.html.erb).
+  def markdown? = markdown.present?
+
+  def markdown_path = markdown && Rails.root.join(self.class::TOPICS_ROOT, markdown)
+
+  # Raw markdown source for the body; nil for partial-backed guides. The view
+  # feeds this to MarkdownContentComponent (flavor: :guide), which renders via
+  # MarkdownRenderer.render_guide and wraps the output in .guide-content for
+  # styling. Read fresh each request; render_guide caches by content hash, so
+  # edits to the .md file appear immediately without a server restart.
+  def markdown_source
+    return nil unless markdown?
+    File.read(markdown_path)
+  end
 end

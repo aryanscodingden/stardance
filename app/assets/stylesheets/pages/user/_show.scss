@@ -808,6 +808,7 @@ turbo-frame#profile_tabs {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: bottom;
   display: block;
   aspect-ratio: 3;
 }
@@ -835,6 +836,33 @@ turbo-frame#profile_tabs {
   font-weight: 700;
   line-height: 1;
   color: var(--color-space-text);
+}
+
+.profile-project-card__title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-s);
+  min-width: 0;
+}
+
+.profile-project-card__tag {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+
+  // Orange "Hardware" pill — matches the project page tag.
+  &--hardware {
+    background: var(--color-brand-orange-soft);
+    color: var(--color-brand-orange);
+  }
 }
 
 .profile-project-card__meta {
