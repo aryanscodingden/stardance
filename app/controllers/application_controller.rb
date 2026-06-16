@@ -103,8 +103,7 @@ class ApplicationController < ActionController::Base
   def sign_in_user(user, auth_level: "guest")
     session[:user_id] = user.id
     session[:auth_level] = auth_level
-    # Keep a daily number they rolled while logged out (see AnonymousRoll).
-    AnonymousRoll.new(cookies).claim!(user)
+    AnonymousRoll.new(cookies).clear!
   end
 
   # https://stackoverflow.com/questions/70960161/ruby-on-rails-back-button-that-will-take-you-back-to-the-previous-page

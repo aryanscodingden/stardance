@@ -89,8 +89,8 @@ class DailyRollsController < ApplicationController
   end
 
   # Logged-out: one cookie-backed roll per day. It lives in a signed cookie
-  # (never the DB, so it stays off the leaderboard) and is claimed onto the
-  # account at sign-in — see AnonymousRoll.
+  # (never the DB, so it stays off the leaderboard) and is cleared on
+  # sign-in so the user gets a fresh real roll.
   def roll_for_anonymous
     anon = AnonymousRoll.new(cookies)
     roll = anon.today

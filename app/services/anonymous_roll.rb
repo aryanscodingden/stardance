@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 # The logged-out visitor's daily roll, kept in a signed cookie instead of the
-# database — so it never touches the leaderboard — and claimed onto their
-# account when they sign in. Wraps the cookie jar so the cookie name and its
-# "value|date" encoding live in exactly one place.
+# database — so it never touches the leaderboard. On sign-in the cookie is
+# cleared so the user gets a fresh real roll. Wraps the cookie jar so the
+# cookie name and its "value|date" encoding live in exactly one place.
 class AnonymousRoll
   COOKIE = :rng_roll
 
@@ -30,15 +30,7 @@ class AnonymousRoll
     DailyRoll.new(value: value, rolled_on: Date.current)
   end
 
-  # Persist today's pending roll onto the user (once), then drop the cookie.
-  # No-op when nothing is pending or they've already rolled today.
-  def claim!(user)
-    pending = today
+  def clear!
     @cookies.delete(COOKIE)
-    return if pending.nil? || DailyRoll.exists?(user: user, rolled_on: Date.current)
-
-    DailyRoll.create!(user: user, value: pending.value, rolled_on: Date.current)
-  rescue ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid
-    nil
   end
 end

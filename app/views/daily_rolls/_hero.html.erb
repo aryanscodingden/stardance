@@ -1,7 +1,7 @@
 <%# The big moment on /rng.
     - Signed in, today: your roll (or the roll button); reveal plays on a fresh roll.
     - Signed in, past date: your roll for that day, static, no copy.
-    - Logged out (anonymous: true): a cookie-backed roll + a sign-up CTA to save it.
+    - Logged out (anonymous: true): a cookie-backed roll + a sign-up CTA (onboarding flow).
     Locals: roll:, just_rolled:, for_today: (default true), date_label:, anonymous: (default false). %>
 <%
   for_today = local_assigns.fetch(:for_today, true)
@@ -25,13 +25,13 @@
 
     <% if anonymous %>
       <div class="rng-hero__cta">
-        <p class="rng-hero__cta-text">create an account to save this roll! :)</p>
+        <p class="rng-hero__cta-text">join stardance to get on the leaderboard!</p>
         <%= form_with url: onboarding_start_path, method: :post, class: "rng-hero__signup" do |form| %>
           <%= form.email_field :email, placeholder: "you@email.com", required: true,
                                autocomplete: "email", class: "rng-hero__signup-input" %>
-          <%= form.submit "save it →", class: "action-btn action-btn--primary action-btn--large rng-hero__signup-submit" %>
+          <%= form.submit "join →", class: "action-btn action-btn--primary action-btn--large rng-hero__signup-submit" %>
         <% end %>
-        <p class="rng-hero__cta-note">join stardance and you're on the leaderboard tomorrow too.</p>
+        <p class="rng-hero__cta-note">sign up and roll for real — yours will count on the board.</p>
       </div>
     <% else %>
       <span class="rng-hero__rank">#<%= roll.rank %> <%= for_today ? "today" : "that day" %></span>
@@ -59,7 +59,7 @@
                   form: { data: { turbo: true } },
                   data: { turbo_submits_with: "rolling…" } %>
     <% if anonymous %>
-      <p class="rng-hero__hint">biggest number wins. sign up to keep yours.</p>
+      <p class="rng-hero__hint">biggest number wins. sign up to get on the board.</p>
     <% else %>
       <%= link_to "see history", rng_history_path, class: "rng-hero__history-link" %>
     <% end %>

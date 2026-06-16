@@ -2,7 +2,7 @@
 
 class DailyRollPolicy < ApplicationPolicy
   # Anyone can roll: signed-in rolls save to the account, logged-out rolls go
-  # to a cookie (claimed on sign-in).
+  # to a cookie (cleared on sign-in so they re-roll fresh).
   def create?
     true
   end
