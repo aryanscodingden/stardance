@@ -97,6 +97,31 @@
       <% end %>
     </div>
   </div>
+  <% if Flipper.enabled?(:hardware_flow, current_user) %>
+  <div>
+    <h2>Hardware</h2>
+    <div>
+      <% if @user.manual_outpost_ticket_approval.present? %>
+        <p>
+          Manual Outpost Ticket approval:
+          <%= link_to "View in Airtable", @user.manual_outpost_ticket_approval, target: "_blank", rel: "noopener" %>
+        </p>
+        <%= button_to admin_user_presentable_hardware_flag_path(@user),
+                      method: :delete,
+                      disabled: !current_user&.admin?,
+                      title: "Remove the manual Outpost Ticket approval" do %>
+          Remove approval ✗
+        <% end %>
+      <% else %>
+        <%= form_with url: admin_user_presentable_hardware_flag_path(@user), method: :post do |f| %>
+          <%= f.label :approval_url, "Airtable record URL" %>
+          <%= f.url_field :approval_url, placeholder: "https://airtable.com/...", required: true %>
+          <%= f.submit "Approve Outpost Ticket", disabled: !current_user&.admin? %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+  <% end %>
 </div>
 
 <div>

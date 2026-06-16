@@ -99,12 +99,8 @@ class Project::Magic
   def enqueue_magic_jobs
     Project::PostToMagicJob.perform_later(project)
     Project::MagicHappeningLetterJob.perform_later(project)
-    project.users.each do |user|
-      SendSlackDmJob.perform_later(
-        user.slack_id,
-        blocks_path: "notifications/projects/super_star",
-        locals: { project: project },
-      )
+    project.users.find_each do |user|
+      Notifications::Projects::SuperStar.notify(recipient: user, actor: project.marked_fire_by, record: project)
     end
   end
 end

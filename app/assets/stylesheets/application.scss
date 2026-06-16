@@ -52,6 +52,8 @@
 @use "pages/project_setup";
 @use "pages/projects/show";
 @use "pages/projects/readme";
+@use "pages/projects/lookout_recorder";
+@use "pages/hardware_funding";
 @use "pages/votes";
 @use "pages/achievements/index" as achievements_index;
 @use "pages/shop/shop";
@@ -79,4 +81,7 @@
 @use "pages/certification/mystats" as certification_mystats;
 @use "pages/certification/payouts" as certification_payouts;
 @use "pages/raffle";
+@use "pages/notifications" as notifications_page;
+@use "pages/notification_settings" as notification_settings_page;
+@use "pages/rng";
 @use "landing/landing_footer";

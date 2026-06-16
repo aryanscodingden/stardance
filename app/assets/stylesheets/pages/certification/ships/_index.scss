@@ -65,7 +65,8 @@
     border-radius: 12px;
   }
 
-  &__label {
+  &__label,
+  &__filters label {
     display: block;
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -306,15 +307,6 @@
     gap: var(--space-m);
     padding: var(--space-m) var(--space-l);
     margin-bottom: var(--space-l);
-
-    label {
-      display: block;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--muted);
-      margin-bottom: var(--space-xxs);
-    }
   }
 
   &__filter {
@@ -602,6 +594,25 @@
 
   &__card-claim {
     margin-top: var(--space-xs);
+  }
+
+  // Inline type tags in table rows and mobile cards.
+  &__type-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.9);
+    white-space: nowrap;
+
+    &--own {
+      background: rgba(255, 176, 122, 0.2);
+      color: var(--color-brand-orange);
+    }
   }
 
   // --- Empty state -------------------------------------------------------

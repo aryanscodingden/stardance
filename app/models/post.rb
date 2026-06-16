@@ -5,6 +5,7 @@
 #  id            :bigint           not null, primary key
 #  postable_type :string
 #  reposts_count :integer          default(0), not null
+#  views_count   :integer          default(0), not null
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  postable_id   :bigint
@@ -23,8 +24,6 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class Post < ApplicationRecord
-    PRIVATE_SHIP_DECISION_TYPE = "Post::ShipDecision"
-
     include Gorse::SyncablePost
 
     has_paper_trail
@@ -39,10 +38,11 @@ class Post < ApplicationRecord
 
     delegated_type :postable, types: Postable.types
 
+    has_many :post_views, dependent: :delete_all
+
     validates :postable_id, presence: true, if: :postable_type?
     validates :project, presence: true, unless: :repost?
 
-    after_commit :invalidate_project_time_cache, on: [ :create, :destroy ]
     after_commit :increment_devlogs_count, on: :create
     after_commit :decrement_devlogs_count, on: :destroy
     after_commit :update_project_duration_seconds, on: [ :create, :destroy ]
@@ -74,62 +74,17 @@ class Post < ApplicationRecord
     # Restrict to posts whose author has finished identity verification.
     # System posts (user_id IS NULL) are always allowed through — they aren't
     # user-authored. The viewer-aware variant additionally lets a logged-in
-    # user see their own posts even before they verify. Shipwright decision
-    # cards are private release-flagged posts: project members can see them,
-    # public viewers cannot.
+    # user see their own posts even before they verify, and short-circuits to
+    # `all` for admins (who can see everything).
     scope :authored_by_verified, -> {
       left_outer_joins(:user)
-        .without_ship_decisions
         .where("posts.user_id IS NULL OR users.verification_status = 'verified'")
     }
 
-    scope :without_ship_decisions, -> {
-      where(
-        "posts.postable_type IS NULL OR posts.postable_type != ?",
-        PRIVATE_SHIP_DECISION_TYPE
-      )
-    }
-
     def self.visible_to(viewer)
-      ship_decisions_enabled = viewer.present? && Flipper.enabled?(:week_1_release, viewer)
-
-      return ship_decisions_enabled ? all : without_ship_decisions if viewer&.admin?
+      return all if viewer&.admin?
 
       scope = left_outer_joins(:user)
-      if viewer.present?
-        return regular_posts_visible_to(scope, viewer) unless ship_decisions_enabled
-
-        scope.where(
-          <<~SQL.squish,
-            (
-              posts.postable_type = :ship_decision_type
-              AND EXISTS (
-                SELECT 1
-                FROM project_memberships
-                WHERE project_memberships.project_id = posts.project_id
-                  AND project_memberships.user_id = :viewer_id
-              )
-            )
-            OR (
-              (posts.postable_type IS NULL OR posts.postable_type != :ship_decision_type)
-              AND (
-                posts.user_id IS NULL
-                OR posts.user_id = :viewer_id
-                OR users.verification_status = 'verified'
-              )
-            )
-          SQL
-          ship_decision_type: PRIVATE_SHIP_DECISION_TYPE,
-          viewer_id: viewer.id
-        )
-      else
-        regular_posts_visible_to(scope, nil)
-      end
-    end
-
-    def self.regular_posts_visible_to(scope, viewer)
-      scope = scope.without_ship_decisions
-
       if viewer.present?
         scope.where(
           "posts.user_id IS NULL OR posts.user_id = ? OR users.verification_status = 'verified'",
@@ -142,6 +97,12 @@ class Post < ApplicationRecord
 
     def repost?
       postable_type == "Post::Repost"
+    end
+
+    # Reposts surface the original post's content, so a view of the repost
+    # also counts as a unique view of the original.
+    def view_credited_posts
+      [ self, repost? ? postable&.original_post : nil ].compact
     end
 
     def visible_repost_original_for?(viewer)
@@ -157,22 +118,7 @@ class Post < ApplicationRecord
       end
     end
 
-    # For multiple types, use .with to create a CTE with UNION ALL:
-    #   Post.with(
-    #     available_posts: [
-    #       Post.of_devlogs(join: true).where(post_devlogs: { tutorial: false }),
-    #       Post.of_ship_events(join: true),
-    #       Post.of_fire_events(join: true)
-    #     ]
-    #   ).from("available_posts AS posts")
-
     private
-
-    def invalidate_project_time_cache
-      return unless postable_type == "Post::Devlog"
-
-      Rails.cache.delete("project/#{project_id}/time_seconds")
-    end
 
     def increment_devlogs_count
       return unless postable_type == "Post::Devlog"

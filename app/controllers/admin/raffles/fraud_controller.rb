@@ -90,7 +90,7 @@ module Admin
       SQL
 
       def build_flagged_list
-        signals = Hash.new { |h, k| h[k] = { signals: [], total: 0 } }
+        signals = Hash.new { |h, k| h[k] = { signals: [] } }
 
         add_referred_ip_signals(signals)
         add_referrer_ip_signals(signals)

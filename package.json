@@ -12,6 +12,7 @@
     "@fullstory/browser": "^2.0.8",
     "@hotwired/stimulus": "^3.2.2",
     "@hotwired/turbo-rails": "^8.0.20",
+    "@rails/actioncable": "^8.1.300",
     "@rails/activestorage": "^8.1.100",
     "canvas-confetti": "^1.9.4",
     "chart.js": "^4.5.1",

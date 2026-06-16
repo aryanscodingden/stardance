@@ -7,6 +7,7 @@ class ApplicationController < ActionController::Base
   include Pagy::Method
   include Achievementable
   include Trackable
+  include OutpostEmailing
 
   before_action :store_referral_code
   before_action :remember_page
@@ -102,6 +103,8 @@ class ApplicationController < ActionController::Base
   def sign_in_user(user, auth_level: "guest")
     session[:user_id] = user.id
     session[:auth_level] = auth_level
+    # Keep a daily number they rolled while logged out (see AnonymousRoll).
+    AnonymousRoll.new(cookies).claim!(user)
   end
 
   # https://stackoverflow.com/questions/70960161/ruby-on-rails-back-button-that-will-take-you-back-to-the-previous-page

@@ -116,7 +116,7 @@
       <section class="shop-hub__main">
         <ul class="shop-hub__category-grid" aria-label="Shop categories">
           <% @categories.each do |category| %>
-            <% category_items = Shop::Categorization.filter(@shop_items, category.slug) %>
+            <% category_items = category.filter(@shop_items) %>
             <% category_thumbs = category_items.select { |i| i.image.attached? }.first(3) %>
             <li class="shop-hub__category-tile">
               <%= link_to shop_category_path(category.slug), class: "shop-hub__category-link", data: { turbo: true } do %>
@@ -154,12 +154,11 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"> <polyline points="15 18 9 12 15 6" /> </svg>
             </button>
             <ul class="shop-hub__items-grid" data-horizontal-scroll-target="track">
-              <li class="shop-hub__items-card">
-                <%= render "shop/items/hardware_build_fund" %>
-              </li>
+              <% unless Flipper.enabled?(:hardware_flow, current_user) %>
               <li class="shop-hub__items-card">
                 <%= render "shop/items/outpost_ticket" %>
               </li>
+              <% end %>
               <% @new_items.each do |item| %>
                 <li class="shop-hub__items-card">
                   <%= render "shop/items/item_card",

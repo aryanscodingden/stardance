@@ -1,0 +1,6 @@
+<%= render "notifications/inbox/actor", notification: notification, fallback: "A builder" %>
+<span class="notifications-item__verb"> submitted a ship event for your review</span>
+<% if notification.record && notification.record.mission %>
+  <span class="notifications-item__verb">on</span>
+  <%= link_to notification.record.mission.name, mission_path(notification.record.mission), class: "notifications-item__actor" %>
+<% end %>
