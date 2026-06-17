@@ -20,6 +20,10 @@
         </span>
       </div>
       <div class="ship-queue__header-actions">
+        <% if current_user.admin? || current_user.super_admin? %>
+          <%= link_to "Monitor", monitor_admin_certification_ships_path,
+                class: "action-btn action-btn--large action-btn--secondary" %>
+        <% end %>
         <%= link_to "Logs", logs_admin_certification_ships_path,
             class: "action-btn action-btn--large action-btn--secondary" %>
         <%= link_to "My Stats", admin_certification_mystats_path,

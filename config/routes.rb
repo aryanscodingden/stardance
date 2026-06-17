@@ -758,6 +758,7 @@ Rails.application.routes.draw do
         collection do
           get :next
           get :logs
+          get :monitor, to: "ships/monitor#show"
         end
         scope module: :ships do
           resource :claim, only: [ :create, :destroy ]

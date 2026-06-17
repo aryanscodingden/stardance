@@ -131,12 +131,22 @@ module Certification
 
       decided = where.not(status: :pending)
 
+      pending_ages = where(status: :pending).pluck(:created_at)
+      median_pending_wait = if pending_ages.any?
+        sorted = pending_ages.map { |t| now - t }.sort
+        (median_value(sorted) / 3600.0).round(1)
+      end
+
+      avg_decision_secs = decided.where.not(decided_at: nil)
+        .average(Arel.sql("EXTRACT(EPOCH FROM (decided_at - created_at))"))
+      avg_decision_hours = avg_decision_secs ? (avg_decision_secs / 3600.0).round(1) : nil
+
       {
-        pending: where(status: :pending).count,
+        pending: pending_ages.size,
         approved: approved_count,
         returned: returned_count,
         decided: decided_count,
-        approval_rate: decided_count.zero? ? nil : (approved_count * 100.0 / decided_count).round,
+        approval_rate: decided_count.zero? ? nil : (approved_count * 100.0 / decided_count).round(1),
         decisions_today: decided.where(decided_at: today..).count,
         new_today: where(created_at: today..).count,
         decisions_this_week: decided.where(decided_at: week..).count,
@@ -144,8 +154,109 @@ module Certification
         oldest_pending: where(status: :pending).order(created_at: :asc).first,
         queue_target: QUEUE_TARGET,
         sla_days: SLA_DAYS,
-        overdue_pending: where(status: :pending).where("created_at < ?", now - SLA_DAYS.days).count
+        overdue_pending: where(status: :pending).where("created_at < ?", now - SLA_DAYS.days).count,
+        median_pending_wait_hours: median_pending_wait,
+        avg_decision_hours: avg_decision_hours
       }
+    end
+
+    def self.reviewer_daily_data(days: 30, now: Time.current)
+      start = (now.to_date - (days - 1)).to_time.beginning_of_day
+      approved_int = statuses[:approved]
+      returned_int = statuses[:returned]
+
+      rows = where("decided_at >= ?", start)
+        .where.not(status: :pending)
+        .joins(:reviewer)
+        .group(Arel.sql("DATE(decided_at)"), "users.id", "users.display_name")
+        .select(
+          Arel.sql("DATE(decided_at) AS day"),
+          "users.id AS reviewer_id",
+          "users.display_name",
+          "COUNT(*) AS total",
+          Arel.sql("SUM(CASE WHEN status = #{approved_int} THEN 1 ELSE 0 END) AS approved_count"),
+          Arel.sql("SUM(CASE WHEN status = #{returned_int} THEN 1 ELSE 0 END) AS returned_count")
+        )
+        .to_a
+
+      return [] if rows.empty?
+
+      dates = (0...days).map { |i| now.to_date - (days - 1 - i) }
+
+      rows.group_by(&:reviewer_id)
+        .sort_by { |_, rs| -rs.sum(&:total) }
+        .map do |_, reviewer_rows|
+          by_date = reviewer_rows.index_by { |r| r.day.to_date }
+          {
+            name: reviewer_rows.first.display_name,
+            data: dates.map { |date|
+              r = by_date[date]
+              { total: r&.total.to_i, approved: r&.approved_count.to_i, returned: r&.returned_count.to_i }
+            }
+          }
+        end
+    end
+
+    def self.daily_chart_data(days: 30, now: Time.current)
+      start = (now.to_date - (days - 1)).to_time.beginning_of_day
+      approved_int = statuses[:approved]
+      returned_int = statuses[:returned]
+
+      decisions = where("decided_at >= ?", start)
+        .where.not(status: :pending)
+        .group(Arel.sql("DATE(decided_at)"))
+        .select(
+          Arel.sql("DATE(decided_at) AS day"),
+          Arel.sql("SUM(CASE WHEN status = #{approved_int} THEN 1 ELSE 0 END) AS approved_count"),
+          Arel.sql("SUM(CASE WHEN status = #{returned_int} THEN 1 ELSE 0 END) AS returned_count")
+        )
+        .index_by { |r| r.day.to_date }
+
+      submitted = where("created_at >= ?", start)
+        .group(Arel.sql("DATE(created_at)"))
+        .count
+        .transform_keys { |k| k.is_a?(Date) ? k : Date.parse(k.to_s) }
+
+      unique_reviewers = where("decided_at >= ?", start)
+        .where.not(status: :pending)
+        .where.not(reviewer_id: nil)
+        .group(Arel.sql("DATE(decided_at)"))
+        .select(
+          Arel.sql("DATE(decided_at) AS day"),
+          Arel.sql("COUNT(DISTINCT reviewer_id) AS cnt")
+        )
+        .index_by { |r| r.day.to_date }
+
+      queue_ships = where("created_at <= ?", now.end_of_day)
+        .where("decided_at IS NULL OR decided_at >= ?", start)
+        .pluck(:created_at, :decided_at)
+
+      median_wait_by_day = where("decided_at >= ?", start)
+        .where.not(status: :pending)
+        .where.not(decided_at: nil)
+        .pluck(:created_at, :decided_at)
+        .group_by { |_, da| da.to_date }
+        .transform_values do |pairs|
+          hours = pairs.map { |ca, da| (da - ca) / 3600.0 }.sort
+          median_value(hours).round(1)
+        end
+
+      (0...days).map do |i|
+        date     = now.to_date - (days - 1 - i)
+        date_end = date.to_time.end_of_day
+        dec      = decisions[date]
+        # O(days × fetched_ships) in-memory scan; acceptable at current table size, revisit beyond ~100k rows.
+        queue    = queue_ships.count { |ca, da| ca <= date_end && (da.nil? || da > date_end) }
+        {
+          date: date.strftime("%-m/%-d"),
+          approved: dec&.approved_count.to_i,
+          returned: dec&.returned_count.to_i,
+          submitted: submitted[date].to_i,
+          unique_reviewers: unique_reviewers[date]&.cnt.to_i,
+          queue_size: queue,
+          median_wait_hours: median_wait_by_day[date]
+        }
+      end
     end
 
     # Reviewers ranked by completed decisions over a window. Returns rows of
@@ -193,7 +304,12 @@ module Certification
         .count
     end
 
-    # Stardust earned per completed review
+    def self.median_value(sorted)
+      n = sorted.size
+      n.odd? ? sorted[n / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2.0
+    end
+    private_class_method :median_value
+
     REVIEW_BOUNTY = 1 # This will be updated once we add the project types.
 
     before_save :stamp_claimed_at, if: -> { will_save_change_to_reviewer_id? && reviewer_id.present? && claimed_at.nil? }
