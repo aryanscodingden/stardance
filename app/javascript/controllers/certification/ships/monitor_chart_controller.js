@@ -205,39 +205,31 @@ export default class extends Controller {
         },
       ),
 
-      this.#makeLine(
-        this.throughputTarget,
-        [
-          this.#ds(
-            "Decisions",
-            data.map((d) => d.approved + d.returned),
-            "#81FFFF",
-          ),
-          this.#ds(
-            "Submitted",
-            data.map((d) => d.submitted),
-            "#EBB7FF",
-          ),
-        ],
-        { scales: { x: this.cfg.xScale, y: yScale } },
-      ),
+      this.#makeLine(this.throughputTarget, [
+        this.#ds(
+          "Decisions",
+          data.map((d) => d.approved + d.returned),
+          "#81FFFF",
+        ),
+        this.#ds(
+          "Submitted",
+          data.map((d) => d.submitted),
+          "#EBB7FF",
+        ),
+      ]),
 
-      this.#makeLine(
-        this.verdictTarget,
-        [
-          this.#ds(
-            "Approved",
-            data.map((d) => d.approved),
-            "#81FFFF",
-          ),
-          this.#ds(
-            "Returned",
-            data.map((d) => d.returned),
-            "#FFD598",
-          ),
-        ],
-        { scales: { x: this.cfg.xScale, y: yScale } },
-      ),
+      this.#makeLine(this.verdictTarget, [
+        this.#ds(
+          "Approved",
+          data.map((d) => d.approved),
+          "#81FFFF",
+        ),
+        this.#ds(
+          "Returned",
+          data.map((d) => d.returned),
+          "#FFD598",
+        ),
+      ]),
 
       this.#makeLine(
         this.rateTarget,
@@ -278,23 +270,14 @@ export default class extends Controller {
         },
       ),
 
-      this.#makeLine(
-        this.participationTarget,
-        [
-          this.#ds(
-            "Reviewers active",
-            data.map((d) => d.unique_reviewers),
-            "#86efac",
-            0.1,
-          ),
-        ],
-        {
-          scales: {
-            x: this.cfg.xScale,
-            y: { ...yScale, min: 0, ticks: { ...yScale.ticks, precision: 0 } },
-          },
-        },
-      ),
+      this.#makeLine(this.participationTarget, [
+        this.#ds(
+          "Reviewers active",
+          data.map((d) => d.unique_reviewers),
+          "#86efac",
+          0.1,
+        ),
+      ]),
     );
   }
 
@@ -428,10 +411,7 @@ export default class extends Controller {
     returnedChart.data.datasets = lineDatasets("returned");
     approvedChart.data.datasets = lineDatasets("approved");
     rejectionsChart.data.datasets = lineDatasets("returned");
-    decisionsChart.update();
-    returnedChart.update();
-    approvedChart.update();
-    rejectionsChart.update();
+    this.reviewerCharts.forEach((c) => c.update());
 
     this.renderReviewerTotals(selected, reviewers);
   }
