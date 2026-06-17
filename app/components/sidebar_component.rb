@@ -55,6 +55,11 @@ class SidebarComponent < ViewComponent::Base
         icon: :avatar, active_prefix: "/@" }
     end
 
+    # Guardians of integrity only (not admins): YSWS certification review queue.
+    if signed_in? && user.guardian_of_integrity?
+      items << { slug: "guard", label: "guard", path: helpers.admin_certification_ysws_reviews_path, icon: "eye" }
+    end
+
     # items << { slug: "support", label: "support", path: helpers.admin_support_path, icon: "help" } if helpers.admin_policy(:support_dashboard).show?
     # items << { slug: "fraud",   label: "fraud",   path: helpers.admin_fraud_path, icon: "code" } if helpers.admin_policy(:fraud_dashboard).show? && !user.admin?
     # items << { slug: "admin",   label: "admin",   path: helpers.admin_users_path, icon: "code" } if user.admin?
