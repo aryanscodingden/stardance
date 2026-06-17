@@ -37,12 +37,6 @@ application.register(
   Certification__Ships__MonitorChartController,
 );
 
-import Certification__Ships__MonitorNavController from "./certification/ships/monitor_nav_controller";
-application.register(
-  "certification--ships--monitor-nav",
-  Certification__Ships__MonitorNavController,
-);
-
 import Certification__Ysws__CompleteReviewController from "./certification/ysws/complete_review_controller";
 application.register(
   "certification--ysws--complete-review",

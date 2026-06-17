@@ -258,28 +258,6 @@ module Certification
       end
     end
 
-    def self.reviewer_stats(now: Time.current)
-      approved_int = statuses[:approved]
-      returned_int = statuses[:returned]
-      today_start  = now.beginning_of_day
-      week_start   = now.beginning_of_week
-
-      joins(:reviewer)
-        .where.not(reviewer_id: nil)
-        .where.not(status: :pending)
-        .group("users.id", "users.display_name")
-        .order(Arel.sql("COUNT(*) DESC"), Arel.sql("users.display_name ASC"))
-        .select(
-          "users.id AS reviewer_id",
-          "users.display_name",
-          "COUNT(*) AS total",
-          "SUM(CASE WHEN certification_ship_reviews.status = #{approved_int} THEN 1 ELSE 0 END) AS approved_count",
-          "SUM(CASE WHEN certification_ship_reviews.status = #{returned_int} THEN 1 ELSE 0 END) AS returned_count",
-          sanitize_sql_array([ "SUM(CASE WHEN certification_ship_reviews.decided_at >= ? THEN 1 ELSE 0 END) AS today_count", today_start ]),
-          sanitize_sql_array([ "SUM(CASE WHEN certification_ship_reviews.decided_at >= ? THEN 1 ELSE 0 END) AS week_count", week_start ])
-        )
-    end
-
     # Reviewers ranked by completed decisions over a window. Returns rows of
     # { name:, count: } for :daily, :weekly, or :alltime.
     def self.leaderboard(period, now: Time.current, limit: 10)

@@ -7,78 +7,6 @@
 
   color: var(--color-space-text);
 
-  &__nav {
-    position: fixed;
-    right: var(--space-l);
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
-    z-index: 20;
-    padding: var(--space-s) var(--space-m);
-    border-radius: 10px;
-    border: 1px solid var(--card-border);
-    background: rgba(8, 6, 30, 0.85);
-
-    @media (max-width: 1300px) {
-      display: none;
-    }
-  }
-
-  &__nav-link {
-    display: flex;
-    align-items: center;
-    font-size: 0.75rem;
-    font-family: var(--font-family-sans);
-    color: var(--muted);
-    text-decoration: none;
-    padding: 3px 0;
-
-    &::before {
-      content: "";
-      flex-shrink: 0;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.35);
-      transition:
-        background 0.15s,
-        transform 0.15s;
-    }
-
-    &:hover {
-      color: rgba(255, 255, 255, 0.85);
-    }
-
-    &.is-active {
-      color: var(--color-brand-mint);
-
-      &::before {
-        background: var(--color-brand-mint);
-        transform: scale(1.3);
-      }
-    }
-  }
-
-  &__nav-label {
-    max-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    opacity: 0;
-    margin-left: 0;
-    transition:
-      max-width 0.25s ease,
-      opacity 0.2s ease,
-      margin-left 0.25s ease;
-
-    .ship-monitor__nav:hover & {
-      max-width: 160px;
-      opacity: 1;
-      margin-left: 8px;
-    }
-  }
-
   &__back {
     display: inline-block;
     margin-bottom: var(--space-m);
@@ -401,23 +329,20 @@
     border-radius: 8px;
     padding: 6px 12px;
     font-size: 0.82rem;
-  }
 
-  &__reviewer-total-name {
-    font-weight: 700;
-    margin-right: 2px;
-  }
-
-  &__reviewer-total-stat {
-    color: rgba(255, 255, 255, 0.75);
-  }
-
-  &__reviewer-total-sep {
-    color: var(--muted);
-  }
-
-  &__reviewer-total-rate {
-    color: var(--muted);
-    font-size: 0.78rem;
+    &-name {
+      font-weight: 700;
+      margin-right: 2px;
+    }
+    &-stat {
+      color: rgba(255, 255, 255, 0.75);
+    }
+    &-sep {
+      color: var(--muted);
+    }
+    &-rate {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
   }
 }

@@ -8,27 +8,6 @@
       <h1>Shipwright monitor</h1>
     </header>
 
-    <nav class="ship-monitor__nav" data-controller="certification--ships--monitor-nav">
-      <a href="#section-queue"
-         class="ship-monitor__nav-link"
-         data-certification--ships--monitor-nav-target="link"
-         data-action="click->certification--ships--monitor-nav#scrollTo">
-        <span class="ship-monitor__nav-label">Queue health</span>
-      </a>
-      <a href="#section-activity"
-         class="ship-monitor__nav-link"
-         data-certification--ships--monitor-nav-target="link"
-         data-action="click->certification--ships--monitor-nav#scrollTo">
-        <span class="ship-monitor__nav-label">Activity</span>
-      </a>
-      <a href="#section-reviewers"
-         class="ship-monitor__nav-link"
-         data-certification--ships--monitor-nav-target="link"
-         data-action="click->certification--ships--monitor-nav#scrollTo">
-        <span class="ship-monitor__nav-label">Reviewer comparison</span>
-      </a>
-    </nav>
-
     <section class="ship-monitor__section" id="section-queue">
       <h2 class="ship-monitor__section-title">Queue health</h2>
 
@@ -37,28 +16,17 @@
           <p class="ship-monitor__stats-group-label">Queue</p>
 
           <% over_target = @stats[:pending] - @stats[:queue_target] %>
-          <div class="ship-monitor__stat-row">
-            <span class="ship-monitor__stat-label">In queue</span>
-            <span class="ship-monitor__stat-value <%= over_target > 0 ? 'is-negative' : 'is-positive' %>"><%= @stats[:pending] %></span>
-            <span class="ship-monitor__stat-hint"><%= over_target > 0 ? "#{over_target} over target of #{@stats[:queue_target]}" : "at or under target" %></span>
-          </div>
-
-          <div class="ship-monitor__stat-row">
-            <span class="ship-monitor__stat-label">Overdue</span>
-            <span class="ship-monitor__stat-value <%= @stats[:overdue_pending] > 0 ? 'is-negative' : 'is-positive' %>"><%= @stats[:overdue_pending] %></span>
-            <span class="ship-monitor__stat-hint">past <%= @stats[:sla_days] %>-day SLA</span>
-          </div>
-
-          <div class="ship-monitor__stat-row">
-            <span class="ship-monitor__stat-label">Median wait</span>
-            <% if @stats[:median_pending_wait_hours] %>
-              <span class="ship-monitor__stat-value"><%= format_seconds((@stats[:median_pending_wait_hours] * 3600).round, include_days: true) %></span>
-              <span class="ship-monitor__stat-hint">pending ships</span>
-            <% else %>
-              <span class="ship-monitor__stat-value is-positive">—</span>
-              <span class="ship-monitor__stat-hint">queue clear</span>
-            <% end %>
-          </div>
+          <%= render "stat_row", label: "In queue", value: @stats[:pending],
+                     value_class: over_target > 0 ? "is-negative" : "is-positive",
+                     hint: over_target > 0 ? "#{over_target} over target of #{@stats[:queue_target]}" : "at or under target" %>
+          <%= render "stat_row", label: "Overdue", value: @stats[:overdue_pending],
+                     value_class: @stats[:overdue_pending] > 0 ? "is-negative" : "is-positive",
+                     hint: "past #{@stats[:sla_days]}-day SLA" %>
+          <% mw = @stats[:median_pending_wait_hours] %>
+          <%= render "stat_row", label: "Median wait",
+                     value: mw ? format_seconds((mw * 3600).round, include_days: true) : "—",
+                     value_class: mw ? nil : "is-positive",
+                     hint: mw ? "pending ships" : "queue clear" %>
 
           <div class="ship-monitor__stat-row">
             <span class="ship-monitor__stat-label">Oldest waiting</span>
@@ -76,33 +44,15 @@
         <div class="ship-monitor__stats-group">
           <p class="ship-monitor__stats-group-label">All time</p>
 
-          <div class="ship-monitor__stat-row">
-            <span class="ship-monitor__stat-label">Total judged</span>
-            <span class="ship-monitor__stat-value"><%= number_with_delimiter(@stats[:decided]) %></span>
-          </div>
-
-          <div class="ship-monitor__stat-row">
-            <span class="ship-monitor__stat-label">Approved</span>
-            <span class="ship-monitor__stat-value"><%= number_with_delimiter(@stats[:approved]) %></span>
-            <span class="ship-monitor__stat-hint"><%= @stats[:approval_rate] ? "#{@stats[:approval_rate]}% rate" : "—" %></span>
-          </div>
-
-          <div class="ship-monitor__stat-row">
-            <span class="ship-monitor__stat-label">Rejected</span>
-            <span class="ship-monitor__stat-value"><%= number_with_delimiter(@stats[:returned]) %></span>
-            <% if @stats[:approval_rate] %><span class="ship-monitor__stat-hint"><%= (100 - @stats[:approval_rate]).round(1) %>% rate</span><% end %>
-          </div>
-
-          <div class="ship-monitor__stat-row">
-            <span class="ship-monitor__stat-label">Avg time to decision</span>
-            <% if @stats[:avg_decision_hours] %>
-              <span class="ship-monitor__stat-value"><%= format_seconds((@stats[:avg_decision_hours] * 3600).round, include_days: true) %></span>
-              <span class="ship-monitor__stat-hint">submission → verdict</span>
-            <% else %>
-              <span class="ship-monitor__stat-value">—</span>
-              <span class="ship-monitor__stat-hint">no decisions yet</span>
-            <% end %>
-          </div>
+          <%= render "stat_row", label: "Total judged", value: number_with_delimiter(@stats[:decided]) %>
+          <%= render "stat_row", label: "Approved", value: number_with_delimiter(@stats[:approved]),
+                     hint: @stats[:approval_rate] ? "#{@stats[:approval_rate]}% rate" : "—" %>
+          <%= render "stat_row", label: "Rejected", value: number_with_delimiter(@stats[:returned]),
+                     hint: @stats[:approval_rate] ? "#{(100 - @stats[:approval_rate]).round(1)}% rate" : nil %>
+          <% adh = @stats[:avg_decision_hours] %>
+          <%= render "stat_row", label: "Avg time to decision",
+                     value: adh ? format_seconds((adh * 3600).round, include_days: true) : "—",
+                     hint: adh ? "submission → verdict" : "no decisions yet" %>
         </div>
 
       </div>

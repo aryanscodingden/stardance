@@ -23,6 +23,21 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+const FORMATTERS = {
+  hours: (ctx) => {
+    const h = ctx.parsed.y;
+    if (h === null) return "  no data";
+    const d = Math.floor(h / 24),
+      rem = Math.round(h % 24);
+    return d > 0 ? `  ${d}d ${rem}h` : `  ${rem}h`;
+  },
+  net: (ctx) => {
+    const v = ctx.parsed.y;
+    return `  Net: ${v >= 0 ? "+" : ""}${v}`;
+  },
+  pct: (ctx) => `  ${ctx.parsed.y !== null ? ctx.parsed.y + "%" : "no data"}`,
+};
+
 export default class extends Controller {
   static targets = [
     "queueSize",
@@ -138,18 +153,7 @@ export default class extends Controller {
         {
           plugins: {
             legend: { labels: this.cfg.legend.labels },
-            tooltip: {
-              ...tooltip,
-              callbacks: {
-                label: (ctx) => {
-                  const h = ctx.parsed.y;
-                  if (h === null) return "  no data";
-                  const d = Math.floor(h / 24),
-                    rem = Math.round(h % 24);
-                  return d > 0 ? `  ${d}d ${rem}h` : `  ${rem}h`;
-                },
-              },
-            },
+            tooltip: { ...tooltip, callbacks: { label: FORMATTERS.hours } },
           },
           scales: {
             x: this.cfg.xScale,
@@ -182,15 +186,7 @@ export default class extends Controller {
         {
           plugins: {
             legend: { labels: this.cfg.legend.labels },
-            tooltip: {
-              ...tooltip,
-              callbacks: {
-                label: (ctx) => {
-                  const v = ctx.parsed.y;
-                  return `  Net: ${v >= 0 ? "+" : ""}${v}`;
-                },
-              },
-            },
+            tooltip: { ...tooltip, callbacks: { label: FORMATTERS.net } },
           },
           scales: {
             x: this.cfg.xScale,
@@ -250,13 +246,7 @@ export default class extends Controller {
         {
           plugins: {
             legend: { labels: this.cfg.legend.labels },
-            tooltip: {
-              ...tooltip,
-              callbacks: {
-                label: (ctx) =>
-                  `  ${ctx.parsed.y !== null ? ctx.parsed.y + "%" : "no data"}`,
-              },
-            },
+            tooltip: { ...tooltip, callbacks: { label: FORMATTERS.pct } },
           },
           scales: {
             x: this.cfg.xScale,
