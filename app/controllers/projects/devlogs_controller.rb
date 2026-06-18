@@ -49,12 +49,12 @@ class Projects::DevlogsController < ApplicationController
     authorize @project, :create_devlog?
     load_preview_time
     respond_to do |format|
-      format.html { render partial: "projects/devlogs/preview_time", locals: { preview_time: @preview_time, preview_seconds: @preview_seconds, hardware: @project.hardware? } }
+      format.html { render partial: "projects/devlogs/preview_time", locals: { preview_time: @preview_time, preview_seconds: @preview_seconds, hardware: @project.hardware?, token_stale: @token_stale } }
       format.json { render json: { preview_time: @preview_time } }
     end
   rescue Pundit::NotAuthorizedError
     respond_to do |format|
-      format.html { render partial: "projects/devlogs/preview_time", locals: { preview_time: nil, preview_seconds: 0, hardware: @project.hardware? }, status: :forbidden }
+      format.html { render partial: "projects/devlogs/preview_time", locals: { preview_time: nil, preview_seconds: 0, hardware: @project.hardware?, token_stale: false }, status: :forbidden }
       format.json { render json: { error: "Not authorized" }, status: :forbidden }
     end
   end
@@ -197,6 +197,7 @@ class Projects::DevlogsController < ApplicationController
 
   def load_preview_time
     @preview_seconds = 0
+    @token_stale = false
     @project.reload
     hackatime_keys = @project.hackatime_keys
 
@@ -205,7 +206,11 @@ class Projects::DevlogsController < ApplicationController
 
     seconds = @project.seconds_coded_in_devlog_window(current_user.hackatime_identity&.uid, access_token: current_user.hackatime_identity&.access_token)
     return apply_test_time_preview if test_time_granted? && seconds.nil?
-    return @preview_time = nil if seconds.nil?
+
+    if seconds.nil?
+      @token_stale = current_user.hackatime_token_stale?
+      return @preview_time = nil
+    end
 
     @preview_seconds = seconds
     apply_test_time_preview if test_time_granted? && @preview_seconds < TEST_TIME_SECONDS

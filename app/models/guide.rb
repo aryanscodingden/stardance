@@ -70,13 +70,22 @@ Guide = Data.define(:slug, :title, :description, :category, :icon, :reading_minu
       related: %i[github_repository great_readme]
     ),
     new(
+      slug: :hackatime,
+      title: "Hackatime isn't working?",
+      description: "Troubleshooting Hackatime: linking your account, time not showing up, and common fixes.",
+      category: :craft,
+      icon: "info",
+      reading_minutes: 4,
+      related: %i[devlogs how_to_ship]
+    ),
+    new(
       slug: :devlogs,
       title: "Devlogs that get noticed",
       description: "What to put in a devlog, how often to post, and why this affects voting.",
       category: :craft,
       icon: "edit",
       reading_minutes: 4,
-      related: %i[what_is_shipping]
+      related: %i[what_is_shipping hackatime]
     ),
     new(
       slug: :why_we_ask,

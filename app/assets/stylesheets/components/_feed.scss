@@ -587,6 +587,16 @@
     }
   }
 
+  &__info-link {
+    color: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.75;
+    }
+  }
+
   &--dragover {
     outline: 2px dashed var(--color-space-accent, currentColor);
     outline-offset: 4px;

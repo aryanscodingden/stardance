@@ -5,6 +5,14 @@ module User::HackatimeSync
     try_sync_hackatime_data!&.dig(:projects)&.values&.sum || 0
   end
 
+  def hackatime_token_stale?
+    identity = hackatime_identity
+    return false unless identity&.access_token.present?
+
+    sync = try_sync_hackatime_data!
+    sync&.dig(:token_stale) || Rails.cache.read("hackatime_api_key:#{identity.uid}").nil?
+  end
+
   def has_logged_one_hour?
     all_time_coding_seconds >= 3600
   end

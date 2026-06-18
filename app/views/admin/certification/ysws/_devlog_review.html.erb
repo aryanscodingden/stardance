@@ -46,9 +46,9 @@
         <div class="media-grid">
           <% devlog_review.post_devlog.attachments.each do |attachment| %>
             <% if attachment.video? %>
-              <a href="<%= url_for(attachment) %>" class="media-item video-item" data-action="click->certification--ysws--media-viewer#open">
+              <a href="<%= rails_storage_redirect_path(attachment) %>" class="media-item video-item" data-action="click->certification--ysws--media-viewer#open">
                 <video class="media-thumbnail" muted>
-                  <source src="<%= url_for(attachment) %>" type="<%= attachment.content_type %>">
+                  <source src="<%= rails_storage_redirect_path(attachment) %>" type="<%= attachment.content_type %>">
                 </video>
                 <div class="media-type-badge">Video</div>
               </a>

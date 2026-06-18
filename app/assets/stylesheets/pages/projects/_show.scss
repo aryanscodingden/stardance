@@ -2018,6 +2018,52 @@ turbo-frame#project_hero {
   opacity: 0.5;
 }
 
+.project-show__hackatime-stale {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-brand-salmon);
+  margin-top: 6px;
+}
+
+.project-show__hackatime-reconnect {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-brand-salmon);
+  background: none;
+  border: 1px dashed var(--color-brand-salmon);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.75;
+  }
+}
+
+.project-show__hackatime-dropdown-help {
+  display: block;
+  position: sticky;
+  bottom: 0;
+  padding: 8px 12px;
+  border-top: 1px solid var(--color-space-border);
+  background: var(--color-set-2-bg);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-brand-cream);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
 .project-show__hackatime-tag {
   display: inline-flex;
   align-items: center;
@@ -2099,6 +2145,7 @@ turbo-frame#project_hero {
   z-index: 10;
   margin-top: 4px;
   padding: 4px;
+  padding-bottom: 0;
   border-radius: var(--profile-radius);
   border: 2px solid var(--color-border-input);
   background: var(--color-set-2-bg);
@@ -2110,6 +2157,10 @@ turbo-frame#project_hero {
   &[hidden] {
     display: none;
   }
+}
+
+.project-show__hackatime-dropdown-items {
+  display: contents;
 }
 
 .project-show__hackatime-dropdown-item {

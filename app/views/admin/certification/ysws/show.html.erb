@@ -80,7 +80,7 @@
       <section class="review-card video-card">
         <h3>Ship Cert Video</h3>
         <% if @review.ship_cert&.verdict_video&.attached? %>
-          <video class="video-card__player" src="<%= url_for(@review.ship_cert.verdict_video) %>"
+          <video class="video-card__player" src="<%= rails_storage_redirect_path(@review.ship_cert.verdict_video) %>"
                  controls playsinline preload="metadata" style="width:100%;border-radius:var(--profile-radius)"></video>
         <% else %>
           <div class="video-placeholder">

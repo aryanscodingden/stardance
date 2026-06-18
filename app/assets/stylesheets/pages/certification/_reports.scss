@@ -20,11 +20,14 @@
       padding: var(--space-m);
     }
 
+    // Small heading token (branding §2.1): Exo 2, bold, ALL CAPS.
     h3 {
       color: var(--color-brand-lilac);
       font-size: var(--font-size-l);
       font-weight: 700;
-      font-family: var(--font-family-sans);
+      font-family: var(--font-family-text);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       margin: 0 0 var(--space-m) 0;
     }
   }
@@ -527,54 +530,39 @@
         }
       }
     }
-
-    .btn-quick-review,
-    .btn-quick-dismiss {
-      padding: var(--space-xxs) var(--space-s);
-      border-radius: var(--profile-radius);
-      font-size: var(--font-size-xs);
-      font-weight: 700;
-      font-family: var(--font-family-sans);
-      cursor: pointer;
-      border: 2px solid;
-      transition: all 0.2s ease;
-      @media (prefers-reduced-motion: reduce) {
-        transition: none;
-      }
-    }
-
-    .btn-quick-review {
-      background: rgba(129, 255, 255, 0.1);
-      color: var(--color-brand-mint);
-      border-color: var(--color-brand-mint);
-
-      &:hover {
-        background: rgba(129, 255, 255, 0.25);
-        transform: translateY(-1px);
-        @media (prefers-reduced-motion: reduce) {
-          transform: none;
-        }
-      }
-    }
-
-    .btn-quick-dismiss {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--color-space-text-muted);
-      border-color: var(--color-space-border);
-
-      &:hover {
-        background: rgba(255, 141, 157, 0.1);
-        color: var(--color-brand-salmon);
-        border-color: var(--color-brand-salmon);
-        transform: translateY(-1px);
-        @media (prefers-reduced-motion: reduce) {
-          transform: none;
-        }
-      }
-    }
   }
 
   // ── SHOW PAGE ────────────────────────────────────────────────────────────────
+
+  // Avatar sizing for user cells outside the index table (e.g. detail rows)
+  .detail-value .user-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+
+    img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+  }
+
+  // Muted secondary text within a detail value (e.g. "(3 days ago)").
+  .detail-meta {
+    color: var(--color-space-text-muted);
+  }
+
+  // Placeholder for an absent value (e.g. "Not provided").
+  .detail-empty {
+    color: var(--color-space-text-muted);
+    font-style: italic;
+  }
+
+  .detail-value--prewrap {
+    white-space: pre-wrap;
+  }
 
   .reports-show-header {
     margin-bottom: var(--space-xl);
@@ -596,7 +584,7 @@
     display: grid;
     grid-template-columns: 1fr 400px;
     gap: var(--space-l);
-    align-items: start;
+    align-items: stretch; // both columns share the tallest card's height
     margin-bottom: var(--space-l);
 
     @media (max-width: 900px) {
@@ -609,6 +597,22 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-l);
+
+    // Let the card fill the column so its action row can pin to the bottom.
+    > .report-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  // Pin the trailing action/status section of each card to the bottom,
+  // with breathing room above it.
+  .reports-show-left .project-link-buttons,
+  .reports-show-right .report-actions,
+  .reports-show-right .status-notice {
+    margin-top: auto;
+    padding-top: var(--space-l);
   }
 
   // Detail rows inside cards
@@ -658,7 +662,7 @@
   }
 
   .details-text-block {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(8, 6, 30, 0.5); // set-1 (#08061E) based — never pure black
     border: 2px solid var(--color-space-border);
     border-radius: var(--profile-radius);
     padding: var(--space-m);
@@ -689,50 +693,51 @@
     margin-top: var(--space-m);
     flex-wrap: wrap;
 
+    // Primary action (branding §4.3): cream highlight fill, dark text, pill.
     .btn-mark-reviewed {
       padding: var(--space-s) var(--space-l);
-      border-radius: var(--profile-radius);
+      border-radius: 999px;
       font-size: var(--font-size-s);
       font-weight: 700;
-      font-family: var(--font-family-sans);
+      font-family: var(--font-family-text);
       cursor: pointer;
-      border: 2px solid var(--color-brand-mint);
-      background: rgba(129, 255, 255, 0.1);
-      color: var(--color-brand-mint);
+      border: 2px solid var(--color-brand-highlight);
+      background: var(--color-brand-highlight);
+      color: var(--color-set-1-bg);
       transition: all 0.2s ease;
       @media (prefers-reduced-motion: reduce) {
         transition: none;
       }
 
       &:hover {
-        background: rgba(129, 255, 255, 0.25);
+        background: var(--color-brand-highlight-secondary);
+        border-color: var(--color-brand-highlight-secondary);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(129, 255, 255, 0.3);
         @media (prefers-reduced-motion: reduce) {
           transform: none;
         }
       }
     }
 
+    // Destructive action (branding §4.2): salmon outline, fills on hover, pill.
     .btn-dismiss {
       padding: var(--space-s) var(--space-l);
-      border-radius: var(--profile-radius);
+      border-radius: 999px;
       font-size: var(--font-size-s);
       font-weight: 700;
-      font-family: var(--font-family-sans);
+      font-family: var(--font-family-text);
       cursor: pointer;
-      border: 2px solid var(--color-space-border);
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--color-space-text-muted);
+      border: 2px solid var(--color-brand-salmon);
+      background: transparent;
+      color: var(--color-brand-salmon);
       transition: all 0.2s ease;
       @media (prefers-reduced-motion: reduce) {
         transition: none;
       }
 
       &:hover {
-        border-color: var(--color-brand-salmon);
-        color: var(--color-brand-salmon);
-        background: rgba(255, 141, 157, 0.1);
+        background: var(--color-brand-salmon);
+        color: var(--color-set-1-bg);
         transform: translateY(-2px);
         @media (prefers-reduced-motion: reduce) {
           transform: none;
@@ -778,9 +783,10 @@
     background: rgba(149, 219, 255, 0.15);
     color: var(--color-brand-blue);
     padding: var(--space-xs) var(--space-m);
-    border-radius: var(--profile-radius);
+    border-radius: 999px;
     font-size: var(--font-size-s);
     font-weight: 700;
+    font-family: var(--font-family-text);
     text-decoration: none;
     transition: all 0.2s ease;
     border: 1px solid rgba(149, 219, 255, 0.3);
@@ -805,6 +811,17 @@
         background: rgba(235, 183, 255, 0.22);
       }
     }
+
+    // Fraud-check tools (Billy / Joe) — peach, matching the YSWS convention.
+    &--fraud {
+      background: rgba(255, 213, 152, 0.12);
+      color: var(--color-brand-peach);
+      border-color: rgba(255, 213, 152, 0.3);
+
+      &:hover {
+        background: rgba(255, 213, 152, 0.22);
+      }
+    }
   }
 
   .deleted-project-notice {
@@ -812,7 +829,7 @@
     font-size: var(--font-size-s);
     font-style: italic;
     padding: var(--space-m);
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(8, 6, 30, 0.5); // set-1 (#08061E) based — never pure black
     border: 1px dashed var(--color-space-border);
     border-radius: var(--profile-radius);
     text-align: center;

@@ -945,9 +945,6 @@ body:has(.certification-ysws) {
 
   // Video Card
   .video-card {
-    position: relative;
-    z-index: 1;
-
     h3 {
       color: var(--color-brand-lilac);
       font-size: var(--font-size-l);
@@ -957,9 +954,6 @@ body:has(.certification-ysws) {
     }
 
     &__player {
-      position: relative;
-      z-index: 2;
-      pointer-events: auto;
       background: #000;
     }
 
@@ -2280,9 +2274,6 @@ body:has(.certification-ysws) {
       object-fit: contain;
       border-radius: var(--border-radius);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-      position: relative;
-      z-index: 1;
-      pointer-events: auto;
 
       &.hidden {
         display: none;

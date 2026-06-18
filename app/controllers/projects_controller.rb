@@ -53,6 +53,7 @@ class ProjectsController < ApplicationController
         @all_hackatime_projects = current_user.hackatime_projects
         result = current_user.try_sync_hackatime_data!
         @hackatime_times = result&.dig(:projects) || {}
+        @hackatime_token_stale = current_user.hackatime_token_stale?
 
         linked_ids = @linked_hackatime_projects.map(&:id).to_set
         taken_project_ids = @all_hackatime_projects.map(&:project_id).compact.uniq - [ @project.id ]

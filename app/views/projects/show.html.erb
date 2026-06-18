@@ -241,23 +241,34 @@
                       </div>
 
                       <div class="project-show__hackatime-dropdown" data-hackatime-link-target="dropdown" hidden>
-                        <% @hackatime_dropdown_items.reject { |i| i[:linked] }.each do |item| %>
-                          <button type="button"
-                                  class="project-show__hackatime-dropdown-item<%= " project-show__hackatime-dropdown-item--taken" if item[:taken] %>"
-                                  data-action="hackatime-link#select"
-                                  data-id="<%= item[:id] %>"
-                                  data-name="<%= item[:name] %>"
-                                  data-hours="<%= item[:hours] %>"
-                                  <%= "disabled" if item[:taken] %>>
-                            <span class="project-show__hackatime-dropdown-name"><%= item[:name] %></span>
-                            <span class="project-show__hackatime-dropdown-time"><%= format_seconds(item[:seconds]) %></span>
-                            <% if item[:taken] %>
-                              <span class="project-show__hackatime-dropdown-taken">linked to <%= item[:taken_by] %></span>
-                            <% end %>
-                          </button>
-                        <% end %>
+                        <div class="project-show__hackatime-dropdown-items">
+                          <% @hackatime_dropdown_items.reject { |i| i[:linked] }.each do |item| %>
+                            <button type="button"
+                                    class="project-show__hackatime-dropdown-item<%= " project-show__hackatime-dropdown-item--taken" if item[:taken] %>"
+                                    data-action="hackatime-link#select"
+                                    data-id="<%= item[:id] %>"
+                                    data-name="<%= item[:name] %>"
+                                    data-hours="<%= item[:hours] %>"
+                                    <%= "disabled" if item[:taken] %>>
+                              <span class="project-show__hackatime-dropdown-name"><%= item[:name] %></span>
+                              <span class="project-show__hackatime-dropdown-time"><%= format_seconds(item[:seconds]) %></span>
+                              <% if item[:taken] %>
+                                <span class="project-show__hackatime-dropdown-taken">linked to <%= item[:taken_by] %></span>
+                              <% end %>
+                            </button>
+                          <% end %>
+                        </div>
+                        <%= link_to "CAN'T FIND YOUR PROJECT? →", guide_path(:hackatime), class: "project-show__hackatime-dropdown-help", data: { turbo_frame: "_top" } %>
                       </div>
                     </div>
+                  </div>
+                <% end %>
+                <% if @hackatime_token_stale %>
+                  <div class="project-show__hackatime-stale">
+                    <span>Your Hackatime connection may be outdated — hours might be inaccurate.</span>
+                    <button type="button" class="project-show__hackatime-reconnect" onclick="document.getElementById('settings-modal').showModal()">
+                      Reconnect in settings →
+                    </button>
                   </div>
                 <% end %>
               </div>

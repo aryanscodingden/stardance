@@ -44,7 +44,7 @@
 
 <section class="report-card reports-leaderboard">
   <div class="leaderboard-header">
-    <h3>🕵️ Fraud Team Leaderboard
+    <h3>Fraud Team Leaderboard
       <small>(<%= time_range == '7_days' ? '7 days' : 'all time' %>)</small>
     </h3>
     <div class="leaderboard-controls">
@@ -61,8 +61,8 @@
         <tr>
           <th>#</th>
           <th>User</th>
-          <th title="Reviewed">✓ Reviewed</th>
-          <th title="Dismissed">✗ Dismissed</th>
+          <th title="Reviewed">Reviewed</th>
+          <th title="Dismissed">Dismissed</th>
           <th>Total</th>
         </tr>
       </thead>
@@ -70,13 +70,7 @@
         <% top_users.each_with_index do |(user_id, stats), index| %>
           <% user = users_by_id[user_id] %>
           <tr>
-            <td>
-              <% if index == 0 %>🥇
-              <% elsif index == 1 %>🥈
-              <% elsif index == 2 %>🥉
-              <% else %><%= index + 1 %>
-              <% end %>
-            </td>
+            <td><%= index + 1 %></td>
             <td>
               <% if user %>
                 <%= link_to user.display_name || user.email, admin_user_path(user) %>

@@ -14,6 +14,9 @@ class HackatimeService
         Rails.logger.error "HackatimeService authenticated/me error: #{response.status}"
         nil
       end
+    rescue Faraday::TimeoutError, Faraday::ConnectionFailed => e
+      Rails.logger.error "HackatimeService authenticated/me timeout: #{e.message}"
+      nil
     rescue => e
       Rails.logger.error "HackatimeService authenticated/me exception: #{e.message}"
       nil
@@ -23,7 +26,7 @@ class HackatimeService
       params = { features: "projects", start_date: start_date, test_param: true, no_ai_coding: false, _t: Time.now.to_i }
       params[:end_date] = end_date if end_date
 
-      response = stats_request(hackatime_uid, params, access_token: access_token)
+      response, fell_back = stats_request(hackatime_uid, params, access_token: access_token)
 
       if response.success?
         data = JSON.parse(response.body)
@@ -31,12 +34,16 @@ class HackatimeService
         {
           projects: projects.reject { |p| User::HackatimeProject::EXCLUDED_NAMES.include?(p["name"]) }
                             .to_h { |p| [ p["name"], p["total_seconds"].to_i ] },
-          banned: data.dig("trust_factor", "trust_value") == 1
+          banned: data.dig("trust_factor", "trust_value") == 1,
+          token_stale: fell_back
         }
       else
         Rails.logger.error "HackatimeService error: #{response.status} - #{response.body}"
         nil
       end
+    rescue Faraday::TimeoutError, Faraday::ConnectionFailed => e
+      Rails.logger.error "HackatimeService timeout: #{e.message}"
+      nil
     rescue => e
       Rails.logger.error "HackatimeService exception: #{e.message}"
       nil
@@ -56,15 +63,24 @@ class HackatimeService
       }
       params[:end_date] = end_date if end_date
 
-      response = stats_request(hackatime_uid, params, access_token: access_token)
+      response, _ = stats_request(hackatime_uid, params, access_token: access_token)
       Rails.logger.info(response.env.url)
 
       if response.success?
-        JSON.parse(response.body)["total_seconds"].to_i
+        data = JSON.parse(response.body)
+        seconds = data["total_seconds"]
+        if seconds.nil?
+          projects = data.dig("data", "projects") || []
+          seconds = projects.sum { |p| p["total_seconds"].to_i }
+        end
+        seconds.to_i
       else
         Rails.logger.error "HackatimeService.fetch_total_seconds_for_projects error: #{response.status} - #{response.body}"
         nil
       end
+    rescue Faraday::TimeoutError, Faraday::ConnectionFailed => e
+      Rails.logger.error "HackatimeService.fetch_total_seconds_for_projects timeout: #{e.message}"
+      nil
     rescue => e
       Rails.logger.error "HackatimeService.fetch_total_seconds_for_projects exception: #{e.message}"
       nil
@@ -92,6 +108,9 @@ class HackatimeService
         Rails.logger.error "HackatimeService fetch_api_key error: #{response.status} - #{response.body}"
         nil
       end
+    rescue Faraday::TimeoutError, Faraday::ConnectionFailed => e
+      Rails.logger.error "HackatimeService fetch_api_key timeout: #{e.message}"
+      nil
     rescue => e
       Rails.logger.error "HackatimeService fetch_api_key exception: #{e.message}"
       nil
@@ -119,6 +138,9 @@ class HackatimeService
       end
 
       all_success
+    rescue Faraday::TimeoutError, Faraday::ConnectionFailed => e
+      Rails.logger.error "HackatimeService push_heartbeats timeout: #{e.message}"
+      false
     rescue => e
       Rails.logger.error "HackatimeService push_heartbeats exception: #{e.message}"
       false
@@ -126,6 +148,8 @@ class HackatimeService
 
     private
 
+      # Returns [response, fell_back] where fell_back is true when the
+      # authenticated path failed and we used the public API instead.
       def stats_request(hackatime_uid, params, access_token: nil)
         if access_token.present?
           api_key = resolve_api_key(hackatime_uid, access_token)
@@ -133,7 +157,7 @@ class HackatimeService
             response = connection.get("users/my/stats", params) do |req|
               req.headers["Authorization"] = "Bearer #{api_key}"
             end
-            return response if response.success?
+            return [ response, false ] if response.success?
 
             Rails.cache.delete("hackatime_api_key:#{hackatime_uid}")
             fresh_key = fetch_api_key(access_token)
@@ -142,12 +166,14 @@ class HackatimeService
               response = connection.get("users/my/stats", params) do |req|
                 req.headers["Authorization"] = "Bearer #{fresh_key}"
               end
-              return response if response.success?
+              return [ response, false ] if response.success?
             end
           end
+
+          Rails.logger.warn "HackatimeService falling back to public API for uid=#{hackatime_uid} (token may be stale)"
         end
 
-        connection.get("users/#{hackatime_uid}/stats", params)
+        [ connection.get("users/#{hackatime_uid}/stats", params), access_token.present? ]
       end
 
       def resolve_api_key(hackatime_uid, access_token)
@@ -162,6 +188,8 @@ class HackatimeService
 
       def connection
         @connection ||= Faraday.new(url: "#{BASE_URL}/api/v1") do |conn|
+          conn.options.open_timeout = 10
+          conn.options.timeout = 15
           conn.headers["Content-Type"] = "application/json"
           conn.headers["Cache-Control"] = "no-cache, no-store"
           conn.headers["User-Agent"] = Rails.application.config.user_agent
@@ -172,6 +200,8 @@ class HackatimeService
       # Heartbeats live under a different path prefix than the stats API.
       def heartbeat_connection
         @heartbeat_connection ||= Faraday.new(url: "#{BASE_URL}/api/hackatime/v1") do |conn|
+          conn.options.open_timeout = 10
+          conn.options.timeout = 15
           conn.headers["Content-Type"] = "application/json"
           conn.headers["User-Agent"] = Rails.application.config.user_agent
         end
