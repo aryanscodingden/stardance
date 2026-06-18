@@ -86,6 +86,16 @@
         <% end %>
       </section>
 
+      <% if @review.project.update_description.present? %>
+        <!-- Update Description Card -->
+        <section class="review-card update-description-card">
+          <h3>Project Update Description</h3>
+          <div class="update-description-content">
+            <pre><%= @review.project.update_description %></pre>
+          </div>
+        </section>
+      <% end %>
+
       <!-- Time Stats Section -->
       <section class="review-card stats-card">
         <h3>Time Stats</h3>
@@ -147,7 +157,7 @@
             <li>Looks like over 30% ai - even if it is declared</li>
             <li>Looks like it isn't shipped (shipwrights messed up)</li>
             <li>last project edit was before the event launch</li>
-            <li>project was worked on before event, and not marked as Project Update: in description (return to shipwrights)</li>
+            <li>project was worked on before event, and not marked as Project Update (return to shipwrights)</li>
           </ul>
         </div>
       </section>

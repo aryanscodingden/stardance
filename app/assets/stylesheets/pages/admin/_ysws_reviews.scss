@@ -1672,6 +1672,35 @@ body:has(.certification-ysws) {
     }
   }
 
+  // Update Description Card
+  .update-description-card {
+    border: 2px solid var(--color-brand-yellow);
+
+    h3 {
+      color: var(--color-brand-yellow);
+      font-size: var(--font-size-l);
+      font-weight: 700;
+      margin-bottom: var(--space-m);
+      font-family: var(--font-family-sans);
+    }
+
+    .update-description-content {
+      background: rgba(0, 0, 0, 0.3);
+      border: 2px solid var(--color-space-border);
+      border-radius: var(--profile-radius);
+      padding: var(--space-m);
+
+      pre {
+        color: var(--color-space-text-muted);
+        font-size: var(--font-size-s);
+        font-family: var(--font-family-sans);
+        white-space: pre-wrap;
+        margin: 0;
+        line-height: 1.6;
+      }
+    }
+  }
+
   // Placeholder Styles
   .placeholder-text {
     color: var(--color-space-text-muted);
