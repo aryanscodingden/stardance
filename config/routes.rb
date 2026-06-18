@@ -746,7 +746,17 @@ Rails.application.routes.draw do
       resource  :step_ordering,  only: [ :create ],                  controller: "missions/step_orderings"
       resources :prizes,         only: [ :create, :update, :destroy ], controller: "missions/prizes"
       resources :shop_unlocks,   only: [ :create, :destroy ],          controller: "missions/shop_unlocks"
+      resources :submissions,    only: [ :index, :show, :update ],     controller: "missions/submissions" do
+        collection do
+          get :next
+        end
+        member do
+          post :claim
+          post :undo
+        end
+      end
     end
+    get "mission_reviews", to: "missions/submissions#overview", as: :mission_reviews
 
     namespace :certification do
       # Reviewer stats & payout requests

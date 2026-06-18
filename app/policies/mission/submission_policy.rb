@@ -9,7 +9,7 @@ class Mission::SubmissionPolicy < ApplicationPolicy
   end
 
   def index?
-    return true if user.blank? # show empty list / login prompt
+    return false unless user.present?
     user.admin? || user.has_role?(:helper) ||
       user.has_role?(:mission_reviewer) ||
       user.mission_memberships.exists?
@@ -35,6 +35,8 @@ class Mission::SubmissionPolicy < ApplicationPolicy
   alias_method :approve?, :review?
   alias_method :reject?, :review?
   alias_method :undo?, :review?
+  alias_method :update?, :review?
+  alias_method :claim?, :review?
 
   def redeem?
     return false unless user.present?
