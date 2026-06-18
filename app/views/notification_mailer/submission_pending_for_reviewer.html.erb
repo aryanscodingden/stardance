@@ -10,7 +10,7 @@
   <% if builder && project_title.present? %>
     <strong>@<%= builder.display_name %></strong> just submitted <strong><%= project_title %></strong><% if mission_name %> for <strong><%= mission_name %></strong><% end %> and needs a reviewer.
   <% elsif builder %>
-    <strong>@<%= builder.display_name %></strong> just submitted a ship event<% if mission_name %> for <strong><%= mission_name %></strong><% end %> and needs a reviewer.
+    <strong>@<%= builder.display_name %></strong> just submitted a project<% if mission_name %> for <strong><%= mission_name %></strong><% end %> and needs a reviewer.
   <% else %>
     A new submission<% if mission_name %> for <strong><%= mission_name %></strong><% end %> is waiting for a reviewer.
   <% end %>
