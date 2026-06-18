@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_15_133745) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_17_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -175,6 +175,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_133745) do
     t.datetime "decided_at"
     t.integer "discount_stardust_awarded"
     t.text "feedback"
+    t.string "hcb_grant_hashid"
     t.text "internal_reason"
     t.integer "lock_version", default: 0, null: false
     t.bigint "project_id", null: false
@@ -263,6 +264,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_133745) do
     t.index ["rolled_on", "value"], name: "index_daily_rolls_on_rolled_on_and_value"
     t.index ["user_id", "rolled_on"], name: "index_daily_rolls_on_user_id_and_rolled_on", unique: true
     t.index ["user_id"], name: "index_daily_rolls_on_user_id"
+  end
+
+  create_table "devlog_lookout_sessions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "devlog_id", null: false
+    t.bigint "lookout_session_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["devlog_id", "lookout_session_id"], name: "idx_devlog_lookout_sessions_unique", unique: true
+    t.index ["devlog_id"], name: "index_devlog_lookout_sessions_on_devlog_id"
+    t.index ["lookout_session_id"], name: "index_devlog_lookout_sessions_on_lookout_session_id"
   end
 
   create_table "devlog_versions", force: :cascade do |t|
@@ -366,7 +377,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_133745) do
 
   create_table "lookout_sessions", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.bigint "devlog_id"
     t.integer "duration_seconds", default: 0
     t.string "mode"
     t.bigint "project_id", null: false
@@ -377,7 +387,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_133745) do
     t.string "token", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
-    t.index ["devlog_id"], name: "index_lookout_sessions_on_devlog_id"
     t.index ["project_id", "status"], name: "index_lookout_sessions_on_project_id_and_status"
     t.index ["project_id"], name: "index_lookout_sessions_on_project_id"
     t.index ["token"], name: "index_lookout_sessions_on_token", unique: true
@@ -403,7 +412,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_133745) do
     t.bigint "mission_id", null: false
     t.integer "position", default: 0, null: false
     t.datetime "updated_at", null: false
-    t.index "mission_id, lower((language)::text)", name: "index_mission_guide_variants_unique_language", unique: true
+    t.index ["mission_id", "language"], name: "index_mission_guide_variants_unique_language", unique: true
     t.index ["mission_id"], name: "index_mission_guide_variants_on_mission_id"
   end
 
@@ -471,7 +480,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_133745) do
     t.string "language", null: false
     t.bigint "mission_step_id", null: false
     t.datetime "updated_at", null: false
-    t.index "mission_step_id, lower((language)::text)", name: "index_mission_step_bodies_unique_language", unique: true
+    t.index ["mission_step_id", "language"], name: "index_mission_step_bodies_unique_language", unique: true
     t.index ["mission_step_id"], name: "index_mission_step_bodies_on_mission_step_id"
   end
 
@@ -1310,12 +1319,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_133745) do
     t.string "guest_email"
     t.boolean "has_gotten_free_stickers", default: false
     t.boolean "has_pending_achievements", default: false, null: false
+    t.boolean "has_presentable_hardware_project", default: false, null: false
     t.string "hcb_email"
     t.string "interests", default: [], array: true
     t.text "internal_notes"
     t.string "ip_address"
     t.string "last_name"
-    t.string "manual_outpost_ticket_approval"
     t.boolean "manual_ysws_override"
     t.boolean "mission_review_notifications", default: true, null: false
     t.datetime "onboarded_at"
@@ -1343,7 +1352,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_133745) do
     t.index ["approx_balance"], name: "index_users_on_approx_balance", order: :desc
     t.index ["approx_total_earned"], name: "index_users_on_approx_total_earned", order: :desc
     t.index ["email"], name: "index_users_on_email"
-    t.index ["guest_email"], name: "index_users_on_guest_email"
     t.index ["onboarded_at"], name: "index_users_on_onboarded_at"
     t.index ["session_token"], name: "index_users_on_session_token", unique: true
     t.index ["slack_id"], name: "index_users_on_slack_id", unique: true
@@ -1451,6 +1459,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_133745) do
   add_foreign_key "certification_ysws_reviews", "users", column: "spotchecked_by_id"
   add_foreign_key "comments", "users"
   add_foreign_key "daily_rolls", "users"
+  add_foreign_key "devlog_lookout_sessions", "lookout_sessions"
+  add_foreign_key "devlog_lookout_sessions", "post_devlogs", column: "devlog_id"
   add_foreign_key "devlog_versions", "post_devlogs", column: "devlog_id"
   add_foreign_key "devlog_versions", "users"
   add_foreign_key "follows", "users", column: "followed_id"
@@ -1460,7 +1470,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_133745) do
   add_foreign_key "fulfillment_payout_runs", "users", column: "approved_by_user_id"
   add_foreign_key "ledger_entries", "users"
   add_foreign_key "likes", "users"
-  add_foreign_key "lookout_sessions", "post_devlogs", column: "devlog_id"
   add_foreign_key "lookout_sessions", "projects"
   add_foreign_key "lookout_sessions", "users"
   add_foreign_key "messages", "users"
@@ -1529,7 +1538,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_133745) do
   add_foreign_key "shop_item_sources", "shop_items"
   add_foreign_key "shop_item_sources", "shop_sources"
   add_foreign_key "shop_items", "users"
-  add_foreign_key "shop_items", "users", column: "created_by_user_id", on_delete: :nullify, validate: false
+  add_foreign_key "shop_items", "users", column: "created_by_user_id", on_delete: :nullify
   add_foreign_key "shop_items", "users", column: "default_assigned_user_id", on_delete: :nullify
   add_foreign_key "shop_order_modifier_selections", "shop_item_modifiers"
   add_foreign_key "shop_order_modifier_selections", "shop_orders"

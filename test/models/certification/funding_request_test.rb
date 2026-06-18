@@ -10,6 +10,7 @@
 #  decided_at                :datetime
 #  discount_stardust_awarded :integer
 #  feedback                  :text
+#  hcb_grant_hashid          :string
 #  internal_reason           :text
 #  lock_version              :integer          default(0), not null
 #  requested_amount_cents    :integer          not null
