@@ -22,7 +22,7 @@
             <div class="detail-item">
               <span class="detail-key">Title</span>
               <span class="detail-value">
-                <%= link_to @report.project.title, project_path(@report.project) %>
+                <%= link_to @report.project.title, admin_project_path(@report.project) %>
               </span>
             </div>
             <div class="detail-item">
@@ -67,7 +67,7 @@
           </div>
 
           <div class="project-link-buttons">
-            <%= link_to "View Project →", project_path(@report.project), class: "project-link-btn project-link-btn--navigate" %>
+            <%= link_to "View Project →", admin_project_path(@report.project), class: "project-link-btn project-link-btn--navigate" %>
             <% if owner %>
               <%= link_to "View Owner →", admin_user_path(owner), class: "project-link-btn project-link-btn--navigate" %>
             <% end %>

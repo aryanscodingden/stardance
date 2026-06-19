@@ -7,10 +7,12 @@ module User::HackatimeSync
 
   def hackatime_token_stale?
     identity = hackatime_identity
-    return false unless identity&.access_token.present?
+    return false if identity&.access_token.blank?
 
     sync = try_sync_hackatime_data!
-    sync&.dig(:token_stale) || Rails.cache.read("hackatime_api_key:#{identity.uid}").nil?
+    return false unless sync
+
+    sync[:token_stale] || Rails.cache.read("hackatime_api_key:#{identity.uid}").nil?
   end
 
   def has_logged_one_hour?

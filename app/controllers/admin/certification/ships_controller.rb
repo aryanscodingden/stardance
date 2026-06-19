@@ -2,7 +2,6 @@ class Admin::Certification::ShipsController < Admin::Certification::ApplicationC
   before_action :release_other_claims, only: [ :next ]
   before_action :set_ship, only: [ :show, :update, :set_project_type ]
   before_action :set_submitter_context, only: [ :show, :update ]
-  before_action :set_ship_event, only: [ :show, :update ]
   before_action :set_body_class, only: [ :index, :show, :update, :logs ]
 
   def index
@@ -71,19 +70,27 @@ class Admin::Certification::ShipsController < Admin::Certification::ApplicationC
 
   def set_project_type
     authorize @ship
-    type = params[:project_type].presence_in(Project::USER_SELECTABLE_TYPES)
-    @ship.project.update!(project_type: type) if type
-    redirect_to admin_certification_ship_path(@ship), notice: type && "Project type updated."
+    type = params[:project_type].presence_in(Project::AVAILABLE_CATEGORIES)
+    if type
+      @ship.project.update!(project_type: type)
+      redirect_to admin_certification_ship_path(@ship), notice: "Project type updated."
+    else
+      redirect_to admin_certification_ship_path(@ship), alert: "Invalid project type."
+    end
   end
 
   def update
     authorize @ship
+    return redirect_to admin_certification_ship_path(@ship), alert: "Ship is no longer pending." unless @ship.pending?
+
+    @ship.reviewer = current_user
     if @ship.update(ship_params)
       verb = @ship.approved? ? "Approved" : "Returned"
       count = ::Certification::Ship.reviewed_today(current_user)
       redirect_to admin_certification_ships_path,
-                  notice: "#{verb} “#{@ship.project.title}.” That's #{count} reviewed today. Keep going!"
+                  notice: "#{verb} \"#{@ship.project.title}.\" That's #{count} reviewed today. Keep going!"
     else
+      @reviewed_today = ::Certification::Ship.reviewed_today(current_user)
       render :show, status: :unprocessable_entity
     end
   end
@@ -115,14 +122,6 @@ class Admin::Certification::ShipsController < Admin::Certification::ApplicationC
 
   def set_ship
     @ship = ::Certification::Ship.find(params[:id])
-  end
-
-  # The screenshot(s) the submitter attached to their ship event. Loaded for
-  # update too so the re-rendered show page keeps them when the verdict form
-  # fails validation. The certification review tracks the project's most recent
-  # ship event (mirrors Certification::Ship#apply_verdict_to_project!).
-  def set_ship_event
-    @ship_event = @ship.project.last_ship_event
   end
 
   # The .app-layout wrapper reserves the sidebar gutter itself; this body class
