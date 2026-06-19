@@ -70,7 +70,7 @@ class Admin::Certification::ShipsController < Admin::Certification::ApplicationC
 
   def set_project_type
     authorize @ship
-    type = params[:project_type].presence_in(Project::USER_SELECTABLE_TYPES)
+    type = params[:project_type].presence_in(Project::AVAILABLE_CATEGORIES)
     if type
       @ship.project.update!(project_type: type)
       redirect_to admin_certification_ship_path(@ship), notice: "Project type updated."

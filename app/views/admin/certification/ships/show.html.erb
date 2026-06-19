@@ -113,7 +113,7 @@
               <%= form_with url: set_project_type_admin_certification_ship_path(@ship), method: :patch do %>
                 <%= select_tag :project_type,
                       options_for_select(
-                        [["Unknown", nil, { disabled: true, hidden: @ship.project.project_type.present? }], *Project::USER_SELECTABLE_TYPES.map { |t| [t, t] }],
+                        [["Unknown", nil, { disabled: true, hidden: @ship.project.project_type.present? }], *Project::AVAILABLE_CATEGORIES.map { |t| [t, t] }],
                         @ship.project.project_type
                       ),
                       onchange: "this.form.requestSubmit()",
