@@ -218,7 +218,8 @@ class ShopItem < ApplicationRecord
     "ShopItem::SpecialFulfillmentItem",
     "ShopItem::HackClubberItem",
     "ShopItem::FreeStickers",
-    "ShopItem::SillyItemType"
+    "ShopItem::SillyItemType",
+    "ShopItem::OutpostTicket"
   ].freeze
 
   scope :shown_in_carousel, -> { where(show_in_carousel: true) }
