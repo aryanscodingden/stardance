@@ -1719,13 +1719,15 @@
   &__textarea {
     background: transparent;
     border: none;
+    box-sizing: border-box;
     color: var(--color-space-text);
-    flex: 1;
+    display: block;
     font-family: inherit;
     font-size: 1.2rem;
     min-height: 120px;
     padding: 4px 0;
     resize: none;
+    width: 100%;
 
     &::placeholder {
       color: var(--color-space-text-muted);
