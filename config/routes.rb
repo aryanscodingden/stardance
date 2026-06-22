@@ -521,6 +521,8 @@ Rails.application.routes.draw do
   get "home", to: "home#index"
   resources :feed_events, only: [ :create ]
   resource :daily_roll, only: [ :create ]
+  patch "streaks/timezone", to: "streaks#update_timezone"
+  get "streaks/month", to: "streaks#month", as: :streak_month
   get "rng", to: "daily_rolls#leaderboard", as: :rng
   get "rng/history", to: "daily_rolls#history", as: :rng_history
   delete "daily_roll/clear", to: "daily_rolls#clear", as: :clear_daily_roll if Rails.env.development? || Rails.env.test?

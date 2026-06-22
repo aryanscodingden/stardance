@@ -1,0 +1,105 @@
+# == Schema Information
+#
+# Table name: streak_activities
+#
+#  id            :bigint           not null, primary key
+#  activity_date :date             not null
+#  coded_seconds :integer          default(0), not null
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  user_id       :bigint           not null
+#
+# Indexes
+#
+#  index_streak_activities_on_user_id                    (user_id)
+#  index_streak_activities_on_user_id_and_activity_date  (user_id,activity_date) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (user_id => users.id)
+#
+require "test_helper"
+
+class StreakActivityTest < ActiveSupport::TestCase
+  setup do
+    @user = users(:three)
+    @user.update!(timezone: "America/New_York")
+  end
+
+  teardown do
+    @user.streak_activities.destroy_all
+    @user.update!(timezone: nil)
+  end
+
+  test "streak_date_for shifts by 2 hours" do
+    tz = "America/New_York"
+    assert_equal Date.new(2026, 6, 21), StreakActivity.streak_date_for(Time.zone.parse("2026-06-22 05:30:00 UTC"), tz)
+    assert_equal Date.new(2026, 6, 22), StreakActivity.streak_date_for(Time.zone.parse("2026-06-22 06:30:00 UTC"), tz)
+  end
+
+  test "streak_date_for defaults to UTC when timezone is nil" do
+    assert_equal Date.new(2026, 6, 21), StreakActivity.streak_date_for(Time.zone.parse("2026-06-22 01:30:00 UTC"), nil)
+  end
+
+  test "completed?" do
+    assert StreakActivity.new(coded_seconds: 300).completed?
+    assert_not StreakActivity.new(coded_seconds: 299).completed?
+  end
+
+  test "current_streak with consecutive days" do
+    today = @user.streak_today_date
+    (-3..0).each { |d| StreakActivity.create!(user: @user, activity_date: today + d.days, coded_seconds: 400) }
+    assert_equal 4, @user.current_streak
+  end
+
+  test "current_streak breaks on gap" do
+    today = @user.streak_today_date
+    StreakActivity.create!(user: @user, activity_date: today, coded_seconds: 400)
+    StreakActivity.create!(user: @user, activity_date: today - 1.day, coded_seconds: 400)
+    StreakActivity.create!(user: @user, activity_date: today - 3.days, coded_seconds: 400)
+    assert_equal 2, @user.current_streak
+  end
+
+  test "current_streak counts from yesterday when today not completed" do
+    today = @user.streak_today_date
+    StreakActivity.create!(user: @user, activity_date: today, coded_seconds: 100)
+    StreakActivity.create!(user: @user, activity_date: today - 1.day, coded_seconds: 400)
+    StreakActivity.create!(user: @user, activity_date: today - 2.days, coded_seconds: 400)
+    assert_equal 2, @user.current_streak
+  end
+
+  test "current_streak is zero with no activities" do
+    assert_equal 0, @user.current_streak
+  end
+
+  test "longest_streak" do
+    today = @user.streak_today_date
+    # 3-day run, gap, 5-day run
+    (-2..0).each { |d| StreakActivity.create!(user: @user, activity_date: today + d.days, coded_seconds: 400) }
+    (-8..-4).each { |d| StreakActivity.create!(user: @user, activity_date: today + d.days, coded_seconds: 400) }
+    assert_equal 5, @user.longest_streak
+  end
+
+  test "streak_week_activities returns 7 days starting Sunday" do
+    week = @user.streak_week_activities
+    assert_equal 7, week.length
+    assert_equal "S", week.first[:day_letter]
+    assert_equal "S", week.last[:day_letter]
+  end
+
+  test "streak_week_activities marks today" do
+    today_entry = @user.streak_week_activities.find { |d| d[:today] }
+    assert today_entry
+    assert_equal @user.streak_today_date, today_entry[:date]
+  end
+
+  test "streak_month_calendar returns full grid with streak bars" do
+    today = @user.streak_today_date
+    (-2..0).each { |d| StreakActivity.create!(user: @user, activity_date: today + d.days, coded_seconds: 400) }
+
+    cal = @user.streak_month_calendar(today.year, today.month)
+    assert cal.length >= 28
+    assert cal.any? { |d| d[:completed] }
+    assert cal.any? { |d| d[:streak_left] || d[:streak_right] }
+  end
+end

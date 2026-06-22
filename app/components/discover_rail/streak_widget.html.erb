@@ -1,0 +1,94 @@
+<section class="rail-widget streak-widget"
+         data-controller="streak"
+         data-streak-next-day-value="<%= next_day_at_iso %>"
+         data-streak-timezone-value="<%= user_timezone %>"
+         data-streak-month-value="<%= user.streak_today_date.month %>"
+         data-streak-year-value="<%= user.streak_today_date.year %>"
+         data-streak-month-url-value="<%= helpers.streak_month_path %>">
+  <div class="streak-widget__header">
+    <%= image_tag "streak/comet.svg", class: "streak-widget__comet", alt: "" %>
+    <div class="streak-widget__header-text">
+      <h3 class="streak-widget__title">
+        <% if ready? && streak_count > 0 %>
+          <%= streak_count %> DAY STREAK
+        <% else %>
+          STREAKS
+        <% end %>
+      </h3>
+      <% if ready? %>
+        <span class="streak-widget__countdown-inline">
+          New day in <span data-streak-target="countdown">--:--:--</span>
+        </span>
+      <% end %>
+    </div>
+  </div>
+
+  <% if setup_needed? %>
+    <div class="streak-widget__setup">
+      <p class="streak-widget__setup-text">Connect Hackatime to start tracking your coding streaks.</p>
+      <%= button_to "/auth/hackatime",
+            method: :post,
+            class: "action-btn action-btn--primary action-btn--small streak-widget__setup-btn" do %>
+        Connect Hackatime
+      <% end %>
+    </div>
+  <% elsif linking_needed? %>
+    <div class="streak-widget__setup">
+      <p class="streak-widget__setup-text">Link a Hackatime project to your Stardance project to start earning streaks.</p>
+      <p class="streak-widget__setup-hint">Go to your project page and link a Hackatime project in the hackpad.</p>
+    </div>
+  <% else %>
+    <%# ── Compact week view (default) ── %>
+    <div class="streak-widget__week" data-streak-target="weekView">
+      <% week_days.each do |day| %>
+        <div class="streak-widget__day <%= "streak-widget__day--today" if day[:today] %>"
+             <% if !day[:future] && day[:coded_seconds] > 0 %>
+               data-controller="tooltip"
+               data-tooltip-message-value="<%= day[:coded_seconds] / 60 %> minutes"
+             <% end %>>
+          <% if day[:completed] %>
+            <%= image_tag "streak/star_filled.svg", class: "streak-widget__star-img", alt: "Completed" %>
+          <% else %>
+            <%= image_tag "streak/star_empty.svg", class: "streak-widget__star-img", alt: "Incomplete" %>
+          <% end %>
+          <span class="streak-widget__day-label"><%= day[:day_letter] %></span>
+        </div>
+      <% end %>
+    </div>
+
+    <%# ── Expanded month calendar (hidden by default) ── %>
+    <div class="streak-widget__calendar" data-streak-target="calendarView" hidden>
+      <div data-streak-target="calendarContent">
+        <% cal_date = user.streak_today_date.beginning_of_month %>
+        <%= render partial: "streaks/month_grid",
+              locals: { date: cal_date,
+                        calendar_days: calendar_days,
+                        show_next: false,
+                        show_prev: cal_date > Date.new(2026, 6, 1) } %>
+      </div>
+    </div>
+
+    <div class="streak-widget__today">
+      <span class="streak-widget__progress-label"
+            data-controller="tooltip"
+            data-tooltip-message-value="Code 5 min/day on a Hackatime project linked to Stardance. No devlog needed.">
+        <% if today_completed? %>
+          ✓ <%= goal_minutes %> / <%= goal_minutes %> minutes today
+        <% else %>
+          <%= today_coded_minutes %> / <%= goal_minutes %> minutes today
+        <% end %>
+      </span>
+      <% unless today_completed? %>
+        <div class="streak-widget__progress-bar">
+          <div class="streak-widget__progress-fill"
+               style="width: <%= [ (today_coded_minutes.to_f / goal_minutes * 100), 100 ].min %>%"></div>
+        </div>
+      <% end %>
+    </div>
+
+    <button type="button" class="streak-widget__toggle" data-action="streak#toggleCalendar" data-streak-target="toggleBtn">
+      <span data-streak-target="toggleText">View calendar</span>
+      <span class="streak-widget__toggle-arrow" data-streak-target="toggleArrow">▼</span>
+    </button>
+  <% end %>
+</section>

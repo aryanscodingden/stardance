@@ -42,6 +42,7 @@
 #  shop_tutorial_started_at         :datetime
 #  synced_at                        :datetime
 #  things_dismissed                 :string           default([]), not null, is an Array
+#  timezone                         :string
 #  user_agent                       :string
 #  user_ref                         :string
 #  verification_checked_at          :datetime
