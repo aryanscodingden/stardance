@@ -174,6 +174,9 @@ module ApplicationHelper
       counts = ActiveUserTracker.counts
       "#{counts[:signed_in]} signed in, #{counts[:anonymous]} visitors"
     end
+  rescue RedisClient::ReadTimeoutError, Redis::TimeoutError, Redis::CannotConnectError => e
+    Rails.logger.warn("ActiveUserTracker: #{e.class} - #{e.message}")
+    "unavailable"
   end
 
   private
