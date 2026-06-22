@@ -34,16 +34,16 @@ application.register(
   Certification__ScreenshotCheckController,
 );
 
-import Certification__VideoDropController from "./certification/video_drop_controller";
-application.register(
-  "certification--video-drop",
-  Certification__VideoDropController,
-);
-
 import Certification__Ships__MonitorChartController from "./certification/ships/monitor_chart_controller";
 application.register(
   "certification--ships--monitor-chart",
   Certification__Ships__MonitorChartController,
+);
+
+import Certification__VideoDropController from "./certification/video_drop_controller";
+application.register(
+  "certification--video-drop",
+  Certification__VideoDropController,
 );
 
 import Certification__Ysws__CompleteReviewController from "./certification/ysws/complete_review_controller";
@@ -303,6 +303,9 @@ application.register("sortable", SortableController);
 
 import StarImageInputController from "./star_image_input_controller";
 application.register("star-image-input", StarImageInputController);
+
+import StreakController from "./streak_controller";
+application.register("streak", StreakController);
 
 import SubmitOnMetaEnterController from "./submit_on_meta_enter_controller";
 application.register("submit-on-meta-enter", SubmitOnMetaEnterController);

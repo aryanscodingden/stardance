@@ -42,6 +42,7 @@
 #  shop_tutorial_started_at         :datetime
 #  synced_at                        :datetime
 #  things_dismissed                 :string           default([]), not null, is an Array
+#  timezone                         :string
 #  user_agent                       :string
 #  user_ref                         :string
 #  verification_checked_at          :datetime
@@ -237,6 +238,7 @@ class User < ApplicationRecord
   include User::Profile
   include User::Preferences
   include User::UsernameBloomSync
+  include User::Streakable
 
   # Tracks platform signups/verifications for the raffle referral program
   # (no-ops unless the signup carried a raffle referral code). See the engine.

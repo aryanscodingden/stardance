@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_19_200900) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_22_180819) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -1213,6 +1213,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_19_200900) do
     t.index ["payout_given_by_id"], name: "index_show_and_tell_payout_records_on_payout_given_by_id"
   end
 
+  create_table "streak_activities", force: :cascade do |t|
+    t.date "activity_date", null: false
+    t.integer "coded_seconds", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "activity_date"], name: "index_streak_activities_on_user_id_and_activity_date", unique: true
+    t.index ["user_id"], name: "index_streak_activities_on_user_id"
+  end
+
   create_table "support_vibes", force: :cascade do |t|
     t.jsonb "concern_message_links"
     t.jsonb "concern_messages"
@@ -1347,6 +1357,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_19_200900) do
     t.string "slack_id"
     t.datetime "synced_at"
     t.string "things_dismissed", default: [], null: false, array: true
+    t.string "timezone"
     t.datetime "updated_at", null: false
     t.string "user_agent"
     t.string "user_ref"
@@ -1566,6 +1577,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_19_200900) do
   add_foreign_key "show_and_tell_attendances", "users"
   add_foreign_key "show_and_tell_attendances", "users", column: "payout_given_by_id"
   add_foreign_key "show_and_tell_payout_records", "users", column: "payout_given_by_id"
+  add_foreign_key "streak_activities", "users"
   add_foreign_key "user_achievements", "users"
   add_foreign_key "user_hackatime_projects", "projects"
   add_foreign_key "user_hackatime_projects", "users"
