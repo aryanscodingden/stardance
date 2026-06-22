@@ -1,3 +1,5 @@
+# you can check this locally with `uvx check-jsonschema --builtin-schema vendor.dependabot .github/dependabot.yml`
+
 version: 2
 updates:
 - package-ecosystem: bundler
@@ -5,8 +7,20 @@ updates:
   schedule:
     interval: daily
   open-pull-requests-limit: 10
+  cooldown:
+    default-days: 7
+    semver-major-days: 14
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  cooldown:
+    default-days: 14
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
     interval: daily
   open-pull-requests-limit: 10
+  cooldown:
+    default-days: 7

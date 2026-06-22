@@ -1,0 +1,16 @@
+<%# A devlog rendered as it appears nested inside a quote repost: the
+    "repost-preview" theme with no action footer. Shared by the timeline
+    quote-repost card and the quote-repost composer's preview so the embedded
+    post stays visually identical in both. %>
+<%= render Posts::CardComponent.new(
+      post: post,
+      current_user: current_user,
+      theme: :"repost-preview",
+      compact: true,
+      show_likes: false,
+      show_comments: false,
+      show_reposts: false,
+      show_actions: false,
+      track_engagement: track_engagement,
+      show_views: show_views
+    ) %>

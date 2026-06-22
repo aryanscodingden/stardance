@@ -1,0 +1,178 @@
+<%#
+  Renders a single devlog within a YSWS review.
+
+  Locals:
+    devlog_review   - Certification::Devlog to render
+    frozen          - when true, the review decision panel is read-only: no
+                      Stimulus controller is attached and every control is
+                      disabled. Used for devlogs belonging to earlier reviews.
+    sidebar_trigger - when true, this item triggers the details sidebar in
+                      popup mode (only the first item on the page should).
+
+  Relies on the page-level @repo_info and @devlog_commits for the git graph.
+%>
+<% frozen ||= false %>
+<% sidebar_trigger ||= false %>
+<div class="devlog-item<%= " devlog-item--frozen" if frozen %>"
+     <% unless frozen %>
+       data-controller="certification--ysws--devlog-review"
+       data-certification--ysws--devlog-review-id-value="<%= devlog_review.id %>"
+       data-certification--ysws--devlog-review-original-minutes-value="<%= devlog_review.original_minutes || 0 %>"
+       data-certification--ysws--devlog-review-status-value="<%= devlog_review.status %>"
+     <% end %>
+     <%= 'data-certification--ysws--review-sidebar-target="trigger"'.html_safe if sidebar_trigger %>>
+  <div class="devlog-main">
+    <div class="devlog-header-row">
+      <span class="devlog-id">Devlog #<%= devlog_review.post_devlog.id %></span>
+      <% if devlog_review.approved? %>
+        <span class="devlog-status status-approved">Approved</span>
+      <% elsif devlog_review.rejected? %>
+        <span class="devlog-status status-rejected">Rejected</span>
+      <% end %>
+      <% if frozen %>
+        <span class="devlog-status status-frozen" title="Reviewed in an earlier review">Locked</span>
+      <% end %>
+    </div>
+
+    <% if devlog_review.post_devlog.body.present? %>
+      <p class="devlog-desc"><%= devlog_review.post_devlog.body %></p>
+    <% else %>
+      <p class="devlog-desc empty-body-warning">body was empty, contact @AVD, this shouldn't happen</p>
+    <% end %>
+
+    <div class="devlog-media-section">
+      <div class="media-label">Devlog Media (<%= devlog_review.post_devlog.attachments.size %>)</div>
+      <% if devlog_review.post_devlog.attachments.any? %>
+        <div class="media-grid">
+          <% devlog_review.post_devlog.attachments.each do |attachment| %>
+            <% if attachment.video? %>
+              <a href="<%= rails_storage_redirect_path(attachment) %>" class="media-item video-item" data-action="click->certification--ysws--media-viewer#open">
+                <video class="media-thumbnail" muted>
+                  <source src="<%= rails_storage_redirect_path(attachment) %>" type="<%= attachment.content_type %>">
+                </video>
+                <div class="media-type-badge">Video</div>
+              </a>
+            <% else %>
+              <a href="<%= url_for(attachment) %>" class="media-item image-item" data-action="click->certification--ysws--media-viewer#open">
+                <%= image_tag attachment.variant(:thumb), class: "media-thumbnail", alt: "Devlog attachment" %>
+              </a>
+            <% end %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="media-placeholder">
+          <div class="placeholder-text">No media attached</div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="devlog-time">
+      Original Time:
+      <span class="time-value"><%= ((devlog_review.original_minutes || 0) / 60.0).round(1) %> hrs</span>
+      <em>(<%= devlog_review.original_minutes || 0 %> minutes)</em>
+    </div>
+
+    <div class="devlog-git-section">
+      <%
+        dl_commits = @devlog_commits[devlog_review.post_devlog_id] || []
+        first_commit, last_commit = dl_commits.minmax_by { |c| c[:authored_at] || Time.at(0) }
+        compare_url = if first_commit && last_commit && first_commit != last_commit
+          first_sha = first_commit[:sha]
+          last_sha  = last_commit[:sha]
+          repo_base = @review.project.repo_url.to_s.chomp("/")
+          if @repo_info&.dig(:platform) == "github"
+            "#{repo_base}/compare/#{first_sha}...#{last_sha}"
+          elsif @repo_info&.dig(:platform)&.include?("gitlab")
+            "#{repo_base}/-/compare/#{first_sha}...#{last_sha}"
+          end
+        end
+      %>
+      <div class="git-label">
+        <% if compare_url %>
+          <%= link_to "Git Activity", compare_url, target: "_blank", rel: "noopener noreferrer" %>
+        <% else %>
+          Git Activity
+        <% end %>
+      </div>
+      <%= Certification::CommitGraphBuilder.new(dl_commits).svg %>
+    </div>
+  </div>
+
+  <!-- Review Decision Panel -->
+  <div class="devlog-review-panel<%= " #{devlog_review.status}" if frozen && devlog_review.reviewed? %>"
+       <%= 'data-certification--ysws--devlog-review-target="panel"'.html_safe unless frozen %>>
+    <div class="panel-title">Review Decision</div>
+
+    <div class="panel-section">
+      <div class="panel-label">Status:</div>
+      <div class="status-buttons">
+        <button class="status-btn btn-approve<%= " active" if frozen && devlog_review.approved? %>"
+                <% unless frozen %>
+                  data-certification--ysws--devlog-review-target="approveButton"
+                  data-action="click->certification--ysws--devlog-review#approve"
+                <% end %>
+                <%= "disabled" if frozen %>>
+          ✓ Approve
+        </button>
+        <button class="status-btn btn-reject<%= " active" if frozen && devlog_review.rejected? %>"
+                <% unless frozen %>
+                  data-certification--ysws--devlog-review-target="rejectButton"
+                  data-action="click->certification--ysws--devlog-review#reject"
+                <% end %>
+                <%= "disabled" if frozen %>>
+          ✗ Reject
+        </button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Approved Minutes:</div>
+      <div class="minutes-input-group">
+        <input type="number"
+               value="<%= devlog_review.approved_minutes || devlog_review.original_minutes || 0 %>"
+               class="minutes-input"
+               <% unless frozen %>
+                 data-certification--ysws--devlog-review-target="minutesInput"
+                 data-action="input->certification--ysws--devlog-review#updateMinutes"
+               <% end %>
+               min="0"
+               autocomplete="off"
+               <%= "disabled" if frozen %>>
+        <span class="minutes-label">minutes</span>
+        <span class="hours-display" <%= 'data-certification--ysws--devlog-review-target="hoursDisplay"'.html_safe unless frozen %>>
+          (<%= ((devlog_review.approved_minutes || devlog_review.original_minutes || 0) / 60.0).round(1) %>h)
+        </span>
+      </div>
+      <% unless frozen %>
+        <div class="quick-adjust-buttons">
+          <button class="adjust-btn"
+                  data-action="click->certification--ysws--devlog-review#quickAdjust"
+                  data-adjust-action="50%">50%</button>
+          <button class="adjust-btn"
+                  data-action="click->certification--ysws--devlog-review#quickAdjust"
+                  data-adjust-action="25%">25%</button>
+          <button class="adjust-btn"
+                  data-action="click->certification--ysws--devlog-review#quickAdjust"
+                  data-adjust-action="-30">-30min</button>
+          <button class="adjust-btn"
+                  data-action="click->certification--ysws--devlog-review#quickAdjust"
+                  data-adjust-action="-60">-1hr</button>
+          <button class="adjust-btn"
+                  data-action="click->certification--ysws--devlog-review#quickAdjust"
+                  data-adjust-action="reset">Reset</button>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Internal Notes:</div>
+      <textarea class="notes-textarea"
+                placeholder="notes..."
+                <% unless frozen %>
+                  data-certification--ysws--devlog-review-target="notesTextarea"
+                  data-action="input->certification--ysws--devlog-review#updateNotes"
+                <% end %>
+                <%= "disabled" if frozen %>><%= devlog_review.justification %></textarea>
+    </div>
+  </div>
+</div>

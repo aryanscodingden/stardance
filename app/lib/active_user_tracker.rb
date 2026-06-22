@@ -40,12 +40,25 @@ class ActiveUserTracker
       cache_store = Rails.cache
 
       if cache_store.respond_to?(:redis)
-        cache_store.redis.then { |conn| conn.keys(pattern).size }
+        cache_store.redis.then { |conn| scan_count(conn, pattern) }
       elsif cache_store.is_a?(ActiveSupport::Cache::MemoryStore)
         cache_store.instance_variable_get(:@data).keys.count { |k| File.fnmatch?(pattern, k) }
       else
         0
       end
+    rescue RedisClient::ReadTimeoutError, Redis::TimeoutError, Redis::CannotConnectError
+      0
+    end
+
+    def scan_count(conn, pattern)
+      count = 0
+      cursor = "0"
+      loop do
+        cursor, keys = conn.scan(cursor, match: pattern, count: 500)
+        count += keys.size
+        break if cursor == "0"
+      end
+      count
     end
   end
 end

@@ -25,13 +25,24 @@ class Admin::Certification::MystatsController < Admin::Certification::Applicatio
     @returned_count = @reviews.count(&:returned?)
     @approval_rate = @total_count.zero? ? 0 : (@approved_count * 100.0 / @total_count).round
 
+    now = Time.current
+    my_today_reviews = Certification::Ship.where(reviewer_id: current_user.id)
+                                          .where.not(status: :pending)
+                                          .where(decided_at: now.beginning_of_day..)
+    my_count = my_today_reviews.count
+
+    @current_rank = my_count > 0 ? Certification::Ship.rank_for_reviewer_with_count(current_user.id, my_count, now: now) : nil
+
+    @next_rank = Certification::Ship.rank_for_reviewer_with_count(current_user.id, my_count + 1, now: now)
+    @next_multiplier = Certification::Ship.multiplier_for_rank(@next_rank)
+
     # adding reviews/payouts in one log
     @history_items = []
 
     @reviews.each do |review|
       @history_items << {
         type: :review,
-        title: review.project.title,
+        title: review.project&.title || "Deleted Project",
         id: review.id,
         path: admin_certification_ship_path(review),
         status: review.status,

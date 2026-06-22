@@ -2,6 +2,10 @@ class CommentsController < ApplicationController
   before_action :set_commentable
   before_action :set_comment, only: [ :destroy ]
 
+  def index
+    @comments = @commentable.comments.for_thread
+  end
+
   def create
     @comment = @commentable.comments.build(comment_params)
     @comment.user = current_user

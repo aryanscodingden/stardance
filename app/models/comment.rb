@@ -26,12 +26,17 @@ class Comment < ApplicationRecord
   BODY_MAX_LENGTH = 5_000
 
   include SoftDeletable
+  include Mentionable
   has_paper_trail
 
   belongs_to :commentable, polymorphic: true, counter_cache: true
   belongs_to :user
 
   validates :body, presence: true, length: { maximum: BODY_MAX_LENGTH }
+
+  # The comments rendered in a thread: not deleted, from un-banned users,
+  # oldest first, with the author preloaded.
+  scope :for_thread, -> { not_deleted.joins(:user).where(users: { banned: false }).includes(:user).order(created_at: :asc) }
 
   after_create :notify_slack_channel
   after_create_commit :send_gorse_comment_later

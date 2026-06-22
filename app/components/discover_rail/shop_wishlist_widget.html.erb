@@ -13,8 +13,9 @@
               <div class="shop-goals__info">
                 <span class="shop-goals__name"><%= item.name %></span>
                 <div class="shop-goals__progress-container">
-                  <% progress = balance > 0 ? [((balance.to_f / item.ticket_cost) * 100), 100].min : 0 %>
-                  <% can_afford = balance >= item.ticket_cost %>
+                  <% item_price = item.price_for_region(region) %>
+                  <% progress = balance > 0 && item_price > 0 ? [((balance.to_f / item_price) * 100), 100].min : 0 %>
+                  <% can_afford = balance >= item_price %>
                   <div class="shop-goals__progress-bar">
                     <div class="shop-goals__progress-fill<%= ' shop-goals__progress-fill--complete' if can_afford %>" style="width: <%= progress %>%"></div>
                   </div>
@@ -23,7 +24,7 @@
                       &#10003; Ready to order!
                     <% else %>
                       <%= image_tag "icons/stardust.png", alt: "Stardust", class: "currency-icon" %>
-                      <%= number_to_currency([item.ticket_cost - balance, 0].max, precision: 0).delete('$') %> more needed
+                      <%= number_to_currency([item_price - balance, 0].max, precision: 0).delete('$') %> more needed
                     <% end %>
                   </span>
                 </div>

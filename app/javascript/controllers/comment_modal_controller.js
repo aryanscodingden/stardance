@@ -1,9 +1,10 @@
 import { Controller } from "@hotwired/stimulus";
 
 export default class extends Controller {
-  static targets = ["dialog", "textarea"];
+  static targets = ["dialog", "textarea", "body", "repliesFrame"];
 
   connect() {
+    this._scrollToEndOnLoad = false;
     this._previousOverflow = "";
     this._scrollY = 0;
     this._onClose = () => this._restoreScroll();
@@ -20,8 +21,15 @@ export default class extends Controller {
     document.body.style.overflow = "hidden";
     this.dialogTarget.showModal();
 
+    // Keep the thread scrolled to the original post on open, and focus the
+    // composer without yanking the scroll position down to it.
+    if (this.hasBodyTarget) {
+      this.bodyTarget.scrollTop = 0;
+    }
     if (this.hasTextareaTarget) {
-      requestAnimationFrame(() => this.textareaTarget.focus());
+      requestAnimationFrame(() =>
+        this.textareaTarget.focus({ preventScroll: true }),
+      );
     }
   }
 
@@ -54,6 +62,23 @@ export default class extends Controller {
       this.textareaTarget.value = "";
     }
 
-    this.close();
+    // Keep the modal open and refresh the thread so the new reply lands in
+    // context; repliesLoaded then scrolls it into view.
+    if (this.hasRepliesFrameTarget) {
+      this._scrollToEndOnLoad = true;
+      this.repliesFrameTarget.reload();
+    }
+  }
+
+  repliesLoaded() {
+    if (!this._scrollToEndOnLoad) return;
+    this._scrollToEndOnLoad = false;
+
+    if (this.hasBodyTarget) {
+      this.bodyTarget.scrollTo({
+        top: this.bodyTarget.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   }
 }
