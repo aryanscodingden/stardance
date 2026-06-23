@@ -3,13 +3,18 @@ module Admin
     class SubmissionsController < BaseController
       layout "application"
 
+      skip_before_action :authorize_mission_management
       before_action :release_other_claims, only: [ :next, :claim ]
       before_action :set_submission, only: [ :show, :update, :claim, :undo ]
       before_action :set_body_class
 
       def overview
         authorize Mission::Submission, :index?
-        @missions = Mission.enabled.order(:name)
+        @missions = if current_user.admin? || current_user.has_role?(:helper) || current_user.has_role?(:mission_reviewer)
+                      Mission.enabled.order(:name)
+                    else
+                      Mission.enabled.where(id: current_user.mission_memberships.select(:mission_id)).order(:name)
+                    end
 
         pending_counts = Mission::Submission
                            .where(status: "pending", deleted_at: nil)
@@ -32,6 +37,10 @@ module Admin
 
       def index
         authorize Mission::Submission, :index?
+        if @mission && !accessible_mission?(@mission)
+          redirect_to admin_mission_reviews_path, alert: "You don't have access to review this mission."
+          return
+        end
 
         @stats = Mission::Submission.dashboard_stats(mission: @mission)
         @leaderboards = {
@@ -77,20 +86,27 @@ module Admin
                       alert: "Provide a rejection reason." and return
         end
 
-        Mission::Submission.transaction do
-          @submission.update!(reviewed_by: current_user, reviewed_at: Time.current,
-                              rejection_message: new_status == "rejected" ? feedback : nil)
+        can_transition = (new_status == "approved" && @submission.may_approve?) ||
+                         (new_status == "rejected" && @submission.may_reject?)
 
+        unless can_transition
+          redirect_to admin_mission_submission_path(mission_slug, @submission),
+                      alert: "This submission can't be #{new_status} right now." and return
+        end
+
+        Mission::Submission.transaction do
           if new_status == "approved"
+            @submission.update!(reviewed_by: current_user, reviewed_at: Time.current, rejection_message: nil)
             @submission.approve!
             grant_mission_achievement_if_configured
             grant_fixed_stardust_if_configured
-          elsif new_status == "rejected"
+          else
+            @submission.update!(reviewed_by: current_user, reviewed_at: Time.current, rejection_message: feedback)
             @submission.reject!
           end
         end
 
-        notify_builder(new_status == "approved" ? "submission_approved" : "submission_rejected")
+        notify_builder(new_status)
 
         reviewed = Mission::Submission.reviewed_today(current_user, mission: @mission)
         redirect_to next_admin_mission_submissions_path(mission_slug),
@@ -99,6 +115,10 @@ module Admin
 
       def next
         authorize Mission::Submission, :index?
+        if @mission && !accessible_mission?(@mission)
+          redirect_to admin_mission_reviews_path, alert: "You don't have access to review this mission."
+          return
+        end
         skip_ids = parse_skip_ids
 
         candidate = Mission::Submission.next_eligible(current_user, mission: @mission, skip_ids: skip_ids)
@@ -157,14 +177,10 @@ module Admin
         end
       end
 
-      def authorize_mission_management
-        if @mission
-          authorize @mission, :manage?
-        else
-          authorize Mission::Submission, :index?
-        end
-      rescue Pundit::NotAuthorizedError
-        authorize Mission::Submission, :index?
+      def accessible_mission?(mission)
+        return true if current_user.admin? || current_user.has_role?(:helper) || current_user.has_role?(:mission_reviewer)
+
+        mission.memberships.exists?(user_id: current_user.id)
       end
 
       def set_submission
@@ -204,11 +220,11 @@ module Admin
 
         scope = project.posts
           .where(postable_type: "Post::Devlog")
-          .includes(:postable, :user)
+          .includes(:user, postable: { attachments_attachments: :blob })
           .order(created_at: :desc)
 
         scope = scope.where("posts.created_at > ?", previous_ship.created_at) if previous_ship
-        scope.to_a
+        scope.limit(50).to_a
       end
 
       def apply_filters(scope)
@@ -220,7 +236,7 @@ module Admin
           scope = scope.where(status: "pending")
         end
         if params[:search].present?
-          term = sanitize_sql_like(params[:search].strip)
+          term = ActiveRecord::Base.sanitize_sql_like(params[:search].strip)
           scope = scope.joins(ship_event: { post: :project })
                        .where("projects.title ILIKE ?", "%#{term}%")
         end
@@ -279,15 +295,12 @@ module Admin
         )
       end
 
-      def notify_builder(template_basename)
+      def notify_builder(status)
         builder = @submission.ship_event&.post&.user
-        return unless builder&.slack_id.present?
+        return unless builder
 
-        SendSlackDmJob.perform_later(
-          builder.slack_id,
-          blocks_path: "notifications/missions/#{template_basename}.slack_message",
-          locals: @submission.notification_locals
-        )
+        klass = status == "approved" ? Notifications::Missions::SubmissionApproved : Notifications::Missions::SubmissionRejected
+        klass.notify(recipient: builder, actor: current_user, record: @submission)
       rescue StandardError => e
         Rails.logger.warn("MissionSubmissions notify_builder: #{e.message}")
       end
