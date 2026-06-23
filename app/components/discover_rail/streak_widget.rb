@@ -7,7 +7,7 @@ module DiscoverRail
     GOAL = StreakActivity::DAILY_GOAL_SECONDS
 
     def render?
-      user.present?
+      user.present? && user.onboarded?
     end
 
     def setup_needed?

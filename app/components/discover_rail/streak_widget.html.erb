@@ -28,6 +28,7 @@
       <p class="streak-widget__setup-text">Connect Hackatime to start tracking your coding streaks.</p>
       <%= button_to "/auth/hackatime",
             method: :post,
+            data: { turbo: false },
             class: "action-btn action-btn--primary action-btn--small streak-widget__setup-btn" do %>
         Connect Hackatime
       <% end %>
