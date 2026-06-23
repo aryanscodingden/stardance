@@ -82,6 +82,7 @@ class Vote < ApplicationRecord
   belongs_to :ship_event, class_name: "Post::ShipEvent", counter_cache: true
 
   has_one :assignment, class_name: "Vote::Assignment", dependent: :nullify
+  has_one :reason_embedding, class_name: "Vote::ReasonEmbedding", dependent: :destroy
   has_many :events, class_name: "Vote::Event", inverse_of: :vote, dependent: :nullify
 
   has_paper_trail on: [ :create, :update, :destroy ]
@@ -90,6 +91,7 @@ class Vote < ApplicationRecord
   after_commit :refresh_ship_event_payout_later, on: [ :create, :destroy ]
   after_create_commit :send_gorse_vote_later
   after_create_commit :enqueue_auto_discard
+  after_create_commit :cache_reason_embedding_later
 
   scope :payout_countable, -> {
     where(discarded: false)
@@ -244,6 +246,10 @@ class Vote < ApplicationRecord
 
   def enqueue_auto_discard
     Vote::AutoDiscardJob.perform_later(id)
+  end
+
+  def cache_reason_embedding_later
+    Vote::CacheReasonEmbeddingJob.perform_later(id)
   end
 
   def score_average
