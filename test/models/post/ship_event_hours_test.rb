@@ -18,7 +18,8 @@ class Post::ShipEventHoursTest < ActiveSupport::TestCase
     create_devlog(project, seconds: 3600, phase: nil, at: 1.day.ago)
     ship = create_ship(project)
 
-    assert_in_delta 2.0, ship.reload.hours, 0.001
+    assert_in_delta 2.0, ship.reload.hours_at_ship, 0.001
+    assert_in_delta 2.0, ship.hours, 0.001
   end
 
   test "hardware project counts only build-phase devlogs" do
@@ -28,7 +29,8 @@ class Post::ShipEventHoursTest < ActiveSupport::TestCase
     create_devlog(project, seconds: 7200, phase: "build", at: 1.day.ago)   # paid
     ship = create_ship(project)
 
-    assert_in_delta 2.0, ship.reload.hours, 0.001
+    assert_in_delta 2.0, ship.reload.hours_at_ship, 0.001
+    assert_in_delta 2.0, ship.hours, 0.001
   end
 
   test "hardware project uses reviewer-approved (deflated) minutes when reviewed" do
@@ -41,7 +43,8 @@ class Post::ShipEventHoursTest < ActiveSupport::TestCase
       .create!(post_devlog: build_devlog, ysws_review: ysws, original_minutes: 120, status: :pending)
       .approve!(60, "Timelapse looked padded")
 
-    assert_in_delta 1.0, ship.reload.hours, 0.001
+    assert_in_delta 2.0, ship.reload.hours_at_ship, 0.001
+    assert_in_delta 1.0, ship.hours, 0.001
   end
 
   test "a rejected devlog review contributes zero" do
@@ -54,7 +57,8 @@ class Post::ShipEventHoursTest < ActiveSupport::TestCase
       .create!(post_devlog: build_devlog, ysws_review: ysws, original_minutes: 120, status: :pending)
       .reject!("Could not verify any of this time")
 
-    assert_in_delta 0.0, ship.reload.hours, 0.001
+    assert_in_delta 2.0, ship.reload.hours_at_ship, 0.001
+    assert_in_delta 0.0, ship.hours, 0.001
   end
 
   private

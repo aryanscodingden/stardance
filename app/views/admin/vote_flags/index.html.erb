@@ -1,0 +1,56 @@
+<% content_for :title, "Vote flags" %>
+
+<h1 align="center">Vote flags</h1>
+
+<div>
+  <% if @flags.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th>Flagged</th>
+          <th>Project</th>
+          <th>Flagged by</th>
+          <th>Voter</th>
+          <th>Reason</th>
+          <th>Review</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @flags.each do |flag| %>
+          <% vote = flag.vote %>
+          <tr>
+            <td><%= time_ago_in_words(flag.created_at) %> ago</td>
+            <td>
+              <% if vote&.project %>
+                <%= link_to truncate(vote.project.title, length: 40), admin_project_path(vote.project) %>
+              <% else %>
+                Unknown
+              <% end %>
+            </td>
+            <td><%= flag.user&.display_name || "Unknown" %></td>
+            <td><%= vote&.user&.display_name || "Unknown" %></td>
+            <td><%= simple_format(vote&.reason) %></td>
+            <td>
+              <%= button_to "Discard vote",
+                            admin_vote_flag_approval_path(flag),
+                            method: :post,
+                            form: { data: { turbo_confirm: "Mark this flag correct and discard the vote?" } } %>
+              <%= button_to "Reject flag",
+                            admin_vote_flag_rejection_path(flag),
+                            method: :post,
+                            form: { data: { turbo_confirm: "Reject this flag and charge #{Vote::FLAG_COST} stardust?" } } %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <% if @pagy.pages > 1 %>
+      <div>
+        <%== @pagy.series_nav %>
+      </div>
+    <% end %>
+  <% else %>
+    <p>No vote flags are pending.</p>
+  <% end %>
+</div>

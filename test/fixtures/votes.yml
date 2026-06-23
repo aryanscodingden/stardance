@@ -5,6 +5,7 @@
 # Table name: votes
 #
 #  id                 :bigint           not null, primary key
+#  discarded          :boolean          default(FALSE), not null
 #  originality_score  :integer
 #  reason             :text
 #  storytelling_score :integer
@@ -18,10 +19,11 @@
 #
 # Indexes
 #
-#  index_votes_on_project_id                 (project_id)
-#  index_votes_on_ship_event_id              (ship_event_id)
-#  index_votes_on_user_id                    (user_id)
-#  index_votes_on_user_id_and_ship_event_id  (user_id,ship_event_id) UNIQUE
+#  index_votes_on_discarded_and_ship_event_id  (discarded,ship_event_id)
+#  index_votes_on_project_id                   (project_id)
+#  index_votes_on_ship_event_id                (ship_event_id)
+#  index_votes_on_user_id                      (user_id)
+#  index_votes_on_user_id_and_ship_event_id    (user_id,ship_event_id) UNIQUE
 #
 # Foreign Keys
 #

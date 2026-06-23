@@ -50,6 +50,10 @@ class Vote::Event < ApplicationRecord
     vote_skipped
     vote_demo_opened
     vote_repo_opened
+    vote_flagged
+    vote_flag_accepted
+    vote_flag_rejected
+    vote_auto_discarded
   ].freeze
 
   CLIENT_EVENT_TYPES = %w[
@@ -69,6 +73,8 @@ class Vote::Event < ApplicationRecord
   belongs_to :project, optional: true
   belongs_to :ship_event, class_name: "Post::ShipEvent", optional: true
 
+  has_paper_trail on: [ :create ]
+
   validates :event_type, presence: true, inclusion: { in: EVENT_TYPES }
   validates :source, presence: true, inclusion: { in: SOURCES }
   validates :occurred_at, presence: true
@@ -79,4 +85,8 @@ class Vote::Event < ApplicationRecord
   scope :server, -> { where(source: "server") }
   scope :client, -> { where(source: "client") }
   scope :of_type, ->(type) { where(event_type: type) }
+  scope :vote_flags, -> { of_type("vote_flagged") }
+  scope :accepted_vote_flags, -> { of_type("vote_flag_accepted") }
+  scope :resolved_vote_flags, -> { of_type(%w[vote_flag_accepted vote_flag_rejected]) }
+  scope :pending_vote_flags, -> { vote_flags.where.not(vote_id: resolved_vote_flags.select(:vote_id)) }
 end

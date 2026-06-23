@@ -3,6 +3,7 @@
 # Table name: votes
 #
 #  id                 :bigint           not null, primary key
+#  discarded          :boolean          default(FALSE), not null
 #  originality_score  :integer
 #  reason             :text
 #  storytelling_score :integer
@@ -16,10 +17,11 @@
 #
 # Indexes
 #
-#  index_votes_on_project_id                 (project_id)
-#  index_votes_on_ship_event_id              (ship_event_id)
-#  index_votes_on_user_id                    (user_id)
-#  index_votes_on_user_id_and_ship_event_id  (user_id,ship_event_id) UNIQUE
+#  index_votes_on_discarded_and_ship_event_id  (discarded,ship_event_id)
+#  index_votes_on_project_id                   (project_id)
+#  index_votes_on_ship_event_id                (ship_event_id)
+#  index_votes_on_user_id                      (user_id)
+#  index_votes_on_user_id_and_ship_event_id    (user_id,ship_event_id) UNIQUE
 #
 # Foreign Keys
 #
@@ -28,6 +30,7 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class Vote < ApplicationRecord
+  FLAG_COST = 5
   MIN_SCORE = 1
   MAX_SCORE = 9
 
@@ -47,6 +50,33 @@ class Vote < ApplicationRecord
 
   def self.score_columns = SCORE_COLUMNS_BY_CATEGORY.values
 
+  def self.countable_count_for_ship_events
+    votes = arel_table
+    vote_events = Vote::Event.arel_table
+
+    accepted_flag_exists = vote_events
+      .project(Arel.sql("1"))
+      .where(vote_events[:vote_id].eq(votes[:id]))
+      .where(vote_events[:event_type].eq("vote_flag_accepted"))
+      .exists
+
+    count_query = votes
+      .project(votes[:id].count)
+      .where(votes[:ship_event_id].eq(Post::ShipEvent.arel_table[:id]))
+      .where(votes[:discarded].eq(false))
+      .where(accepted_flag_exists.not)
+
+    Arel::Nodes::Grouping.new(count_query.ast)
+  end
+
+  def self.countable_count_lt(value)
+    Arel::Nodes::LessThan.new(countable_count_for_ship_events, Arel::Nodes.build_quoted(value))
+  end
+
+  def self.countable_count_gteq(value)
+    Arel::Nodes::GreaterThanOrEqual.new(countable_count_for_ship_events, Arel::Nodes.build_quoted(value))
+  end
+
   belongs_to :user, counter_cache: true
   belongs_to :project
   belongs_to :ship_event, class_name: "Post::ShipEvent", counter_cache: true
@@ -57,9 +87,14 @@ class Vote < ApplicationRecord
   has_paper_trail on: [ :create, :update, :destroy ]
 
   after_commit :increment_user_vote_balance, on: :create
+  after_commit :refresh_ship_event_payout_later, on: [ :create, :destroy ]
   after_create_commit :send_gorse_vote_later
+  after_create_commit :enqueue_auto_discard
 
-  scope :payout_countable, -> { all }
+  scope :payout_countable, -> {
+    where(discarded: false)
+      .where.not(id: Vote::Event.accepted_vote_flags.select(:vote_id))
+  }
 
   validates :reason, presence: true
   validate :reason_minimum_words
@@ -68,6 +103,98 @@ class Vote < ApplicationRecord
     numericality: { only_integer: true, in: MIN_SCORE..MAX_SCORE, message: "must be between #{MIN_SCORE} and #{MAX_SCORE}" })
   validate :user_cannot_vote_on_own_projects
   validate :ship_event_matches_project
+
+  def flaggable_by?(user)
+    user.present? &&
+      ship_event&.payout_review_open? &&
+      project&.memberships&.where(role: :owner, user: user)&.exists? &&
+      !pending_flag? &&
+      !discarded?
+  end
+
+  def flag_for_review_by(user)
+    if flaggable_by?(user)
+      events.create!(
+        event_type: "vote_flagged",
+        user: user,
+        project: project,
+        ship_event: ship_event,
+        properties: { status: "pending" }
+      )
+    else
+      false
+    end
+  end
+
+  def accept_flag(reviewer:)
+    if pending_flag = self.pending_flag
+      transaction do
+        update!(discarded: true)
+        events.create!(
+          event_type: "vote_flag_accepted",
+          user: reviewer,
+          project: project,
+          ship_event: ship_event,
+          properties: { flagged_event_id: pending_flag.id }
+        )
+        ship_event.clear_payout_review
+      end
+    else
+      false
+    end
+  end
+
+  def reject_flag(reviewer:)
+    if pending_flag = self.pending_flag
+      transaction do
+        events.create!(
+          event_type: "vote_flag_rejected",
+          user: reviewer,
+          project: project,
+          ship_event: ship_event,
+          properties: { flagged_event_id: pending_flag.id }
+        )
+        pending_flag.user.ledger_entries.create!(
+          ledgerable: self,
+          amount: -FLAG_COST,
+          reason: "Incorrect vote flag: #{project&.title || 'Unknown project'}",
+          created_by: "vote_flag_review"
+        )
+        ship_event.issue_payout(force: true)
+      end
+    else
+      false
+    end
+  end
+
+  def pending_flag
+    events
+      .where(event_type: "vote_flagged")
+      .where.not(vote_id: Vote::Event.resolved_vote_flags.select(:vote_id))
+      .order(created_at: :asc)
+      .last
+  end
+
+  def pending_flag? = pending_flag.present?
+
+  def discarded? = discarded || events.exists?(event_type: "vote_flag_accepted")
+
+  def auto_discard!(properties: {})
+    with_lock do
+      return if discarded?
+
+      update!(discarded: true)
+      events.create!(
+        event_type: "vote_auto_discarded",
+        user: user,
+        project: project,
+        ship_event: ship_event,
+        properties: properties.to_h.merge(automated: true)
+      )
+    end
+
+    ShipEventPayoutRefreshJob.perform_later
+  end
 
   private
 
@@ -99,6 +226,10 @@ class Vote < ApplicationRecord
     user.increment!(:vote_balance, 1)
   end
 
+  def refresh_ship_event_payout_later
+    ShipEventPayoutRefreshJob.perform_later
+  end
+
   def send_gorse_vote_later
     if ship_event&.post.present?
       send_gorse_feedback_later(
@@ -109,6 +240,10 @@ class Vote < ApplicationRecord
         timestamp: created_at
       )
     end
+  end
+
+  def enqueue_auto_discard
+    Vote::AutoDiscardJob.perform_later(id)
   end
 
   def score_average

@@ -474,7 +474,12 @@ Rails.application.routes.draw do
 
   # Voting
   get "rate/new", to: "votes#new", as: :new_rate
-  resources :votes, only: [ :new, :create ]
+  resources :ship_events, only: [] do
+    resource :vote_reasons, only: :show, controller: "ship_events/vote_reasons"
+  end
+  resources :votes, only: [ :new, :create ] do
+    resource :flag, only: :create, controller: "votes/flags"
+  end
   namespace :votes do
     resource :skip, only: :create
     resources :assignments, only: [] do
@@ -630,6 +635,12 @@ Rails.application.routes.draw do
         post :update_ship_status
         post :force_state
         get  :votes
+      end
+    end
+    resources :vote_flags, only: [ :index ] do
+      scope module: :vote_flags do
+        resource :approval, only: :create
+        resource :rejection, only: :create
       end
     end
     get "super_stars", to: "super_stars#show", as: :super_stars

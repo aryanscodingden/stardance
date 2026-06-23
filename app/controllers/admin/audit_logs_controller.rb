@@ -83,6 +83,7 @@ module Admin
       "Comment" => "Comment",
       "LedgerEntry" => "LedgerEntry",
       "Vote" => "Vote",
+      "Vote::Event" => "Vote::Event",
       "Like" => "Like",
       "Rsvp" => "Rsvp",
       "FulfillmentPayoutRun" => "FulfillmentPayoutRun",

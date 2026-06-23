@@ -11,6 +11,10 @@ class VotePolicy < ApplicationPolicy
     user_can_vote?
   end
 
+  def flag?
+    record.flaggable_by?(user)
+  end
+
   def open?
     Flipper.enabled?(:voting, user)
   end

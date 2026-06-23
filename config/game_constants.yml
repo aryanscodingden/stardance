@@ -5,6 +5,6 @@ shared:
   min_quality_multiplier: 1.0
   mean_quality_multiplier: 10.0
   max_quality_multiplier: 30.0
-  lowest_dollar_per_hour: 0.3
-  highest_dollar_per_hour: 6.0
+  lowest_dollar_per_hour: 0.2
+  highest_dollar_per_hour: 4.0
   sb_min_dollar_per_hour: 1.0

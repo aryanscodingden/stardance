@@ -20,10 +20,7 @@
           <th>Tech.</th>
           <th>Usab.</th>
           <th>Story.</th>
-          <th>Time</th>
-          <th>Demo</th>
-          <th>Repo</th>
-          <th>Discarded</th>
+          <th>Status</th>
           <th>Reason</th>
         </tr>
       </thead>
@@ -42,17 +39,8 @@
             <td><%= vote.technical_score || "—" %></td>
             <td><%= vote.usability_score || "—" %></td>
             <td><%= vote.storytelling_score || "—" %></td>
-            <td><%= vote.time_taken_to_vote ? "#{vote.time_taken_to_vote}s" : "—" %></td>
-            <td><%= vote.demo_url_clicked ? "✓" : "—" %></td>
-            <td><%= vote.repo_url_clicked ? "✓" : "—" %></td>
-            <td>
-              <% if vote.suspicious %>
-                <span>⚠ Yes</span>
-              <% else %>
-                <span>No</span>
-              <% end %>
-            </td>
-            <td>
+            <td><%= vote.discarded? ? "Discarded" : "Counted" %></td>
+            <td class="vote-reasons">
               <% if vote.reason.present? %>
                 <details>
                   <summary>View</summary>

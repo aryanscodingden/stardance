@@ -59,8 +59,16 @@
       <li class="payout-checklist__step">
         <span class="payout-checklist__icon">3</span>
         <div class="payout-checklist__body">
-          <span class="payout-checklist__label">Get stardust!</span>
-          <span class="payout-checklist__hint">Payouts will open soon. Once they do, you'll get stardust paid out!</span>
+          <% if votes[:review_open] %>
+            <span class="payout-checklist__label">Review rating reasons</span>
+            <span class="payout-checklist__hint">Your payout is locked. You have until <%= helpers.l(votes[:review_deadline], format: :short) %> to flag a rating.</span>
+            <%= link_to "Review reasons →", votes[:review_path],
+                        class: "payout-checklist__action",
+                        data: { turbo_frame: "_top" } %>
+          <% else %>
+            <span class="payout-checklist__label">Get stardust!</span>
+            <span class="payout-checklist__hint">Payouts will open soon. Once they do, you'll get stardust paid out!</span>
+          <% end %>
         </div>
       </li>
     </ol>

@@ -73,8 +73,7 @@ class Vote::Assignment < ApplicationRecord
   def refresh(matchmaker = Vote::Matchmaker.new(user))
     if ship_event.certification_status == "rejected"
       replace_with(matchmaker.next_ship_event)
-    # we don't have the countable scope... yet!
-    elsif ship_event.payout.present? || ship_event.votes_count >= Post::ShipEvent::VOTES_TO_LEAVE_POOL
+    elsif ship_event.payout.present? || ship_event.votes.payout_countable.count >= Post::ShipEvent::VOTES_TO_LEAVE_POOL
       if replacement = matchmaker.next_unpaid_ship_event
         replace_with(replacement)
       else
