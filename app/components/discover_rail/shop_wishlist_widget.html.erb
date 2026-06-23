@@ -8,7 +8,7 @@
             <%= button_to shop_wishlist_path(item.id), method: :delete, class: "shop-goals__remove", title: "Remove from wishlist", data: { turbo_stream: true } do %>
               &times;
             <% end %>
-            <%= link_to shop_item_path(item), class: "shop-goals__link" do %>
+            <%= link_to shop_item_path(item), class: "shop-goals__link", data: { turbo_frame: "_top" } do %>
               <%= image_tag item.image.variant(:carousel_sm), alt: item.name, class: "shop-goals__image" %>
               <div class="shop-goals__info">
                 <span class="shop-goals__name"><%= item.name %></span>

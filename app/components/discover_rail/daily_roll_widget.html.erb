@@ -35,7 +35,7 @@
     </div>
   <% end %>
 
-  <%= link_to "Full leaderboard →", rng_path, class: "rail-widget__link" %>
+  <%= link_to "View full leaderboard →", rng_path, class: "rail-widget__link", data: { turbo_frame: "_top" } %>
 
   <% if rolled? && Rails.env.development? %>
     <%= button_to "clear roll (dev)", clear_daily_roll_path, method: :delete,

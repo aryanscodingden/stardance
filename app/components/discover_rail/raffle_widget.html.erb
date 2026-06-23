@@ -17,11 +17,11 @@
   <% if week %>
     <div class="raffle-widget__raffle-link">
       <% if needs_hca? %>
-        <a href="/projects/setup">Create a project for a free GPU Raffle entry &rarr;</a>
+        <a href="/projects/setup" data-turbo-frame="_top">Create a project for a free GPU Raffle entry &rarr;</a>
       <% elsif can_claim? %>
-        <a href="<%= helpers.raffle_base_url %>/">Claim your free GPU Raffle entry &rarr;</a>
+        <a href="<%= helpers.raffle_base_url %>/" data-turbo-frame="_top">Claim your free GPU Raffle entry &rarr;</a>
       <% else %>
-        <a href="<%= helpers.raffle_base_url %>/">GPU Raffle &rarr;</a>
+        <a href="<%= helpers.raffle_base_url %>/" data-turbo-frame="_top">GPU Raffle &rarr;</a>
       <% end %>
       <span><%= entry_count %> <%= "entry".pluralize(entry_count) %> · week <%= week.number %>/16</span>
     </div>

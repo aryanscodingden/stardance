@@ -9,7 +9,7 @@
         </li>
       <% end %>
     </ul>
-    <%= helpers.link_to "see more →", helpers.shop_orders_path, class: "discover-rail__link" %>
+    <%= helpers.link_to "see more →", helpers.shop_orders_path, class: "discover-rail__link", data: { turbo_frame: "_top" } %>
   <% else %>
     <p class="discover-rail__placeholder-text">No orders yet.</p>
   <% end %>

@@ -28,8 +28,8 @@
   <% end %>
 
   <% if own_profile? %>
-    <%= helpers.link_to "See all your achievements →", helpers.my_achievements_path, class: "achievements-widget__link" %>
+    <%= helpers.link_to "See all your achievements →", helpers.my_achievements_path, class: "achievements-widget__link", data: { turbo_frame: "_top" } %>
   <% else %>
-    <%= helpers.link_to "See your own achievements →", helpers.my_achievements_path, class: "achievements-widget__link" %>
+    <%= helpers.link_to "See your own achievements →", helpers.my_achievements_path, class: "achievements-widget__link", data: { turbo_frame: "_top" } %>
   <% end %>
 </section>
