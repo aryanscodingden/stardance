@@ -40,6 +40,12 @@ application.register(
   Certification__Ships__MonitorChartController,
 );
 
+import Certification__Ships__FraudReportController from "./certification/ships/fraud_report_controller";
+application.register(
+  "certification--ships--fraud-report",
+  Certification__Ships__FraudReportController,
+);
+
 import Certification__VerdictPreviewController from "./certification/verdict_preview_controller";
 application.register(
   "certification--verdict-preview",

@@ -3,8 +3,9 @@
 <% can_review = @ship.claim_held_by?(current_user) && @ship.pending? %>
 
 <div class="app-layout app-layout--wide"
-     data-controller="certification--queue"
-     data-certification--queue-server-now-value="<%= Time.current.iso8601 %>">
+     data-controller="certification--queue certification--ships--fraud-report"
+     data-certification--queue-server-now-value="<%= Time.current.iso8601 %>"
+     data-certification--ships--fraud-report-ship-id-value="<%= @ship.id %>">
   <div class="app-layout__main app-layout__main--wide ship-review">
     <%= link_to "← back to queue", admin_certification_ships_path, class: "ship-review__back" %>
 
@@ -98,10 +99,14 @@
       </section>
 
       <aside class="ship-review__sidebar">
-        <% if @ship.pending? %>
-          <div class="ship-review__panel">
-            <h2 class="ship-review__panel-title">Actions</h2>
-            <div class="ship-review__actions">
+        <div class="ship-review__panel">
+          <h2 class="ship-review__panel-title">Actions</h2>
+          <div class="ship-review__actions">
+            <button class="action-btn action-btn--large action-btn--destructive"
+                    data-action="click->certification--ships--fraud-report#open">
+              Report to Fraud Squad
+            </button>
+            <% if @ship.pending? %>
               <% if can_review %>
                 <button type="submit" form="unclaim-form-<%= @ship.id %>"
                         class="action-btn action-btn--large action-btn--destructive">
@@ -120,9 +125,9 @@
                       onchange: "this.form.requestSubmit()",
                       class: "ship-queue__select" %>
               <% end %>
-            </div>
+            <% end %>
           </div>
-        <% end %>
+        </div>
 
         <% if @submitter_history %>
           <div class="ship-review__panel submitter-history">
@@ -203,6 +208,36 @@
           </div>
         <% end %>
       </aside>
+    </div>
+  </div>
+
+  <div class="fraud-report-modal" data-certification--ships--fraud-report-target="modal">
+    <div class="fraud-report-modal__content" data-action="click->certification--ships--fraud-report#stopPropagation">
+      <div class="fraud-report-modal__header">
+        <h2>Report to Fraud Squad</h2>
+        <button class="fraud-report-modal__close" data-action="click->certification--ships--fraud-report#close" aria-label="Close modal">
+          &times;
+        </button>
+      </div>
+      <div class="fraud-report-modal__body">
+        <label for="ship-fraud-details" class="fraud-report-modal__label">
+          Describe the issue (minimum 20 characters):
+        </label>
+        <textarea
+          id="ship-fraud-details"
+          class="fraud-report-modal__textarea"
+          data-certification--ships--fraud-report-target="textarea"
+          placeholder="Explain why you're reporting this project to the fraud squad..."
+          rows="6"></textarea>
+      </div>
+      <div class="fraud-report-modal__footer">
+        <button class="fraud-report-modal__cancel" data-action="click->certification--ships--fraud-report#close">
+          Cancel
+        </button>
+        <button class="fraud-report-modal__submit" data-action="click->certification--ships--fraud-report#submit" data-certification--ships--fraud-report-target="submitButton">
+          Submit Report
+        </button>
+      </div>
     </div>
   </div>
 </div>
