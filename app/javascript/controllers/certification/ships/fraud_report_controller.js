@@ -25,7 +25,9 @@ export default class extends Controller {
     this.submitButtonTarget.textContent = "Sending...";
 
     try {
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+      const csrfToken = document.querySelector(
+        'meta[name="csrf-token"]',
+      ).content;
       const response = await fetch(
         `/admin/certification/ship/${this.shipIdValue}/report_fraud`,
         {
@@ -45,7 +47,9 @@ export default class extends Controller {
         this.formTarget.hidden = true;
         this.textareaTarget.value = "";
       } else {
-        const errorMessage = data.errors ? data.errors.join(", ") : "Failed to submit report";
+        const errorMessage = data.errors
+          ? data.errors.join(", ")
+          : "Failed to submit report";
         alert(`Error: ${errorMessage}`);
       }
     } catch (error) {
