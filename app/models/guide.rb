@@ -179,7 +179,7 @@ Guide = Data.define(:slug, :title, :description, :category, :icon, :reading_minu
     ),
     new(
       slug: :software,
-      title: "Software in Stardance 101"
+      title: "Software in Stardance 101",
       description: "Step-by-step on how to make software projects in Stardance!",
       icon: "rocket",
       reading_minutes: 2,
