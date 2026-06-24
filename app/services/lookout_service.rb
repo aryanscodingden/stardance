@@ -131,6 +131,11 @@ class LookoutService
         mode: session.mode,
         recorded_at: session.started_at || session.created_at
       }
+    rescue => e
+      # Runs inside a Thread whose value is re-raised in the request; an
+      # unexpected remote shape must not 500 the review page.
+      Rails.logger.error "LookoutService review_recording exception: #{e.message}"
+      nil
     end
 
     # GET /api/sessions/:token on a short-timeout, per-call connection (so the
