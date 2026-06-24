@@ -372,12 +372,6 @@
                               data: { turbo_frame: "project_hero" } %>
                 <% end %>
 
-                <% if can_delete_project %>
-                  <button type="button"
-                          class="project-show__pill project-show__pill--destructive"
-                          onclick="document.getElementById('delete-project-modal').showModal()">Delete project</button>
-                <% end %>
-
                 <% if current_user && !is_member %>
                   <%= link_to (viewer_follow ? "Following" : "Follow"),
                               (viewer_follow ? unfollow_project_path(@project) : follow_project_path(@project)),
