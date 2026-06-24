@@ -211,29 +211,25 @@
           demotable_roles = all_roles.select { |r| @user.has_role?(r[:name]) }
         %>
         <% if promotable_roles.any? %>
-          <div>
+          <div class="role-dropdown">
             <button type="button" data-role-dropdown-toggle>⬆ Promote to…</button>
-            <div>
+            <div class="role-dropdown__menu">
               <% promotable_roles.each do |role| %>
-                <%= button_to role[:name].titleize,
-                              admin_user_roles_path(@user),
-                              method: :post,
-                              params: { role_name: role[:name] },
-                              disabled: role[:disabled] %>
+                <%= button_to role[:name].titleize, admin_user_roles_path(@user),
+                    method: :post, params: { role_name: role[:name] }, disabled: role[:disabled],
+                    class: "role-dropdown__item" %>
               <% end %>
             </div>
           </div>
         <% end %>
         <% if demotable_roles.any? %>
-          <div>
+          <div class="role-dropdown">
             <button type="button" data-role-dropdown-toggle>⬇ Demote from…</button>
-            <div>
+            <div class="role-dropdown__menu">
               <% demotable_roles.each do |role| %>
-                <%= button_to role[:name].titleize,
-                              admin_user_role_path(@user, role[:name]),
-                              method: :delete,
-                              params: { role_name: role[:name] },
-                              disabled: role[:disabled] %>
+                <%= button_to role[:name].titleize, admin_user_role_path(@user, role[:name]),
+                    method: :delete, params: { role_name: role[:name] }, disabled: role[:disabled],
+                    class: "role-dropdown__item" %>
               <% end %>
             </div>
           </div>
@@ -273,80 +269,6 @@
           </form>
         <% end %>
       <% end %>
-        <% if policy(@user).impersonate? && !impersonating? %>
-          <%= button_to "Impersonate", admin_user_impersonation_path(@user), method: :post,
-              data: { confirm: "Impersonate #{@user.display_name}?" } %>
-        <% end %>
-        <%= button_to "🔄 Sync Hackatime", admin_user_hackatime_sync_path(@user), method: :post %>
-        <%= button_to "🔄 Refresh Verification", admin_user_verification_path(@user), method: :post,
-            data: { confirm: "Refresh verification for #{@user.display_name}?" } %>
-
-        <% if current_user.admin? %>
-          <%
-            all_roles = [
-              { name: 'fraud_dept',         disabled: !current_user&.admin? },
-              { name: 'fulfillment_person', disabled: !current_user&.admin? },
-              { name: 'project_certifier',  disabled: !current_user&.admin? },
-              { name: 'helper',             disabled: !current_user&.admin? },
-              { name: 'shop_manager',       disabled: !current_user&.admin? },
-              { name: 'admin',              disabled: !current_user&.super_admin? },
-            ]
-            promotable_roles = all_roles.reject { |r| @user.has_role?(r[:name]) }
-            demotable_roles  = all_roles.select { |r| @user.has_role?(r[:name]) }
-          %>
-          <% if promotable_roles.any? %>
-            <div class="role-dropdown">
-              <button type="button" data-role-dropdown-toggle>⬆ Promote to…</button>
-              <div class="role-dropdown__menu">
-                <% promotable_roles.each do |role| %>
-                  <%= button_to role[:name].titleize, admin_user_roles_path(@user),
-                      method: :post, params: { role_name: role[:name] }, disabled: role[:disabled],
-                      class: "role-dropdown__item" %>
-                <% end %>
-              </div>
-            </div>
-          <% end %>
-          <% if demotable_roles.any? %>
-            <div class="role-dropdown">
-              <button type="button" data-role-dropdown-toggle>⬇ Demote from…</button>
-              <div class="role-dropdown__menu">
-                <% demotable_roles.each do |role| %>
-                  <%= button_to role[:name].titleize, admin_user_role_path(@user, role[:name]),
-                      method: :delete, params: { role_name: role[:name] }, disabled: role[:disabled],
-                      class: "role-dropdown__item" %>
-                <% end %>
-              </div>
-            </div>
-          <% end %>
-          <script>
-            document.querySelectorAll("[data-role-dropdown-toggle]").forEach(function(btn) {
-              btn.addEventListener("click", function() {
-                var menu = btn.nextElementSibling;
-                var isOpen = menu.classList.contains("role-dropdown__menu--open");
-                document.querySelectorAll(".role-dropdown__menu--open").forEach(function(m) { m.classList.remove("role-dropdown__menu--open"); });
-                if (!isOpen) menu.classList.add("role-dropdown__menu--open");
-              });
-            });
-            document.addEventListener("click", function(e) {
-              if (!e.target.closest(".role-dropdown")) {
-                document.querySelectorAll(".role-dropdown__menu--open").forEach(function(m) { m.classList.remove("role-dropdown__menu--open"); });
-              }
-            });
-          </script>
-        <% end %>
-
-        <% if @user.shop_orders.where(aasm_state: %w[pending awaiting_periodical_fulfillment]).any? %>
-          <button type="button" onclick="document.getElementById('reject-modal-orders').showModal()">✗ Reject Orders</button>
-          <%= render layout: "shared/modal", locals: { id: "reject-modal-orders", title: "Reject All Orders", description: "Reject all pending orders for #{@user.display_name}." } do %>
-            <form action="<%= admin_user_order_rejection_path(@user) %>" method="post">
-              <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-              <%= label_tag :reason, "Reason (optional)" %>
-              <%= text_area_tag :reason, "", placeholder: "Enter reason..." %>
-              <button type="submit">Confirm</button>
-              <button type="button" onclick="document.getElementById('reject-modal-orders').close()">Cancel</button>
-            </form>
-          <% end %>
-        <% end %>
 
         <% if policy(@user).adjust_balance? %>
           <button type="button" onclick="document.getElementById('adjust-balance-modal').showModal()">💰 Adjust Balance</button>
