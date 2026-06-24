@@ -1,37 +1,15 @@
 import { Controller } from "@hotwired/stimulus";
 
 export default class extends Controller {
-  static targets = ["modal", "textarea", "submitButton"];
+  static targets = ["form", "textarea", "submitButton"];
   static values = { shipId: Number };
 
-  connect() {
-    this.closeOnOutsideClick = this.closeOnOutsideClick.bind(this);
-  }
-
-  open(event) {
+  toggle(event) {
     event.preventDefault();
-    this.modalTarget.classList.add("is-open");
-    this.textareaTarget.value = "";
-    this.textareaTarget.focus();
-    setTimeout(() => {
-      document.addEventListener("click", this.closeOnOutsideClick);
-    }, 0);
-  }
-
-  close(event) {
-    if (event) event.preventDefault();
-    this.modalTarget.classList.remove("is-open");
-    document.removeEventListener("click", this.closeOnOutsideClick);
-    this.submitButtonTarget.disabled = false;
-    this.submitButtonTarget.textContent = "Submit Report";
-  }
-
-  closeOnOutsideClick(event) {
-    if (event.target === this.modalTarget) this.close(event);
-  }
-
-  stopPropagation(event) {
-    event.stopPropagation();
+    const opening = this.formTarget.hidden;
+    this.formTarget.hidden = !opening;
+    if (opening) this.textareaTarget.focus();
+    else this.textareaTarget.value = "";
   }
 
   async submit(event) {
@@ -44,7 +22,7 @@ export default class extends Controller {
     }
 
     this.submitButtonTarget.disabled = true;
-    this.submitButtonTarget.textContent = "Submitting...";
+    this.submitButtonTarget.textContent = "Sending...";
 
     try {
       const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
@@ -63,23 +41,19 @@ export default class extends Controller {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Report submitted successfully! The fraud squad has been notified.");
-        this.close(event);
+        alert("Reported. The fraud squad has been notified.");
+        this.formTarget.hidden = true;
+        this.textareaTarget.value = "";
       } else {
         const errorMessage = data.errors ? data.errors.join(", ") : "Failed to submit report";
         alert(`Error: ${errorMessage}`);
-        this.submitButtonTarget.disabled = false;
-        this.submitButtonTarget.textContent = "Submit Report";
       }
     } catch (error) {
       console.error("Error submitting fraud report:", error);
       alert("An unexpected error occurred. Please try again.");
+    } finally {
       this.submitButtonTarget.disabled = false;
-      this.submitButtonTarget.textContent = "Submit Report";
+      this.submitButtonTarget.textContent = "Send report";
     }
-  }
-
-  disconnect() {
-    document.removeEventListener("click", this.closeOnOutsideClick);
   }
 }
