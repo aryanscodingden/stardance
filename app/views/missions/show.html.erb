@@ -13,7 +13,7 @@
             <span class="mission-home__crumb-dot" aria-hidden="true">·</span>
             <%= link_to "Manage", edit_admin_mission_path(@mission.slug), class: "mission-home__crumb-link" %>
           <% end %>
-          <% if policy(@mission).manage? || current_user&.has_role?(:mission_reviewer) %>
+          <% if policy(@mission).review_queue? %>
             <span class="mission-home__crumb-dot" aria-hidden="true">·</span>
             <%= link_to "Review", admin_mission_submissions_path(@mission.slug), class: "mission-home__crumb-link" %>
           <% end %>

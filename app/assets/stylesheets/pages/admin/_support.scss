@@ -72,6 +72,16 @@
     color: var(--color-space-text-muted);
     font-size: 16px;
   }
+
+  &__link {
+    color: var(--color-brand-blue);
+  }
+
+  &__inline-action {
+    display: inline;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+  }
 }
 
 .admin-users {

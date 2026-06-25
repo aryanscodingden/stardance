@@ -35,15 +35,15 @@
         <dd>
         <% if current_user.admin? %>
             <div>
-        <b>Raffle:</b>
+        <strong>Raffle:</strong>
         <% participant = Raffle::Participant.find_by(user_id: @user.id) %>
         <% referral = Raffle::Referral.find_by(referred_user_id: @user.id) %>
         <% if participant %>
-          <%= link_to "Participant (#{participant.code})", admin_raffles_participant_path(participant), style: "color: #3b82f6;" %>
+          <%= link_to "Participant (#{participant.code})", admin_raffles_participant_path(participant), class: "admin-user-show__link" %>
         <% end %>
         <% if referral %>
           <%= participant ? " · " : "" %>
-          Referred by <%= link_to referral.participant.display_name, admin_raffles_participant_path(referral.participant), style: "color: #3b82f6;" %>
+          Referred by <%= link_to referral.participant.display_name, admin_raffles_participant_path(referral.participant), class: "admin-user-show__link" %>
           (<span class="badge badge-<%= referral.status %>"><%= referral.status %></span>)
         <% end %>
         <% if @user.ref.present? && !referral %>
@@ -51,20 +51,19 @@
           <% ref_participant = ref_match && Raffle::Participant.find_by(code: ref_match[1]) %>
           Ref code: <code><%= @user.ref %></code> (not linked) ·
           <% if ref_participant %>
-            would be referred by <%= link_to ref_participant.display_name, admin_raffles_participant_path(ref_participant), style: "color: #3b82f6;" %> ·
+            would be referred by <%= link_to ref_participant.display_name, admin_raffles_participant_path(ref_participant), class: "admin-user-show__link" %> ·
             <%= button_to "Link referral",
                 link_referral_admin_raffles_participant_path(ref_participant),
                 params: { user_id: @user.id },
                 method: :post,
-                class: "btn-primary slim",
-                style: "display: inline; padding: 2px 8px; font-size: 0.8rem;",
-                data: { turbo_confirm: "Link #{@user.display_name} as referred by #{ref_participant.display_name}?" } %>
+                class: "btn-primary slim admin-user-show__inline-action",
+                data: { confirm: "Link #{@user.display_name} as referred by #{ref_participant.display_name}?" } %>
           <% else %>
-            <span style="color: #9ca3af;">ref code doesn't match any participant</span>
+            <span class="admin-user-show__muted">ref code doesn't match any participant</span>
           <% end %>
         <% end %>
         <% if !participant && !referral && @user.ref.blank? %>
-          <span style="color: #9ca3af;">Not in raffle</span>
+          <span class="admin-user-show__muted">Not in raffle</span>
         <% end %>
           </div>
         <% end %>
@@ -179,6 +178,23 @@
                     method: :post,
                     title: "Refresh verification status from HCA",
                     data: { confirm: "Refresh verification status for #{@user.display_name}?" } %>
+      <% if policy(@user).ban? %>
+        <% if @user.banned? %>
+          <%= button_to "🔓 Unban", admin_user_ban_path(@user), method: :delete,
+              form: { onsubmit: "return confirm(#{("Unban #{@user.display_name}?").to_json})" } %>
+        <% else %>
+          <button type="button" onclick="document.getElementById('ban-user-modal').showModal()">🚫 Ban User</button>
+          <%= render layout: "shared/modal", locals: { id: "ban-user-modal", title: "Ban User", description: "Prevents access to the site (except /home)." } do %>
+            <form action="<%= admin_user_ban_path(@user) %>" method="post">
+              <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+              <%= label_tag :reason, "Reason (optional)" %>
+              <%= text_area_tag :reason, "", placeholder: "Reason for ban..." %>
+              <button type="submit">Confirm Ban</button>
+              <button type="button" onclick="document.getElementById('ban-user-modal').close()">Cancel</button>
+            </form>
+          <% end %>
+        <% end %>
+      <% end %>
       <% if current_user.admin? %>
         <%
           all_roles = [
@@ -186,6 +202,7 @@
             { name: 'fulfillment_person', disabled: !current_user&.admin? },
             { name: 'project_certifier', disabled: !current_user&.admin? },
             { name: 'guardian_of_integrity', disabled: !current_user&.admin? },
+            { name: 'mission_reviewer', disabled: !current_user&.admin? },
             { name: 'helper', disabled: !current_user&.admin? },
             { name: 'shop_manager', disabled: !current_user&.admin? },
             { name: 'admin', disabled: !current_user&.super_admin? },
@@ -198,9 +215,12 @@
             <button type="button" data-role-dropdown-toggle>⬆ Promote to…</button>
             <div class="role-dropdown__menu">
               <% promotable_roles.each do |role| %>
-                <%= button_to role[:name].titleize, admin_user_roles_path(@user),
-                    method: :post, params: { role_name: role[:name] }, disabled: role[:disabled],
-                    class: "role-dropdown__item" %>
+                <%= button_to role[:name].titleize,
+                              admin_user_roles_path(@user),
+                              method: :post,
+                              params: { role_name: role[:name] },
+                              disabled: role[:disabled],
+                              class: "role-dropdown__item" %>
               <% end %>
             </div>
           </div>
@@ -210,9 +230,12 @@
             <button type="button" data-role-dropdown-toggle>⬇ Demote from…</button>
             <div class="role-dropdown__menu">
               <% demotable_roles.each do |role| %>
-                <%= button_to role[:name].titleize, admin_user_role_path(@user, role[:name]),
-                    method: :delete, params: { role_name: role[:name] }, disabled: role[:disabled],
-                    class: "role-dropdown__item" %>
+                <%= button_to role[:name].titleize,
+                              admin_user_role_path(@user, role[:name]),
+                              method: :delete,
+                              params: { role_name: role[:name] },
+                              disabled: role[:disabled],
+                              class: "role-dropdown__item" %>
               <% end %>
             </div>
           </div>
@@ -253,82 +276,67 @@
         <% end %>
       <% end %>
 
-        <% if policy(@user).adjust_balance? %>
-          <button type="button" onclick="document.getElementById('adjust-balance-modal').showModal()">💰 Adjust Balance</button>
-          <%= render layout: "shared/modal", locals: { id: "adjust-balance-modal", title: "Adjust Balance", description: "Current: #{@user.balance} tickets" } do %>
-            <form action="<%= admin_user_balance_adjustments_path(@user) %>" method="post">
+      <% if policy(@user).adjust_balance? %>
+        <button type="button" onclick="document.getElementById('adjust-balance-modal').showModal()">💰 Adjust Balance</button>
+        <%= render layout: "shared/modal", locals: { id: "adjust-balance-modal", title: "Adjust Balance", description: "Current: #{@user.balance} tickets" } do %>
+          <form action="<%= admin_user_balance_adjustments_path(@user) %>" method="post">
+            <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+            <%= label_tag :amount, "Amount" %>
+            <%= number_field_tag :amount, nil, placeholder: "e.g. 100 or -50", required: true, autocomplete: "off" %>
+            <%= label_tag :reason, "Reason" %>
+            <%= text_area_tag :reason, "", placeholder: "Reason for adjustment...", required: true %>
+            <button type="submit">Confirm</button>
+            <button type="button" onclick="document.getElementById('adjust-balance-modal').close()">Cancel</button>
+          </form>
+        <% end %>
+        <%= render ActionButtonComponent.new(text: "View Votes", href: admin_user_votes_path(@user), size: :small, variant: :secondary) %>
+        <button type="button" id="set-vote-bal">Set Vote Balance (<%= @user.vote_balance %>)</button>
+        <script>
+          document.getElementById("set-vote-bal").addEventListener("click", function() {
+            var v = prompt(<%= @user.display_name.to_json %> + ": Set vote balance:", "0");
+            if (v === null) return;
+            var n = parseInt(v, 10);
+            if (isNaN(n)) { alert("not valid number"); return; }
+            var f = document.createElement("form");
+            f.method = "post";
+            f.action = <%= admin_user_vote_balance_path(@user).to_json %>;
+            f.innerHTML = '<input type="hidden" name="authenticity_token" value="' + <%= form_authenticity_token.to_json %> + '">' +
+              '<input type="hidden" name="_method" value="patch">' +
+              '<input type="hidden" name="vote_balance" value="' + n + '">';
+            document.body.appendChild(f);
+            f.submit();
+          });
+        </script>
+      <% end %>
+
+      <% if current_user.admin? %>
+        <% has_grants = @user.shop_card_grants.where.not(hcb_grant_hashid: nil).exists? %>
+        <button type="button" onclick="document.getElementById('cancel-grants-modal').showModal()" <%= 'disabled'.html_safe unless has_grants %>>🚫 Cancel All HCB Grants</button>
+        <% if has_grants %>
+          <%= render layout: "shared/modal", locals: { id: "cancel-grants-modal", title: "Cancel All HCB Grants", description: "Cannot be undone!" } do %>
+            <form action="<%= admin_user_grant_cancellation_path(@user) %>" method="post">
               <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-              <%= label_tag :amount, "Amount" %>
-              <%= number_field_tag :amount, nil, placeholder: "e.g. 100 or -50", required: true, autocomplete: "off" %>
-              <%= label_tag :reason, "Reason" %>
-              <%= text_area_tag :reason, "", placeholder: "Reason for adjustment...", required: true %>
+              <p>Will cancel <%= @user.shop_card_grants.where.not(hcb_grant_hashid: nil).count %> grant(s).</p>
               <button type="submit">Confirm</button>
-              <button type="button" onclick="document.getElementById('adjust-balance-modal').close()">Cancel</button>
+              <button type="button" onclick="document.getElementById('cancel-grants-modal').close()">Cancel</button>
             </form>
           <% end %>
-          <%= render ActionButtonComponent.new(text: "View Votes", href: admin_user_votes_path(@user), size: :small, variant: :secondary) %>
-          <button type="button" id="set-vote-bal">Set Vote Balance (<%= @user.vote_balance %>)</button>
-          <script>
-            document.getElementById("set-vote-bal").addEventListener("click", function() {
-              var v = prompt(<%= @user.display_name.to_json %> + ": Set vote balance:", "0");
-              if (v === null) return;
-              var n = parseInt(v, 10);
-              if (isNaN(n)) { alert("not valid number"); return; }
-              var f = document.createElement("form");
-              f.method = "post";
-              f.action = <%= admin_user_vote_balance_path(@user).to_json %>;
-              f.innerHTML = '<input type="hidden" name="authenticity_token" value="' + <%= form_authenticity_token.to_json %> + '">' +
-                '<input type="hidden" name="_method" value="patch">' +
-                '<input type="hidden" name="vote_balance" value="' + n + '">';
-              document.body.appendChild(f);
-              f.submit();
-            });
-          </script>
         <% end %>
+      <% end %>
 
-        <% if current_user.admin? %>
-          <% has_grants = @user.shop_card_grants.where.not(hcb_grant_hashid: nil).exists? %>
-          <button type="button" onclick="document.getElementById('cancel-grants-modal').showModal()" <%= 'disabled'.html_safe unless has_grants %>>🚫 Cancel All HCB Grants</button>
-          <% if has_grants %>
-            <%= render layout: "shared/modal", locals: { id: "cancel-grants-modal", title: "Cancel All HCB Grants", description: "Cannot be undone!" } do %>
-              <form action="<%= admin_user_grant_cancellation_path(@user) %>" method="post">
-                <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-                <p>Will cancel <%= @user.shop_card_grants.where.not(hcb_grant_hashid: nil).count %> grant(s).</p>
-                <button type="submit">Confirm</button>
-                <button type="button" onclick="document.getElementById('cancel-grants-modal').close()">Cancel</button>
-              </form>
-            <% end %>
+      <% if policy(@user).ban? %>
+        <% if @user.manual_ysws_override? %>
+          <%= button_to "Remove YSWS override", admin_user_ysws_override_path(@user), method: :patch,
+              params: { manual_ysws_override: "false" },
+              form: { onsubmit: "return confirm(#{("Remove YSWS override for #{@user.display_name}?").to_json})" } %>
+        <% else %>
+          <% unless @user.ysws_eligible? %>
+            <%= button_to "Make YSWS eligible", admin_user_ysws_override_path(@user), method: :patch,
+                params: { manual_ysws_override: "true" },
+                form: { onsubmit: "return confirm(#{("Override YSWS eligibility for #{@user.display_name}?").to_json})" } %>
           <% end %>
         <% end %>
-
-        <% if policy(@user).ban? %>
-          <% if @user.banned? %>
-            <%= button_to "🔓 Unban", admin_user_ban_path(@user), method: :delete,
-                form: { onsubmit: "return confirm(#{("Unban #{@user.display_name}?").to_json})" } %>
-          <% else %>
-            <button type="button" onclick="document.getElementById('ban-user-modal').showModal()">🚫 Ban User</button>
-            <%= render layout: "shared/modal", locals: { id: "ban-user-modal", title: "Ban User", description: "Prevents access to the site (except /home)." } do %>
-              <form action="<%= admin_user_ban_path(@user) %>" method="post">
-                <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-                <%= label_tag :reason, "Reason (optional)" %>
-                <%= text_area_tag :reason, "", placeholder: "Reason for ban..." %>
-                <button type="submit">Confirm Ban</button>
-                <button type="button" onclick="document.getElementById('ban-user-modal').close()">Cancel</button>
-              </form>
-            <% end %>
-          <% end %>
-          <% if @user.manual_ysws_override? %>
-            <%= button_to "Remove YSWS override", admin_user_ysws_override_path(@user), method: :patch,
-                params: { manual_ysws_override: "false" },
-                form: { onsubmit: "return confirm(#{("Remove YSWS override for #{@user.display_name}?").to_json})" } %>
-          <% else %>
-            <% unless @user.ysws_eligible? %>
-              <%= button_to "Make YSWS eligible", admin_user_ysws_override_path(@user), method: :patch,
-                  params: { manual_ysws_override: "true" },
-                  form: { onsubmit: "return confirm(#{("Override YSWS eligibility for #{@user.display_name}?").to_json})" } %>
-            <% end %>
-          <% end %>
-        <% end %>
+      <% end %>
       </div>
     </div>
 
