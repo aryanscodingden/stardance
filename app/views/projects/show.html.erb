@@ -1100,6 +1100,11 @@
               <%= link_to "How tiers work", guide_path("tiers"), class: "funding-modal__guide-link", target: "_blank", rel: "noopener" %>
             </p>
 
+            <label class="funding-modal__bom-check">
+              <input type="checkbox" required onchange="fundingValidate(this.form)">
+              <span>I have a <code>BOM.csv</code> in my repository</span>
+            </label>
+
             <div class="ship-modal__actions">
               <button type="button"
                       class="ship-modal__btn ship-modal__btn--secondary"
@@ -1126,10 +1131,12 @@
           var max = tier ? maxes[tier.value] : null;
           if (max != null) amountEl.max = max;
 
+          var bomCheck = form.querySelector('.funding-modal__bom-check input[type="checkbox"]');
+          var bomMissing = bomCheck && !bomCheck.checked;
           var over = max != null && !isNaN(amount) && amount > max;
           err.textContent = over ? "This tier funds up to $" + max + ". Lower your request or pick a higher tier." : "";
           err.hidden = !over;
-          submit.disabled = over;
+          submit.disabled = over || bomMissing;
 
           if (discountEl) {
             var d = tier ? discounts[tier.value] : null;
