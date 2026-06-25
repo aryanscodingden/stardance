@@ -1493,13 +1493,14 @@
   }
 
   &__header {
-    align-items: center;
+    align-items: flex-start;
     display: flex;
     gap: 0.5rem;
   }
 
   &__avatar-link {
     flex-shrink: 0;
+    margin-top: 0.15rem;
   }
 
   &__avatar {

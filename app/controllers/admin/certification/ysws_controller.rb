@@ -1,11 +1,30 @@
 class Admin::Certification::YswsController < Admin::Certification::ApplicationController
   def index
     authorize ::Certification::Ysws
+    @project_type = params[:project_type].presence
+    @sort         = params[:sort].presence_in(%w[length todo])
+    @dir          = params[:dir] == "asc" ? "asc" : "desc"
 
-    @reviews = ::Certification::Ysws
-      .where(reviewed_at: nil, returned_at: nil)
-      .includes(:project, :user)
-      .order(created_at: :asc)
+    scope = ::Certification::Ysws.where(reviewed_at: nil, returned_at: nil)
+
+    # Type filter options are whatever project types are actually present in the
+    # pending queue (plus an "unclassified" bucket) — never hardcoded.
+    @type_counts = scope.joins(:project).group("projects.project_type").count
+
+    scope = scope.by_project_type(@project_type) if @project_type
+
+    scope = scope.with_todo_devlog_count.includes(:project, :user)
+
+    scope =
+      case @sort
+      when "length" then scope.order(Arel.sql("certification_ysws_reviews.original_minutes #{@dir}"))
+      when "todo"   then scope.order(Arel.sql("todo_devlog_count #{@dir}"))
+      else               scope.order(created_at: :asc)
+      end
+
+    # Loaded eagerly so the view can count the collection without re-running the
+    # custom-select query as a COUNT(*), which the aliased column would break.
+    @reviews = scope.to_a
   end
 
   def show

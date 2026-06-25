@@ -34,16 +34,22 @@ application.register(
   Certification__ScreenshotCheckController,
 );
 
-import Certification__VerdictPreviewController from "./certification/verdict_preview_controller";
-application.register(
-  "certification--verdict-preview",
-  Certification__VerdictPreviewController,
-);
-
 import Certification__Ships__MonitorChartController from "./certification/ships/monitor_chart_controller";
 application.register(
   "certification--ships--monitor-chart",
   Certification__Ships__MonitorChartController,
+);
+
+import Certification__Ships__FraudReportController from "./certification/ships/fraud_report_controller";
+application.register(
+  "certification--ships--fraud-report",
+  Certification__Ships__FraudReportController,
+);
+
+import Certification__VerdictPreviewController from "./certification/verdict_preview_controller";
+application.register(
+  "certification--verdict-preview",
+  Certification__VerdictPreviewController,
 );
 
 import Certification__VideoDropController from "./certification/video_drop_controller";
@@ -69,9 +75,6 @@ application.register(
   "certification--ysws--devlog-time-chart",
   Certification__Ysws__DevlogTimeChartController,
 );
-
-import Missions__QueueController from "./missions/queue_controller";
-application.register("missions--queue", Missions__QueueController);
 
 import Certification__Ysws__FraudReportController from "./certification/ysws/fraud_report_controller";
 application.register(
@@ -101,6 +104,12 @@ import Certification__Ysws__ReviewSidebarController from "./certification/ysws/r
 application.register(
   "certification--ysws--review-sidebar",
   Certification__Ysws__ReviewSidebarController,
+);
+
+import Certification__Ysws__ReviewerChartController from "./certification/ysws/reviewer_chart_controller";
+application.register(
+  "certification--ysws--reviewer-chart",
+  Certification__Ysws__ReviewerChartController,
 );
 
 import CommandPaletteController from "./command_palette_controller";
@@ -216,6 +225,9 @@ application.register(
   "mission-guide-variables",
   MissionGuideVariablesController,
 );
+
+import Missions__QueueController from "./missions/queue_controller";
+application.register("missions--queue", Missions__QueueController);
 
 import ModalController from "./modal_controller";
 application.register("modal", ModalController);

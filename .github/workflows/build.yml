@@ -19,7 +19,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.3
-        
+        with:
+          submodules: recursive
+          token: ${{ secrets.SUBMODULES_TOKEN || github.token }}
+
+      - name: Verify secrets submodule
+        run: test -f secrets/app/models/secrets/vote_auto_discarder.rb
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 

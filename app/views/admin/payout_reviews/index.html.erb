@@ -1,0 +1,85 @@
+<% content_for :title, "Ship Payout Reviews" %>
+
+<div class="app-layout app-layout--wide">
+  <div class="app-layout__main app-layout__main--wide sw-payouts">
+    <%= link_to "← back to admin", admin_root_path, class: "sw-payouts__back" %>
+
+    <header class="sw-payouts__header">
+      <div>
+        <h1>Ship Payout Reviews</h1>
+        <p class="sw-payouts__subtitle">Ready unpaid ships, estimated without locking or issuing payouts.</p>
+      </div>
+    </header>
+
+    <% if @ship_event_previews.any? %>
+      <div class="sw-payouts__table-wrap">
+        <table class="sw-payouts__table">
+          <thead>
+            <tr>
+              <th>Ship</th>
+              <th>Project</th>
+              <th>Owner</th>
+              <th>Shipped</th>
+              <th>Votes</th>
+              <th>Balance</th>
+              <th>Hours</th>
+              <th>Percentile</th>
+              <th>Estimate</th>
+              <th>Status</th>
+              <th>Flags</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @ship_event_previews.each do |ship_event, preview| %>
+              <% project = ship_event.project %>
+              <% owner = ship_event.payout_recipient %>
+              <tr>
+                <td>#<%= ship_event.id %></td>
+                <td class="sw-payouts__cell-user">
+                  <% if project %>
+                    <%= link_to truncate(project.title, length: 40), admin_project_path(project) %>
+                  <% else %>
+                    Unknown
+                  <% end %>
+                </td>
+                <td><%= owner&.display_name || "Unknown" %></td>
+                <td class="sw-payouts__cell-date"><%= ship_event.post&.created_at&.strftime("%b %d, %Y") || "—" %></td>
+                <td><%= preview[:votes_count] %>/<%= Post::ShipEvent::VOTES_REQUIRED_FOR_PAYOUT %></td>
+                <td><%= owner&.vote_balance || "—" %></td>
+                <td><%= number_with_precision(preview[:hours], precision: 2) %></td>
+                <td><%= preview[:percentile] ? number_with_precision(preview[:percentile], precision: 2) : "—" %></td>
+                <td><strong><%= preview[:estimated_payout] || "—" %></strong></td>
+                <td>
+                  <% if preview[:blockers].any? %>
+                    <span class="status-pill status-pill--returned">Blocked</span>
+                  <% elsif preview[:review_open] %>
+                    <span class="status-pill status-pill--pending">Review open</span>
+                  <% else %>
+                    <span class="status-pill status-pill--approved">Ready</span>
+                  <% end %>
+                </td>
+                <td><%= preview[:pending_flags_count] %></td>
+                <td>
+                  <%= link_to "Review",
+                        admin_payout_review_path(ship_event),
+                        class: "action-btn action-btn--small action-btn--primary" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <% if @pagy.pages > 1 %>
+        <div class="sw-payouts__pagination">
+          <%== @pagy.series_nav %>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="sw-payouts__empty">
+        <p>No ships are ready for payout review right now.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

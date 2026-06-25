@@ -46,6 +46,7 @@
 
 @use "components/streamer_mode";
 @use "components/idv_setup_card";
+@use "components/streak_badge";
 @use "components/settings-form";
 @use "components/slack_doodle";
 
@@ -84,6 +85,7 @@
 @use "pages/certification/ships/index" as certification_ships_index;
 @use "pages/certification/ships/show" as certification_ships_show;
 @use "pages/certification/ships/monitor" as certification_ships_monitor;
+@use "pages/certification/recording_gallery" as certification_recording_gallery;
 @use "pages/certification/mystats" as certification_mystats;
 @use "pages/certification/payouts" as certification_payouts;
 @use "pages/raffle";

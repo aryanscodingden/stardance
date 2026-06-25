@@ -39,6 +39,9 @@
                             admin_vote_flag_rejection_path(flag),
                             method: :post,
                             form: { data: { turbo_confirm: "Reject this flag and charge #{Vote::FLAG_COST} stardust?" } } %>
+              <% if vote&.ship_event %>
+                <%= link_to "Payout review", admin_payout_review_path(vote.ship_event) %>
+              <% end %>
             </td>
           </tr>
         <% end %>

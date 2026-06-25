@@ -1,6 +1,6 @@
 class Admin::Certification::ShipsController < Admin::Certification::ApplicationController
   before_action :release_other_claims, only: [ :next ]
-  before_action :set_ship, only: [ :show, :update, :set_project_type ]
+  before_action :set_ship, only: [ :show, :update, :set_project_type, :report_fraud ]
   before_action :set_submitter_context, only: [ :show, :update ]
   before_action :set_body_class, only: [ :index, :show, :update, :logs ]
 
@@ -73,6 +73,31 @@ class Admin::Certification::ShipsController < Admin::Certification::ApplicationC
     @reviewed_today = ::Certification::Ship.reviewed_today(current_user)
     @next_rank = ::Certification::Ship.rank_for_reviewer_with_count(current_user.id, @reviewed_today + 1)
     @next_multiplier = ::Certification::Ship.multiplier_for_rank(@next_rank)
+  end
+
+  def report_fraud
+    authorize @ship
+
+    report = ::Project::Report.new(
+      project_id: @ship.project_id,
+      reporter_id: current_user.id,
+      reason: "Shipwrights project flag",
+      details: params[:details],
+      status: :pending
+    )
+
+    if report.save
+      render json: { success: true, message: "Report submitted successfully" }, status: :created
+    else
+      errors = if report.errors.of_kind?(:reporter_id, :taken)
+        [ "This project has already been reported" ]
+      else
+        report.errors.full_messages
+      end
+      render json: { success: false, errors: errors }, status: :unprocessable_entity
+    end
+  rescue ActiveRecord::RecordNotUnique
+    render json: { success: false, errors: [ "This project has already been reported" ] }, status: :unprocessable_entity
   end
 
   def set_project_type

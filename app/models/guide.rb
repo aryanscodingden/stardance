@@ -2,9 +2,10 @@ Guide = Data.define(:slug, :title, :description, :category, :icon, :reading_minu
   include ActiveModel::Conversion
   extend ActiveModel::Naming
 
-  self::CATEGORY_ORDER = %i[outpost shipping craft program].freeze
+  self::CATEGORY_ORDER = %i[stardance_101 outpost shipping craft program].freeze
 
   self::CATEGORY_LABELS = {
+    stardance_101: "Stardance 101",
     shipping: "Shipping",
     craft: "Craft",
     program: "Program",
@@ -110,7 +111,7 @@ Guide = Data.define(:slug, :title, :description, :category, :icon, :reading_minu
       slug: :hardware,
       title: "Hardware in Stardance 101",
       description: "Step-by-step on how to make hardware projects in Stardance!",
-      category: :outpost,
+      category: :stardance_101,
       icon: "rocket",
       reading_minutes: 2,
       related: %i[outpost starting-hardware outpost-faq],
@@ -176,6 +177,16 @@ Guide = Data.define(:slug, :title, :description, :category, :icon, :reading_minu
       reading_minutes: 3,
       related: %i[outpost outpost-tiers how_to_ship],
       hidden: true
+    ),
+    new(
+      slug: :software,
+      title: "Software in Stardance 101",
+      description: "Step-by-step on how to make software projects in Stardance!",
+      category: :stardance_101,
+      icon: "rocket",
+      reading_minutes: 2,
+      related: %i[github_repository hackatime good_git_commits devlogs what_is_shipping how_to_ship],
+      markdown: "software.md"
     )
   ].freeze
 

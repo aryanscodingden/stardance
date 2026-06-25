@@ -1,0 +1,34 @@
+<%# The project's build recordings for review — Lapse timelapses and Lookout
+    screen recordings merged into one gallery, newest-first. The capture tool
+    doesn't matter to a reviewer, so they're shown as a single list. Locals:
+      timelapses: Lapse API hashes (LapseService)
+      recordings: Lookout hashes (LookoutService) %>
+<%
+  items = Array(timelapses).map do |tl|
+    {
+      video_url: tl[:playbackUrl],
+      poster_url: tl[:thumbnailUrl],
+      name: tl[:name].presence || "Untitled recording",
+      duration: tl[:duration],
+      recorded_at: tl[:createdAt].present? ? Time.zone.at(tl[:createdAt].to_i / 1000) : nil,
+      processing: tl[:visibility] == "FAILED_PROCESSING" ? "Processing failed" : "Still processing…"
+    }
+  end
+
+  items += Array(recordings).map do |rec|
+    {
+      video_url: rec[:video_url],
+      poster_url: rec[:thumbnail_url],
+      name: rec[:mode].present? ? "#{rec[:mode].capitalize} recording" : "Screen recording",
+      duration: rec[:duration],
+      recorded_at: rec[:recorded_at],
+      processing: "Still processing…"
+    }
+  end
+
+  items = items.sort_by { |item| item[:recorded_at] || Time.zone.at(0) }.reverse
+%>
+<%= render "recording_gallery",
+      title: "Recordings",
+      empty_text: "No recordings found for this project.",
+      items: items %>

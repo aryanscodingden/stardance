@@ -40,6 +40,84 @@
     font-weight: 700;
   }
 
+  // Project-type filter. Single set-1 control above the queue.
+  & &__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-m);
+    margin-bottom: var(--space-l);
+  }
+
+  & &__filter {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xxs);
+
+    label {
+      color: var(--color-set-1-fg-secondary);
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  & &__select {
+    background: var(--color-set-1-bg);
+    color: var(--color-space-text);
+    border: 2px solid var(--color-set-1-fg-secondary);
+    border-radius: var(--profile-radius);
+    padding: var(--space-xs) var(--space-s);
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-s);
+
+    &:focus-visible {
+      outline: 2px solid var(--color-brand-highlight);
+      outline-offset: 2px;
+    }
+  }
+
+  // Sortable column header: the title doubles as a sort toggle, with an arrow
+  // that points up/down when its column is the active sort and is dimmed
+  // otherwise.
+  & &__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xxs);
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--color-brand-highlight);
+      text-decoration: none;
+    }
+  }
+
+  & &__sort-arrow {
+    font-size: var(--font-size-xs);
+    opacity: 0.4;
+  }
+
+  & &__sort--active {
+    color: var(--color-brand-highlight);
+
+    .ysws-queue__sort-arrow {
+      opacity: 1;
+    }
+  }
+
+  // Todo-devlog-review count. Muted when there's nothing left to review.
+  & &__todo-count {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  & &__todo-count--zero {
+    color: var(--color-set-1-fg-secondary);
+    font-weight: 400;
+  }
+
   & &__table-container {
     @media (min-width: 961px) {
       background: var(--color-set-1-bg);
@@ -2299,5 +2377,70 @@ body:has(.certification-ysws) {
   // Utility class
   .hidden {
     display: none !important;
+  }
+}
+
+// Reviewer stats banner lazy-loaded into the review queue index.
+.ysws-dashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-m);
+  margin-block: var(--space-l);
+
+  @media (max-width: 960px) {
+    grid-template-columns: 1fr;
+  }
+
+  &__panel {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius);
+    padding: var(--space-m);
+  }
+
+  &__heading {
+    margin: 0 0 var(--space-s);
+    font-size: var(--font-size-l);
+    color: var(--color-brand-off-white);
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: var(--space-xs) var(--space-s);
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    th {
+      font-size: var(--font-size-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: rgba(255, 255, 255, 0.5);
+    }
+  }
+
+  &__col-rank {
+    width: 2.5rem;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  &__col-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__chart {
+    position: relative;
+    height: 280px;
+  }
+
+  &__empty,
+  &__loading {
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
   }
 }

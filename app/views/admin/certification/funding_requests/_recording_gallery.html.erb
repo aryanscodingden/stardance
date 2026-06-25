@@ -1,0 +1,38 @@
+<%# Reusable video-gallery panel for the hardware funding review. Locals:
+      title:      panel heading
+      empty_text: shown when items is blank
+      items:      array of { video_url:, poster_url:, processing:, name:,
+                  duration: (seconds), recorded_at: (Time or nil) } %>
+<div class="ship-review__panel recording-gallery">
+  <h2 class="ship-review__panel-title"><%= title %></h2>
+
+  <% if items.blank? %>
+    <p class="recording-gallery__empty"><%= empty_text %></p>
+  <% else %>
+    <ul class="recording-gallery__list">
+      <% items.each do |item| %>
+        <li class="recording-gallery__item">
+          <div class="recording-gallery__media">
+            <% if item[:video_url].present? %>
+              <video controls playsinline preload="none"
+                     class="recording-gallery__video"
+                     poster="<%= item[:poster_url] %>">
+                <source src="<%= item[:video_url] %>" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            <% else %>
+              <div class="recording-gallery__processing"><%= item[:processing] %></div>
+            <% end %>
+          </div>
+          <div class="recording-gallery__meta">
+            <span class="recording-gallery__name"><%= item[:name] %></span>
+            <span class="recording-gallery__sub">
+              <%= [ format_clock(item[:duration]),
+                    (item[:recorded_at] && l(item[:recorded_at].to_date, format: :short)) ].compact.join(" · ") %>
+            </span>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>

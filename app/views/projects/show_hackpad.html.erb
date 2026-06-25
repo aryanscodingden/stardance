@@ -96,7 +96,7 @@
                   <p class="project-show__authors">
                     By
                     <% members.each_with_index do |m, i| %>
-                      <%= " and " if i > 0 && i == members.length - 1 %><%= link_to "@#{m.display_name}", profile_path(m.display_name), class: "project-show__author", data: { turbo_frame: "_top", turbo_prefetch: "true" } %><%= "," if i < members.length - 2 && members.length > 2 %>
+                      <%= " and " if i > 0 && i == members.length - 1 %><%= link_to "@#{m.display_name}", profile_path(m.display_name), class: "project-show__author", data: { turbo_frame: "_top", turbo_prefetch: "true" } %><%= render StreakBadgeComponent.new(user: m) %><%= "," if i < members.length - 2 && members.length > 2 %>
                     <% end %>
                   </p>
                 </div>
@@ -326,7 +326,7 @@
                   <p class="project-show__authors">
                     By
                     <% members.each_with_index do |m, i| %>
-                      <%= " and " if i > 0 && i == members.length - 1 %><%= link_to "@#{m.display_name}", profile_path(m.display_name), class: "project-show__author", data: { turbo_frame: "_top", turbo_prefetch: "true" } %><%= "," if i < members.length - 2 && members.length > 2 %>
+                      <%= " and " if i > 0 && i == members.length - 1 %><%= link_to "@#{m.display_name}", profile_path(m.display_name), class: "project-show__author", data: { turbo_frame: "_top", turbo_prefetch: "true" } %><%= render StreakBadgeComponent.new(user: m) %><%= "," if i < members.length - 2 && members.length > 2 %>
                     <% end %>
                   </p>
                 </div>

@@ -1,7 +1,7 @@
 <% content_for :title, "Funding review: #{@funding_request.project.title}" %>
 
 <%
-  owner = @funding_request.project.memberships.find(&:owner?)&.user
+  owner = @funding_request.owner
   can_review = @funding_request.claim_held_by?(current_user) && @funding_request.pending?
 %>
 
@@ -50,6 +50,8 @@
             <p class="ship-review__description"><%= @funding_request.project.description %></p>
           </div>
         <% end %>
+
+        <%= render "recordings", timelapses: @lapse_timelapses, recordings: @lookout_recordings %>
 
         <div class="ship-review__panel">
           <h2 class="ship-review__panel-title">Links</h2>

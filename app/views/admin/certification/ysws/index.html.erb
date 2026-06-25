@@ -1,7 +1,45 @@
 <% content_for :title, "YSWS Review Queue" %>
 
+<%
+  # Header link that toggles the sort direction for a column. First click sorts
+  # descending (highest first); clicking the active column again flips it.
+  sort_link = ->(col, label) do
+    active   = @sort == col
+    next_dir = (active && @dir == "desc") ? "asc" : "desc"
+    arrow    = active ? (@dir == "asc" ? "▲" : "▼") : "▾"
+    link_to admin_certification_ysws_reviews_path(project_type: @project_type, sort: col, dir: next_dir),
+            class: "ysws-queue__sort#{' ysws-queue__sort--active' if active}" do
+      safe_join([ label, content_tag(:span, arrow, class: "ysws-queue__sort-arrow", "aria-hidden": true) ], " ")
+    end
+  end
+%>
+
 <main class="ysws-queue" role="main">
   <h1>YSWS Review Queue</h1>
+
+  <%= turbo_frame_tag "ysws_dashboard", src: admin_certification_ysws_dashboard_path, loading: "lazy" do %>
+    <p class="ysws-dashboard__loading">Loading reviewer stats…</p>
+  <% end %>
+
+  <%= form_with url: admin_certification_ysws_reviews_path, method: :get, class: "ysws-queue__filters" do %>
+    <% if @sort %>
+      <%= hidden_field_tag :sort, @sort %>
+      <%= hidden_field_tag :dir, @dir %>
+    <% end %>
+    <div class="ysws-queue__filter">
+      <label for="filter-type">Project type</label>
+      <%
+        type_total   = @type_counts.values.sum
+        unclassified = @type_counts[nil].to_i
+        type_options = @type_counts.keys.compact.sort.map { |t| [ "#{t} (#{@type_counts[t]})", t ] }
+        type_options << [ "Unclassified (#{unclassified})", "unclassified" ] if unclassified.positive?
+      %>
+      <%= select_tag :project_type,
+            options_for_select(type_options, @project_type),
+            include_blank: "All types (#{type_total})", id: "filter-type",
+            class: "ysws-queue__select", onchange: "this.form.requestSubmit()" %>
+    </div>
+  <% end %>
 
   <% if @reviews.any? %>
     <div class="ysws-queue__summary" role="status" aria-live="polite">
@@ -17,7 +55,8 @@
             <th>Project Type</th>
             <th>Project Name</th>
             <th>User</th>
-            <th>Length (hours)</th>
+            <th><%= sort_link.call("length", "Length (hours)") %></th>
+            <th><%= sort_link.call("todo", "Todo reviews") %></th>
             <th>Age</th>
             <th>Actions</th>
           </tr>
@@ -27,7 +66,7 @@
             <tr>
               <td data-label="ID">#<%= review.id %></td>
               <td data-label="Type">
-                <%= review.project&.project_type.presence || tag.span("—", style: "opacity: 0.5;") %>
+                <%= review.project&.project_type.presence || tag.span("—", class: "ysws-queue__placeholder") %>
               </td>
               <td data-label="Project">
                 <% if review.project %>
@@ -43,6 +82,11 @@
               <td data-label="Hours">
                 <% hours = review.original_minutes ? (review.original_minutes / 60.0).round(1) : 0 %>
                 <%= hours %> hrs
+              </td>
+              <td data-label="pending devlogs">
+                <span class="ysws-queue__todo-count<%= " ysws-queue__todo-count--zero" if review.todo_devlog_count.zero? %>">
+                  <%= review.todo_devlog_count %>
+                </span>
               </td>
               <td data-label="Age">
                 <% age_in_days = ((Time.current - review.created_at) / 1.day).floor %>

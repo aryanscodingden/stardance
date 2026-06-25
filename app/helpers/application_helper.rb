@@ -76,6 +76,14 @@ module ApplicationHelper
     format("%d:%02d", hours, mins)
   end
 
+  # Whole-seconds duration as a media clock: H:MM:SS past an hour, else M:SS.
+  # Used by the Lapse/Lookout recording galleries on the hardware funding review.
+  def format_clock(seconds)
+    hours, rem = seconds.to_i.divmod(3600)
+    mins, secs = rem.divmod(60)
+    hours.positive? ? format("%d:%02d:%02d", hours, mins, secs) : format("%d:%02d", mins, secs)
+  end
+
   def format_seconds(seconds, include_days: false)
     # ie: 2h 3m 4s
     # ie. 37h 15m (if include_days is false)

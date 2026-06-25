@@ -159,6 +159,12 @@ production:
     concurrency: 1
     description: "Enqueue airtable sync for reviews where sync initially failed"
 
+  streak_daily_sync:
+    class: StreakDailySyncJob
+    schedule: every day at 3am UTC
+    concurrency: 1
+    description: "Sync streak activities from Hackatime for all active users"
+
   ahoy_backfill_project_created_ahoy_events:
     class: AhoyBackfillProjectCreatedJob
     schedule: every day at 5am America/New_York

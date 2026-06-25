@@ -24,6 +24,10 @@
           <%= link_to "Monitor", monitor_admin_certification_ships_path,
                 class: "action-btn action-btn--large action-btn--secondary" %>
         <% end %>
+        <% if current_user.admin? && Post::ShipEvent.payout_feature_enabled?(current_user) %>
+          <%= link_to "Ship payout review", admin_payout_reviews_path,
+                class: "action-btn action-btn--large action-btn--secondary" %>
+        <% end %>
         <%= link_to "Logs", logs_admin_certification_ships_path,
             class: "action-btn action-btn--large action-btn--secondary" %>
         <%= link_to "My Stats", admin_certification_mystats_path,

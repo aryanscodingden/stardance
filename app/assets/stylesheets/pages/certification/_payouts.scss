@@ -34,6 +34,24 @@
     }
   }
 
+  &__eyebrow,
+  &__subtitle {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  &__eyebrow {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__subtitle {
+    margin-top: var(--space-xxs);
+    font-size: 0.95rem;
+  }
+
   &__tabs {
     display: flex;
     gap: var(--space-xxs);
@@ -150,6 +168,11 @@
     border: 1px solid var(--card-border);
     border-radius: 12px;
     padding: var(--space-l);
+
+    h2 {
+      margin: 0 0 var(--space-m);
+      font-size: 1.1rem;
+    }
   }
 
   &__detail-row {
@@ -171,11 +194,27 @@
     color: var(--muted);
   }
 
-  &__actions-card {
-    h2 {
-      margin: 0 0 var(--space-m);
-      font-size: 1.1rem;
+  &__link-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-xs);
+  }
+
+  &__votes {
+    margin-top: var(--space-l);
+  }
+
+  &__reason {
+    min-width: 320px;
+
+    p {
+      margin: 0;
     }
+  }
+
+  &__pagination {
+    margin-top: var(--space-m);
   }
 
   &__pay-form {

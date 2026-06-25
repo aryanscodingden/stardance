@@ -60,7 +60,9 @@
   <% end %>
 
   <p class="feed-home__empty">
-    <% if @current_tab == "following" %>
+    <% if @current_tab == "new_builders" %>
+      No new builders right now. Check back later!
+    <% elsif @current_tab == "following" %>
       Nothing here yet. Follow some people or projects to see their posts here!
     <% elsif current_user.present? %>
       Nothing here yet. Post a devlog or ship your project to start the feed.

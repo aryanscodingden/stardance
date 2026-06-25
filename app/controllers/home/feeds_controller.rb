@@ -3,7 +3,7 @@ class Home::FeedsController < ApplicationController
 
   FEED_LIMIT = 20
   RECOMMENDATION_POOL = 100 # after this, we fallback to SQL
-  TABS = %w[for_you following popular newest].freeze
+  TABS = %w[for_you following popular newest new_builders].freeze
   FeedPage = Struct.new(:page, :limit, :offset, :next, keyword_init: true)
 
   skip_before_action :remember_page
@@ -22,10 +22,11 @@ class Home::FeedsController < ApplicationController
 
   def load_feed
     case @current_tab
-    when "following"  then load_following_feed
-    when "popular"    then paginate_and_filter(popular_scope, "popular")
-    when "newest"     then paginate_and_filter(newest_scope, "newest")
-    else                   load_for_you_feed
+    when "following"     then load_following_feed
+    when "popular"       then paginate_and_filter(popular_scope, "popular")
+    when "newest"        then paginate_and_filter(newest_scope, "newest")
+    when "new_builders"  then paginate_and_filter(new_builders_scope, "new_builders")
+    else                      load_for_you_feed
     end
 
     @liked_devlog_ids = liked_devlog_ids_for(@feed_posts)
@@ -91,6 +92,26 @@ class Home::FeedsController < ApplicationController
 
   def newest_scope
     feed_scope.reorder(created_at: :desc)
+  end
+
+  def new_builders_scope
+    first_devlog_ids = Post.where(postable_type: "Post::Devlog")
+      .joins("INNER JOIN post_devlogs ON post_devlogs.id = posts.postable_id")
+      .where(post_devlogs: { deleted_at: nil })
+      .group(:user_id)
+      .select("MIN(posts.id)")
+
+    feed_scope
+      .where(postable_type: "Post::Devlog")
+      .joins("INNER JOIN post_devlogs ON post_devlogs.id = posts.postable_id")
+      .where(id: first_devlog_ids)
+      .where(post_devlogs: { deleted_at: nil })
+      .where("post_devlogs.duration_seconds > 0")
+      .where("posts.created_at >= ?", 7.days.ago)
+      .reorder(Arel.sql(<<~SQL.squish))
+        (post_devlogs.likes_count + post_devlogs.comments_count) ASC,
+        posts.created_at DESC
+      SQL
   end
 
   def visible_post?(post)
