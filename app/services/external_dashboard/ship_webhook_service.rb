@@ -18,6 +18,7 @@ module ExternalDashboard
     def call
       return Result.new(status: :not_configured, error: "api key or workplace id missing") unless Client.configured?
       return Result.new(status: :skipped, error: "cert has no project") if project.nil?
+      return Result.new(status: :skipped, error: "hardware project — out of scope") if project.hardware?
       return Result.new(status: :skipped, error: "cert has no ship_event") if ship_event.nil?
       return Result.new(status: :skipped, error: "owner has no slack_id") if owner_slack_id.blank?
 
