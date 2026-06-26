@@ -2,35 +2,49 @@
 
 <%= render HeadingComponent.new(title: "Fraud", tone: :blue, size: :full) %>
 
-<div class="admin-workspace">
-  <%= render ActionButtonComponent.new(text: "Vote Flags", href: admin_vote_flags_path) %>
-  <%= render ActionButtonComponent.new(text: "Payout Reviews", href: admin_payout_reviews_path) %>
+<div class="fraud-dashboard">
+  <section class="fraud-dashboard__section">
+    <h2 class="fraud-dashboard__section-label">Review Queues</h2>
+    <div class="fraud-dashboard__buttons">
+      <%
+        badge_modifier = case @pending_orders_count
+          when 1..25    then "mint"
+          when 26..75   then "yellow"
+          when 76..125  then "peach"
+          when 126..199 then "salmon"
+          when 200..300 then "red-pulse"
+          when 301..400 then "red-pulse-spin"
+          when 401..500 then "fire"
+          else               @pending_orders_count > 500 ? "fire" : nil
+        end
+      %>
+      <div class="fraud-shop-btn<%= " fraud-shop-btn--critical" if @pending_orders_count >= 500 %>">
+        <%= render ActionButtonComponent.new(href: admin_shop_orders_path) do %>
+          <span class="action-btn__label">Shop Orders</span>
+          <% if @pending_orders_count > 0 %>
+            <span class="action-btn__badge action-btn__badge--<%= badge_modifier %>"><%= @pending_orders_count %></span>
+          <% end %>
+        <% end %>
+        <% if @pending_orders_count >= 500 %>
+          <span class="fraud-shop-btn__worse">worse than flavortown 💀</span>
+        <% end %>
+      </div>
 
-  <%
-    badge_modifier = case @pending_orders_count
-      when 1..25    then "mint"
-      when 26..75   then "yellow"
-      when 76..125  then "peach"
-      when 126..199 then "salmon"
-      when 200..300 then "red-pulse"
-      when 301..400 then "red-pulse-spin"
-      when 401..500 then "fire"
-      else               @pending_orders_count > 500 ? "fire" : nil
-    end
-  %>
-  <div class="fraud-shop-btn<%= " fraud-shop-btn--critical" if @pending_orders_count >= 500 %>">
-    <%= render ActionButtonComponent.new(href: admin_shop_orders_path) do %>
-      <span class="action-btn__label">Shop Orders</span>
-      <% if @pending_orders_count > 0 %>
-        <span class="action-btn__badge action-btn__badge--<%= badge_modifier %>"><%= @pending_orders_count %></span>
+      <%= render ActionButtonComponent.new(href: admin_certification_reports_path(reason: "fraud")) do %>
+        <span class="action-btn__label">Reports</span>
+        <% if @pending_fraud_reports_count > 0 %>
+          <span class="action-btn__badge action-btn__badge--salmon"><%= @pending_fraud_reports_count %></span>
+        <% end %>
       <% end %>
-    <% end %>
-    <% if @pending_orders_count >= 500 %>
-      <span class="fraud-shop-btn__worse">worse than flavortown 💀</span>
-    <% end %>
-  </div>
+    </div>
+  </section>
 
-  <%= render ActionButtonComponent.new(text: "Audit Logs", href: admin_audit_logs_path) %>
-  <%= render ActionButtonComponent.new(text: "Users", href: admin_users_path) %>
-  <%= render ActionButtonComponent.new(text: "Projects", href: admin_projects_path) %>
+  <section class="fraud-dashboard__section">
+    <h2 class="fraud-dashboard__section-label">Browse</h2>
+    <div class="fraud-dashboard__buttons">
+      <%= render ActionButtonComponent.new(text: "Audit Logs", href: admin_audit_logs_path) %>
+      <%= render ActionButtonComponent.new(text: "Users", href: admin_users_path) %>
+      <%= render ActionButtonComponent.new(text: "Projects", href: admin_projects_path) %>
+    </div>
+  </section>
 </div>

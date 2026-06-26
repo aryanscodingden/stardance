@@ -22,7 +22,9 @@ class Admin::ProjectsController < Admin::ApplicationController
   end
 
   def show
-    @project = ::Project.unscoped.find(params[:id])
+    @project = ::Project.unscoped
+      .includes(:users, hackatime_projects: { user: :identities })
+      .find(params[:id])
     authorize @project
   end
 

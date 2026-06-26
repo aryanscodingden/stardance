@@ -1,0 +1,75 @@
+// Shared fraud-tool pill (Billy / Joe) — usable anywhere in the admin
+.admin-fraud-link {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 213, 152, 0.12);
+  color: var(--color-brand-peach);
+  border: 1px solid rgba(255, 213, 152, 0.3);
+  padding: 1px var(--space-xs);
+  border-radius: 999px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  font-family: var(--font-family-text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+
+  &:hover {
+    background: rgba(255, 213, 152, 0.22);
+  }
+}
+
+.admin-project__members {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  color: var(--color-space-text);
+}
+
+.admin-project__member {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.admin-project__fraud-links {
+  display: flex;
+  gap: 4px;
+}
+
+.fraud-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-l);
+  margin: var(--space-m) 0;
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+  }
+
+  &__section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-space-text-muted);
+    margin: 0;
+  }
+
+  &__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+  }
+}

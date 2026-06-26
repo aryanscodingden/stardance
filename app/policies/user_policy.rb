@@ -19,7 +19,4 @@ class UserPolicy < ApplicationPolicy
     true
   end
 
-  def view_deleted_devlogs?
-    user&.can_see_deleted_devlogs?
-  end
 end
