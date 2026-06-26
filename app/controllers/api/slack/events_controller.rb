@@ -51,7 +51,7 @@ module Api
         computed = "v0=#{OpenSSL::HMAC.hexdigest("SHA256", signing_secret, sig_basestring)}"
         signature = request.headers["X-Slack-Signature"]
 
-        head :unauthorized unless ActiveSupport::SecurityUtils.secure_compare(computed, signature.to_s)
+        return head :unauthorized unless ActiveSupport::SecurityUtils.secure_compare(computed, signature.to_s)
       end
     end
   end
