@@ -9,8 +9,22 @@ export default class extends Controller {
   }
 
   dismiss() {
+    this.#persistDismissal();
+    this.dialogTarget.close();
+    document.body.style.overflow = "";
+    this.element.remove();
+  }
+
+  async dismissAndNavigate(event) {
+    event.preventDefault();
+    const href = event.currentTarget.href;
+    await this.#persistDismissal();
+    window.location.href = href;
+  }
+
+  #persistDismissal() {
     const token = document.querySelector("meta[name='csrf-token']")?.content;
-    fetch("/my/dismissals", {
+    return fetch("/my/dismissals", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -18,9 +32,5 @@ export default class extends Controller {
       },
       body: JSON.stringify({ thing_name: "sticker_promo" }),
     }).catch(() => {});
-
-    this.dialogTarget.close();
-    document.body.style.overflow = "";
-    this.element.remove();
   }
 }
