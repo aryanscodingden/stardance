@@ -9,7 +9,7 @@ To get rewards from Stardance, you'll need to track your time using a tool calle
 ![image](https://cdn.hackclub.com/019ed75a-21f7-7c08-a97c-1c6e553a0b40/paste-1781729468716.png)
 _^^ hit this button to record your progress!_
 
-Once your design is done, you'll need to submit it to 1 of 4 tiers to get funding! You can read more about that [here](/guides/tiers)
+Once your design is done, you'll need to submit it to 1 of 4 tiers to get funding! You can read more about that [here](/guides/outpost-tiers)
 
 ![image](https://cdn.hackclub.com/019ed761-78c0-7d42-85c2-66ae7660575b/paste-1781729949474.png)
 _^^ hit thigs button to get your funding!_
