@@ -1,0 +1,13 @@
+<section class="rail-widget sticker-promo-widget" aria-label="Free sticker promo">
+  <h3 class="rail-widget__title">Get a free sticker!</h3>
+
+  <div class="sticker-promo-widget__image-wrap">
+    <%= image_tag "sticker-promo-hero.png", alt: "Hack Club × Stardance Challenge sticker", class: "sticker-promo-widget__image" %>
+  </div>
+
+  <p class="sticker-promo-widget__countdown"
+     data-controller="sticker-countdown"
+     data-sticker-countdown-deadline-value="<%= deadline_iso %>">
+    Ship in <strong data-sticker-countdown-target="timer">--:--:--</strong>
+  </p>
+</section>

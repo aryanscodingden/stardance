@@ -322,6 +322,12 @@ application.register("slack-doodle", SlackDoodleController);
 import SortableController from "./sortable_controller";
 application.register("sortable", SortableController);
 
+import StickerCountdownController from "./sticker_countdown_controller";
+application.register("sticker-countdown", StickerCountdownController);
+
+import StickerPromoController from "./sticker_promo_controller";
+application.register("sticker-promo", StickerPromoController);
+
 import StarImageInputController from "./star_image_input_controller";
 application.register("star-image-input", StarImageInputController);
 

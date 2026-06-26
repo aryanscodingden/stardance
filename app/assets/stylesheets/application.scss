@@ -49,6 +49,8 @@
 @use "components/streak_badge";
 @use "components/settings-form";
 @use "components/slack_doodle";
+@use "components/sticker_promo";
+@use "components/sticker_promo_widget";
 
 // Pages
 @use "pages/onboarding" as onboarding_pages;
