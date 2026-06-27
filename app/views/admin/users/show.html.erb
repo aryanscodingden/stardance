@@ -331,35 +331,6 @@
     </div>
 
     <div class="mission-panel">
-      <h2 class="admin-user-show__section-title">Flipper Features</h2>
-      <div class="admin-user-show__actions">
-        <%
-          features = [
-            { key: :shop_open,               label: "Shop" },
-            { key: :"git_commit_2025-12-25", label: "Git Commit" },
-            { key: :kitchen_comic,           label: "Kitchen Comic" },
-            { key: :voting,                  label: "Voting" },
-            { key: :grant_stardust,          label: "Grant Stardust" },
-            { key: :voting_locked,           label: "Voting Lock" },
-          ]
-        %>
-        <% features.each do |f| %>
-          <% if Flipper.enabled?(f[:key], @user) %>
-            <%= button_to admin_user_feature_flag_path(@user, f[:key].to_s),
-                method: :delete, disabled: !current_user&.admin?, title: "Disable #{f[:label]}" do %>
-              <%= f[:label] %> ✓
-            <% end %>
-          <% else %>
-            <%= button_to admin_user_feature_flags_path(@user),
-                method: :post, params: { feature: f[:key].to_s }, disabled: !current_user&.admin?, title: "Enable #{f[:label]}" do %>
-              <%= f[:label] %>
-            <% end %>
-          <% end %>
-        <% end %>
-      </div>
-    </div>
-
-    <div class="mission-panel">
       <h2 class="admin-user-show__section-title">Internal Notes</h2>
       <p class="admin-user-show__muted">Shared between fraud, fulfillment, and admins. Changes are audit logged.</p>
       <% if @user.internal_notes.present? %>
