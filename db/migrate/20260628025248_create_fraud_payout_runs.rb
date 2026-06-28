@@ -1,6 +1,6 @@
 class CreateFraudPayoutRuns < ActiveRecord::Migration[8.1]
   def change
-    create_table :fraud_payout_runs do |t|
+    create_table :fraud_payout_runs, if_not_exists: true do |t|
       t.string :aasm_state
       t.datetime :period_start
       t.datetime :period_end
