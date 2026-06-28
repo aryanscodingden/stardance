@@ -267,7 +267,9 @@
                     <span style="font-size:10px; color: var(--color-space-text-muted);">(deleted)</span>
                   <% end %>
                   <% if joe_hackatime %>
-                    <%= link_to "Joe", "https://joe.fraud.hackclub.com/billy/overview?u=#{joe_hackatime.uid}&project=#{CGI.escape(project.title)}", target: "_blank", class: "aorder__fraud-btn" %>
+                    <% project.hackatime_projects.select { |hp| hp.user_id == @order.user.id }.each do |hp| %>
+                      <%= link_to "Joe (#{hp.name})", "https://joe.fraud.hackclub.com/billy/overview?u=#{joe_hackatime.uid}&project=#{CGI.escape(hp.name)}", target: "_blank", class: "aorder__fraud-btn" %>
+                    <% end %>
                   <% end %>
                 </div>
               <% end %>

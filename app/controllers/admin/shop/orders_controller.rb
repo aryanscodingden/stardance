@@ -142,7 +142,7 @@ class Admin::Shop::OrdersController < Admin::ApplicationController
 
     # Load user's order history for fraud dept or order review
     @user_orders = @order.user.shop_orders.where.not(id: @order.id).order(created_at: :desc).limit(10)
-    @user_projects = @order.user.projects.order(created_at: :desc)
+    @user_projects = @order.user.projects.includes(:hackatime_projects).order(created_at: :desc)
 
     # Find sibling LetterMail orders for Theseus coalesce button
     if @order.shop_item.type == "ShopItem::LetterMail" && @order.awaiting_periodical_fulfillment?
