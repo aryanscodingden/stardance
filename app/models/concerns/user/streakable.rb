@@ -35,6 +35,13 @@ module User::Streakable
     streak_activities.for_date(streak_today_date).first
   end
 
+  # Most recent day (streak-day granularity) the user logged any Hackatime
+  # coding time. Read straight from streak_activities, so no live Hackatime
+  # call — nil if they've never logged time on a linked project.
+  def last_hackatime_activity_on
+    streak_activities.where("coded_seconds > 0").maximum(:activity_date)
+  end
+
   def streak_week_activities
     today = streak_today_date
     week_start = today.beginning_of_week(:sunday)
