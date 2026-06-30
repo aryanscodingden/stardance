@@ -391,7 +391,7 @@ class ShopOrder < ApplicationRecord
   end
 
   USPS_SUSPENDED_COUNTRIES = %w[
-    AM AE BH DJ DZ ER IL IQ IR KW LY MG OM PK QA SC SY TZ
+    AF BY CU ER HT IR SC SD YE
   ].freeze
 
   USPS_SUSPENSION_EXEMPT_TYPES = %w[
