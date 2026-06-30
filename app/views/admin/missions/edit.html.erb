@@ -72,6 +72,13 @@
           <%= f.number_field :estimated_completion_minutes, min: 5, max: 480, step: 5 %>
         </label>
         <label class="is-inline"><%= f.check_box :enabled %> Enabled</label>
+        <label class="is-inline"><%= f.check_box :hardware %> Hardware mission</label>
+        <small class="admin-mission-edit__hint">
+          When on, only hardware projects can attach to this mission. Saving this
+          on converts any already-attached software projects to hardware (design
+          stage), and new software projects are turned away until the builder
+          switches their project to hardware.
+        </small>
         <label>Start at <%= f.datetime_field :start_at %></label>
         <label>End at <%= f.datetime_field :end_at %></label>
         <label>Featured at <%= f.datetime_field :featured_at %></label>
@@ -190,7 +197,7 @@
           <ul class="admin-mission-edit__memberships">
             <% @owners.each do |m| %>
               <li class="admin-mission-edit__membership">
-                <span><%= m.user.display_name %> <span class="admin-mission-edit__muted">(#<%= m.user.id %>)</span></span>
+                <span><%= m.user&.display_name || "Unknown user" %> <span class="admin-mission-edit__muted">(#<%= m.user_id %>)</span></span>
                 <%= button_to "Remove",
                               admin_mission_membership_path(@mission.slug, m),
                               method: :delete,

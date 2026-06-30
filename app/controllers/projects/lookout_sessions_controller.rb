@@ -1,5 +1,5 @@
 class Projects::LookoutSessionsController < ApplicationController
-  before_action -> { head :not_found unless Flipper.enabled?(:hardware_flow, current_user) }
+  before_action -> { head :not_found unless Flipper.enabled?(:hardware_flow, current_user) || Flipper.enabled?(:lookout, current_user) }
   before_action :set_project
   before_action :set_lookout_session, only: %i[show record stop set_mode forward_heartbeats]
 
@@ -41,7 +41,7 @@ class Projects::LookoutSessionsController < ApplicationController
     authorize @project, :create_devlog?
 
     remote = LookoutService.fetch_session(@lookout_session.token)
-    sync_session!(@lookout_session, remote) if remote
+    @lookout_session.sync_from_remote!(remote) if remote
 
     render json: session_json(@lookout_session)
   end
@@ -127,10 +127,10 @@ class Projects::LookoutSessionsController < ApplicationController
     # Sync any still-in-progress sessions from Lookout so status / duration /
     # video stay current even if the recorder tab was closed before stopping.
     sessions.each do |s|
-      next if %w[complete failed].include?(s.status)
+      next if s.terminal?
 
       remote = LookoutService.fetch_session(s.token)
-      sync_session!(s, remote) if remote
+      s.sync_from_remote!(remote) if remote
     end
 
     render json: sessions.map { |s| session_json(s) }
@@ -146,23 +146,6 @@ class Projects::LookoutSessionsController < ApplicationController
   # members can only view/stop their own.
   def set_lookout_session
     @lookout_session = @project.lookout_sessions.where(user: current_user).find(params[:id])
-  end
-
-  # Mirror Lookout's client-API session state onto our row. The remote payload
-  # is camelCase (trackedSeconds, videoUrl); tolerate snake_case too. Only accept
-  # a status we recognize so update! can't blow up on a new remote state.
-  # Heartbeat forwarding is user-driven (the recorder's destination step), so
-  # this only syncs status / duration / video.
-  def sync_session!(session, remote)
-    status = remote[:status].presence_in(LookoutSession::STATUSES)
-    tracked = remote[:trackedSeconds] || remote[:tracked_seconds] || remote[:duration_seconds]
-    video   = remote[:videoUrl] || remote[:video_url] || remote[:recording_url]
-
-    session.update!(
-      status: status || session.status,
-      duration_seconds: tracked ? tracked.to_i : session.duration_seconds,
-      recording_url: video.presence || session.recording_url
-    )
   end
 
   def session_json(session)

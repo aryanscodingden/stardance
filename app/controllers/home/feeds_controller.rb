@@ -138,7 +138,12 @@ class Home::FeedsController < ApplicationController
     remaining = page_candidate_limit - rec_slice.size
     if remaining.positive?
       sql_offset = [ pagy.offset - recommended.size, 0 ].max
-      backfill.offset(sql_offset).limit(remaining).each do |post|
+      backfill_posts = backfill.offset(sql_offset).limit(remaining).to_a
+      # Batch-load postables up front: the visibility filter below reads
+      # `post.postable` on every candidate, which would otherwise fire one
+      # query per post. preload_feed_associations later deep-loads from here.
+      preload(backfill_posts, :postable)
+      backfill_posts.each do |post|
         next unless post.postable.present?
         next if post.repost? && !post.visible_repost_original_for?(current_user)
 

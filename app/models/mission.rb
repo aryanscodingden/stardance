@@ -17,6 +17,7 @@
 #  fixed_stardust_payout        :integer
 #  guide_sections_count         :integer
 #  guide_url                    :string
+#  hardware                     :boolean          default(FALSE), not null
 #  name                         :string           not null
 #  prizes_count                 :integer          default(0), not null
 #  slug                         :string           not null
@@ -71,6 +72,13 @@ class Mission < ApplicationRecord
   DIFFICULTIES = %w[beginner intermediate advanced].freeze
   enum :difficulty, DIFFICULTIES.index_with(&:itself), prefix: true
 
+  # Flipping a mission to hardware converts its already-attached software
+  # projects to hardware (see Mission::MigrateProjectsToHardwareJob). Runs after
+  # commit so the job sees the persisted flag; flipping back to software leaves
+  # projects untouched (a genuinely hardware project shouldn't revert).
+  after_update_commit :migrate_attached_projects_to_hardware,
+                      if: -> { saved_change_to_hardware? && hardware? }
+
   validates :slug, presence: true, uniqueness: true,
                    format: { with: /\A[a-z0-9][a-z0-9_-]*\z/, message: "must be URL-safe" },
                    exclusion: { in: %w[all new], message: "is reserved" }
@@ -124,6 +132,12 @@ class Mission < ApplicationRecord
   def has_steps?  = steps.any?
   def has_prizes? = prizes.any?
   def has_prerequisites? = prerequisites.any?
+
+  # Whether projects shipped to this mission go into community rating. A fixed
+  # stardust payout forces the static-prize path, which is hard-excluded from
+  # the voteable pool (see Post::ShipEvent.voteable); every other mission lets
+  # its submissions be rated.
+  def submissions_enter_rating? = !fixed_stardust_payout&.positive?
 
   def prerequisites_met_by?(user)
     return true unless has_prerequisites?
@@ -373,5 +387,11 @@ class Mission < ApplicationRecord
       .joins(ship_event: :post)
       .distinct
       .pluck("posts.project_id")
+  end
+
+  private
+
+  def migrate_attached_projects_to_hardware
+    Mission::MigrateProjectsToHardwareJob.perform_later(id, PaperTrail.request.whodunnit)
   end
 end

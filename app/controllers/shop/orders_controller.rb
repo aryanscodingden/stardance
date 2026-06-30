@@ -19,7 +19,7 @@ class Shop::OrdersController < Shop::BaseController
     @shop_item = ShopItem.find(params[:shop_item_id])
     @mission_submission = load_redeemable_submission(@shop_item)
 
-    unless @shop_item.enabled? || @mission_submission.present?
+    unless @shop_item.enabled?
       redirect_to shop_path, alert: "This item cannot be ordered."
       return
     end

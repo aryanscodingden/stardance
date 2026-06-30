@@ -24,11 +24,15 @@
           <%= link_to "Monitor", monitor_admin_certification_ships_path,
                 class: "action-btn action-btn--large action-btn--secondary" %>
         <% end %>
+        <% if current_user.admin? && Post::ShipEvent.payout_feature_enabled?(current_user) %>
+          <%= link_to "Ship payout review", admin_payout_reviews_path,
+                class: "action-btn action-btn--large action-btn--secondary" %>
+        <% end %>
         <%= link_to "Logs", logs_admin_certification_ships_path,
             class: "action-btn action-btn--large action-btn--secondary" %>
         <%= link_to "My Stats", admin_certification_mystats_path,
             class: "action-btn action-btn--large action-btn--secondary" %>
-        <%= link_to "Funding queue", admin_certification_funding_requests_path,
+        <%= link_to "Hardware queue", admin_certification_hardware_reviews_path,
             class: "action-btn action-btn--large action-btn--secondary" %>
         <%= link_to "Start reviewing", next_admin_certification_ships_path,
             class: "action-btn action-btn--large action-btn--primary" %>
@@ -223,8 +227,9 @@
               <% ship_event  = ship.project.last_ship_event %>
               <% wait_days   = ((Time.current - ship.created_at) / 1.day).floor %>
               <% overdue     = wait_days > ::Certification::Ship::SLA_DAYS %>
+              <% review_path  = ship.project&.hardware? && Flipper.enabled?(:hardware_flow, current_user) ? admin_certification_hardware_review_path(ship.project) : admin_certification_ship_path(ship) %>
               <tr class="ship-queue__row<%= own_project ? ' ship-queue__row--own' : ' ship-queue__row--link' %>"
-                  <% unless own_project %> onclick="window.location = <%= admin_certification_ship_path(ship).to_json %>"<% end %>>
+                  <% unless own_project %> onclick="window.location = <%= review_path.to_json %>"<% end %>>
                 <td class="ship-queue__cell-project">
                   <div class="ship-queue__project-head">
                     <span class="ship-queue__project-title"><%= ship.project&.title || "Deleted Project" %></span>
@@ -292,6 +297,7 @@
           <% ship_event  = ship.project.last_ship_event %>
           <% wait_days   = ((Time.current - ship.created_at) / 1.day).floor %>
           <% overdue     = wait_days > ::Certification::Ship::SLA_DAYS %>
+          <% review_path  = ship.project&.hardware? && Flipper.enabled?(:hardware_flow, current_user) ? admin_certification_hardware_review_path(ship.project) : admin_certification_ship_path(ship) %>
           <% card_body = capture do %>
             <div class="ship-queue__card-top">
               <span class="ship-queue__project-title"><%= ship.project&.title || "Deleted Project" %></span>
@@ -327,7 +333,7 @@
           <% if own_project %>
             <div class="ship-queue__card"><%= card_body %></div>
           <% else %>
-            <%= link_to admin_certification_ship_path(ship), class: "ship-queue__card" do %>
+            <%= link_to review_path, class: "ship-queue__card" do %>
               <%= card_body %>
             <% end %>
           <% end %>

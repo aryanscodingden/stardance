@@ -17,6 +17,7 @@ export default class extends Controller {
     hasAddresses: Boolean,
     baseTicketCost: Number,
     userBalance: Number,
+    free: Boolean,
     blockedCountries: Array,
     stardustIconUrl: String,
   };
@@ -211,8 +212,12 @@ export default class extends Controller {
     const modifiers = this.getSelectedModifiers();
     const accTotal = accessories.reduce((sum, acc) => sum + acc.price, 0);
     const modTotal = modifiers.reduce((sum, mod) => sum + mod.price, 0);
-    // Accessories are multiplied by quantity; modifiers are per-order (not per-unit)
-    const total = this.baseTicketCostValue * qty + accTotal * qty + modTotal;
+    // Accessories are multiplied by quantity; modifiers are per-order (not per-unit).
+    // Redeeming an approved mission prize is always free, so the balance check
+    // below must never gate the submit button on the item's normal price.
+    const total = this.freeValue
+      ? 0
+      : this.baseTicketCostValue * qty + accTotal * qty + modTotal;
 
     if (
       this.hasAccessoriesListContainerTarget &&

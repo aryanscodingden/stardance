@@ -31,10 +31,7 @@ class ProjectsController < ApplicationController
     if params[:embed].present?
       @hide_sidebar = true
       render layout: "embed"
-      return
     end
-
-    render :show_hackpad if @project_onboarding_mission&.slug == "hackpad"
   end
 
   def prepare_project_show_context
@@ -303,6 +300,9 @@ class ProjectsController < ApplicationController
       project_hours = @project.total_hackatime_hours
 
       if (slug = params[:mission_slug].presence) && (mission = Mission.find_by(slug: slug)) && mission.prerequisites_met_by?(current_user)
+        # A project created for a hardware mission is born hardware (design
+        # stage) so it satisfies the mission's hardware-only requirement.
+        @project.update!(hardware_stage: "design") if mission.hardware? && !@project.hardware?
         @project.missions << mission
         attrs = {}
         if @project.title.blank? || @project.title == "Untitled"

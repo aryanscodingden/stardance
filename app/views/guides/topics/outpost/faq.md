@@ -4,7 +4,9 @@ Join [#outpost](https://hackclub.enterprise.slack.com/archives/C0B04RP43TQ) if y
 
 ### Can I use a JOURNAL.md file?
 
-Yes! You will stilln need to use hackatime to log 15 minutes journaling so that you can submit a devlog, but you may use journals. Journaled projects may be returned for insufficient quality journaling.
+Yes! In your Git repository, add a [JOURNAL.md file](https://codex.hackclub.com/shipping/journaling/). If journaling is desired in place of timelapsing, all you need to do is document and explain your changes, along with the time per session. Once you need a build grant, fill out the submission form! Your journals will be reviewed. Your project may be rejected for insufficient journaling.
+
+As of now, this flow is entirely off-platform. Projects may be submitted using the standalone [Outpost submission form](https://forms.hackclub.com/outpost-design)!
 
 ### There's a lot of channels! Which one do I use?
 

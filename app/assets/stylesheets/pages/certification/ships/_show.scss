@@ -21,6 +21,13 @@
     &:focus-visible {
       color: var(--accent);
     }
+
+    // Secondary cross-link (e.g. to the combined hardware review) shown beside
+    // the back link.
+    &--alt {
+      margin-left: var(--space-m);
+      color: var(--color-brand-lilac);
+    }
   }
 
   &__header {
@@ -248,6 +255,42 @@
 
     .action-btn {
       justify-content: center;
+    }
+  }
+
+  &__fraud-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+
+    &[hidden] {
+      display: none;
+    }
+
+    &__input {
+      width: 100%;
+      padding: var(--space-s);
+      font-family: inherit;
+      font-size: var(--font-size-m);
+      color: var(--color-space-text);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 141, 157, 0.35);
+      border-radius: 8px;
+      resize: vertical;
+
+      &:focus-visible {
+        outline: 2px solid var(--color-brand-salmon);
+        outline-offset: 1px;
+      }
+    }
+
+    &__footer {
+      display: flex;
+      gap: var(--space-xs);
+
+      .action-btn {
+        flex: 1;
+      }
     }
   }
 

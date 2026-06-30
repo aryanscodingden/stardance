@@ -69,4 +69,53 @@ class LookoutSessionTest < ActiveSupport::TestCase
 
     assert_equal [ complete.id, stopped.id ].sort, LookoutSession.attachable.pluck(:id).sort
   end
+
+  test "syncable scope excludes terminal (complete / failed) sessions" do
+    pending = LookoutSession.create!(user: @user, project: @project, token: "sp", status: "pending")
+    stopped = LookoutSession.create!(user: @user, project: @project, token: "ss", status: "stopped")
+    LookoutSession.create!(user: @user, project: @project, token: "sc", status: "complete")
+    LookoutSession.create!(user: @user, project: @project, token: "sf", status: "failed")
+
+    assert_equal [ pending.id, stopped.id ].sort, LookoutSession.syncable.pluck(:id).sort
+  end
+
+  test "terminal? is true only for complete and failed" do
+    assert LookoutSession.new(status: "complete").terminal?
+    assert LookoutSession.new(status: "failed").terminal?
+    assert_not LookoutSession.new(status: "pending").terminal?
+    assert_not LookoutSession.new(status: "stopped").terminal?
+  end
+
+  test "sync_from_remote! mirrors status, duration and video (camelCase)" do
+    session = LookoutSession.create!(user: @user, project: @project, token: "sr1", status: "active", duration_seconds: 30)
+    session.sync_from_remote!({ status: "complete", trackedSeconds: 600, videoUrl: "https://lookout.test/v/a" })
+
+    assert_equal "complete", session.status
+    assert_equal 600, session.duration_seconds
+    assert_equal "https://lookout.test/v/a", session.recording_url
+  end
+
+  test "sync_from_remote! tolerates snake_case keys" do
+    session = LookoutSession.create!(user: @user, project: @project, token: "sr2", status: "active")
+    session.sync_from_remote!({ status: "complete", tracked_seconds: 120, recording_url: "https://lookout.test/v/b" })
+
+    assert_equal 120, session.duration_seconds
+    assert_equal "https://lookout.test/v/b", session.recording_url
+  end
+
+  test "sync_from_remote! never clobbers existing data with blanks or an unknown status" do
+    session = LookoutSession.create!(user: @user, project: @project, token: "sr3", status: "compiling",
+                                     duration_seconds: 300, recording_url: "https://lookout.test/v/keep")
+    session.sync_from_remote!({ status: "garbage", videoUrl: "" })
+
+    assert_equal "compiling", session.status
+    assert_equal 300, session.duration_seconds
+    assert_equal "https://lookout.test/v/keep", session.recording_url
+  end
+
+  test "sync_from_remote! is a no-op for a blank payload" do
+    session = LookoutSession.create!(user: @user, project: @project, token: "sr4", status: "pending")
+    assert_nothing_raised { session.sync_from_remote!(nil) }
+    assert_equal "pending", session.status
+  end
 end

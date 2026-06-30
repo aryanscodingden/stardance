@@ -10,14 +10,12 @@ module User::Streakable
   end
 
   def current_streak
-    @_current_streak ||= begin
-      today = streak_today_date
-      dates = recent_completed_dates(today)
-      date = dates.include?(today) ? today : today - 1.day
-      count = 0
-      count += 1 and date -= 1.day while dates.include?(date)
-      count
-    end
+    has_attribute?(:current_streak) ? super : 0
+  end
+
+  def recalculate_streak!
+    return unless has_attribute?(:current_streak)
+    update_column(:current_streak, calculate_current_streak)
   end
 
   def longest_streak
@@ -35,6 +33,13 @@ module User::Streakable
 
   def streak_today_activity
     streak_activities.for_date(streak_today_date).first
+  end
+
+  # Most recent day (streak-day granularity) the user logged any Hackatime
+  # coding time. Read straight from streak_activities, so no live Hackatime
+  # call — nil if they've never logged time on a linked project.
+  def last_hackatime_activity_on
+    streak_activities.where("coded_seconds > 0").maximum(:activity_date)
   end
 
   def streak_week_activities
@@ -80,13 +85,18 @@ module User::Streakable
 
   private
 
-  def recent_completed_dates(up_to)
-    streak_activities.completed
-      .where("activity_date <= ?", up_to)
+  def calculate_current_streak
+    today = streak_today_date
+    dates = streak_activities.completed
+      .where("activity_date <= ?", today)
       .order(activity_date: :desc)
       .limit(400)
       .pluck(:activity_date)
       .to_set
+    date = dates.include?(today) ? today : today - 1.day
+    count = 0
+    count += 1 and date -= 1.day while dates.include?(date)
+    count
   end
 
   def build_day_list(from, to, today)

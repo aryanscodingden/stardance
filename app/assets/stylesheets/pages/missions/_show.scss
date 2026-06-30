@@ -174,6 +174,12 @@
     color: var(--color-brand-salmon);
   }
 
+  &--hardware {
+    background: rgba(149, 219, 255, 0.16);
+    border-color: rgba(149, 219, 255, 0.5);
+    color: var(--color-brand-blue);
+  }
+
   &--time {
     background: rgba(255, 213, 152, 0.16);
     border-color: rgba(255, 213, 152, 0.5);
@@ -434,6 +440,9 @@
   &--mint {
     --prize-color: #81ffff;
   }
+  &--salmon {
+    --prize-color: #ff8d9d;
+  }
 }
 
 .mission-home__prize-tile {
@@ -469,6 +478,125 @@
 
 .mission-home__prize-glyph {
   fill: var(--prize-color, #ffe564);
+}
+
+.mission-home__rating-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.mission-home__rating-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+}
+
+.mission-home__rating-icon--excluded {
+  .mission-home__rating-img {
+    opacity: 0.5;
+  }
+
+  // Red diagonal slash marking that this mission's project is not rated.
+  &::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    top: 50%;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--color-red-400);
+    transform: translateY(-50%) rotate(-45deg);
+  }
+}
+
+.mission-home__prize-info-link {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--color-brand-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-brand-off-white);
+  }
+}
+
+.rating-info-modal {
+  border: none;
+  padding: 0;
+  background: transparent;
+  max-width: min(460px, 92vw);
+  width: 100%;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  margin: 0;
+  color: var(--color-space-text);
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+  }
+
+  &__panel {
+    position: relative;
+    background: var(--color-space-bg-2, #0d0b2e);
+    border: 1px solid var(--color-space-border);
+    border-radius: var(--border-radius);
+    padding: var(--space-l);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  &__close {
+    position: absolute;
+    top: var(--space-s);
+    right: var(--space-s);
+    border: none;
+    background: none;
+    color: var(--color-space-text-muted);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-space-text);
+    }
+  }
+
+  &__title {
+    margin: 0;
+    padding-right: var(--space-l);
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: var(--font-size-xxl);
+    font-weight: 700;
+    color: var(--color-brand-salmon);
+  }
+
+  &__text {
+    margin: 0;
+    font-size: var(--font-size-base);
+    line-height: 1.5;
+
+    strong {
+      color: var(--color-brand-yellow);
+    }
+  }
 }
 
 .mission-home__prize-body {

@@ -154,7 +154,7 @@ module Admin
     def mission_params
       permitted = [
         :name, :description, :difficulty, :submission_guide,
-        :enabled, :start_at, :end_at, :featured_at,
+        :enabled, :hardware, :start_at, :end_at, :featured_at,
         :achievement_name, :achievement_description, :icon, :banner,
         :estimated_completion_minutes, :fixed_stardust_payout, :guide_url, :guide_sections_count,
         :default_project_title, :default_project_description

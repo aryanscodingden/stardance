@@ -1,0 +1,138 @@
+<% content_for :title, "Ship Payout Review ##{@ship_event.id}" %>
+
+<div class="app-layout app-layout--wide">
+  <div class="app-layout__main app-layout__main--wide sw-payouts sw-payouts--review">
+    <%= link_to "← back to payout reviews", admin_payout_reviews_path, class: "sw-payouts__back" %>
+
+    <header class="sw-payouts__header">
+      <div>
+        <p class="sw-payouts__eyebrow">Ship #<%= @ship_event.id %></p>
+        <h1><%= @ship_event.project&.title || "Unknown project" %></h1>
+        <p class="sw-payouts__subtitle">Read-only payout estimate and rating reason review.</p>
+      </div>
+    </header>
+
+    <section class="sw-payouts__detail">
+      <div class="sw-payouts__detail-card">
+        <h2>Project</h2>
+        <div class="sw-payouts__detail-row">
+          <span class="sw-payouts__label">Owner</span>
+          <span><%= @ship_event.payout_recipient&.display_name || "Unknown" %></span>
+        </div>
+        <div class="sw-payouts__detail-row">
+          <span class="sw-payouts__label">Ship date</span>
+          <span><%= @ship_event.post&.created_at&.strftime("%b %d, %Y") || "—" %></span>
+        </div>
+        <div class="sw-payouts__detail-row">
+          <span class="sw-payouts__label">Vote balance</span>
+          <span><%= @ship_event.payout_recipient&.vote_balance || "—" %></span>
+        </div>
+        <div class="sw-payouts__detail-row">
+          <span class="sw-payouts__label">Links</span>
+          <span class="sw-payouts__link-list">
+            <% if @ship_event.project %>
+              <%= link_to "Admin project", admin_project_path(@ship_event.project) %>
+              <%= link_to "Public project", project_path(@ship_event.project) %>
+            <% else %>
+              —
+            <% end %>
+          </span>
+        </div>
+      </div>
+
+      <div class="sw-payouts__detail-card">
+        <h2>Payout Preview</h2>
+        <div class="sw-payouts__detail-row">
+          <span class="sw-payouts__label">Estimated payout</span>
+          <strong><%= @preview[:estimated_payout] || "—" %> stardust</strong>
+        </div>
+        <div class="sw-payouts__detail-row">
+          <span class="sw-payouts__label">Hours</span>
+          <span><%= number_with_precision(@preview[:hours], precision: 2) %></span>
+        </div>
+        <div class="sw-payouts__detail-row">
+          <span class="sw-payouts__label">Overall score</span>
+          <span><%= @preview[:overall_score] ? number_with_precision(@preview[:overall_score], precision: 2) : "—" %></span>
+        </div>
+        <div class="sw-payouts__detail-row">
+          <span class="sw-payouts__label">Percentile</span>
+          <span><%= @preview[:percentile] ? number_with_precision(@preview[:percentile], precision: 2) : "—" %></span>
+        </div>
+        <div class="sw-payouts__detail-row">
+          <span class="sw-payouts__label">Multiplier</span>
+          <span><%= @preview[:multiplier] ? number_with_precision(@preview[:multiplier], precision: 2) : "—" %></span>
+        </div>
+        <div class="sw-payouts__detail-row">
+          <span class="sw-payouts__label">Blessing</span>
+          <span><%= @preview[:blessing].presence || "neutral" %></span>
+        </div>
+      </div>
+
+      <div class="sw-payouts__detail-card">
+        <h2>Status</h2>
+        <div class="sw-payouts__detail-row">
+          <span class="sw-payouts__label">Votes</span>
+          <span><%= @preview[:votes_count] %>/<%= Post::ShipEvent::VOTES_REQUIRED_FOR_PAYOUT %></span>
+        </div>
+        <div class="sw-payouts__detail-row">
+          <span class="sw-payouts__label">Review deadline</span>
+          <span><%= @preview[:review_deadline] ? l(@preview[:review_deadline], format: :short) : "Not locked" %></span>
+        </div>
+        <div class="sw-payouts__detail-row">
+          <span class="sw-payouts__label">Pending flags</span>
+          <span><%= @preview[:pending_flags_count] %></span>
+        </div>
+        <div class="sw-payouts__detail-row">
+          <span class="sw-payouts__label">Blockers</span>
+          <span><%= @preview[:blockers].any? ? @preview[:blockers].join(", ") : "None" %></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="sw-payouts__votes">
+      <h2>All Vote Reasons</h2>
+
+      <% if @votes.any? %>
+        <div class="sw-payouts__table-wrap">
+          <table class="sw-payouts__table">
+            <thead>
+              <tr>
+                <th>Voter</th>
+                <th>Scores</th>
+                <th>Status</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @votes.each do |vote| %>
+                <tr>
+                  <td class="sw-payouts__cell-user"><%= vote.user&.display_name || "Unknown" %></td>
+                  <td>
+                    O <%= vote.originality_score || "—" %> ·
+                    T <%= vote.technical_score || "—" %> ·
+                    U <%= vote.usability_score || "—" %> ·
+                    S <%= vote.storytelling_score || "—" %>
+                  </td>
+                  <td>
+                    <% if vote.pending_flag? %>
+                      <span class="status-pill status-pill--pending">Flagged</span>
+                    <% elsif vote.discarded? %>
+                      <span class="status-pill status-pill--rejected">Discarded</span>
+                    <% else %>
+                      <span class="status-pill status-pill--approved">Countable</span>
+                    <% end %>
+                  </td>
+                  <td class="sw-payouts__reason"><%= simple_format(vote.reason) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="sw-payouts__empty">
+          <p>No vote reasons are available for this ship.</p>
+        </div>
+      <% end %>
+    </section>
+  </div>
+</div>

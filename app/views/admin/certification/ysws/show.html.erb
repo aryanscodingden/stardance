@@ -181,7 +181,7 @@
           <div class="detail-item">
             <span class="detail-key">Submitter:</span>
             <span class="detail-value" style="display: flex; align-items: center; gap: var(--space-xs); flex-wrap: wrap;">
-              <span><%= @review.user.display_name || @review.user.email || "Unknown User" %></span>
+              <span><%= @review.user.display_name || "Unknown User" %></span>
               <span class="fraud-links" style="display: inline-flex; gap: var(--space-xxs);">
                 <a href="https://billy.3kh0.net/?u=<%= @review.user.slack_id %>" class="fraud-link" target="_blank">Billy</a>
                 <a href="https://joe.fraud.hackclub.com/profile/<%= @review.user.slack_id %>" class="fraud-link" target="_blank">Joe</a>
@@ -226,7 +226,7 @@
             <div class="detail-item">
               <span class="detail-key">YSWS Reviewer:</span>
               <span class="detail-value">
-                <%= link_to (@review.reviewer.display_name || @review.reviewer.email || "Unknown"), admin_user_path(@review.reviewer), class: "link-primary" %>
+                <%= link_to (@review.reviewer.display_name || "Unknown"), admin_user_path(@review.reviewer), class: "link-primary" %>
               </span>
             </div>
           <% end %>

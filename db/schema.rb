@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_23_151542) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_26_152622) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -549,6 +549,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_23_151542) do
     t.integer "fixed_stardust_payout"
     t.integer "guide_sections_count"
     t.string "guide_url"
+    t.boolean "hardware", default: false, null: false
     t.string "name", null: false
     t.integer "prizes_count", default: 0, null: false
     t.string "slug", null: false
@@ -1304,6 +1305,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_23_151542) do
     t.boolean "send_notifications_for_new_followers", default: true, null: false
     t.boolean "send_votes_to_slack", default: false, null: false
     t.boolean "stardust_balance_notifications", default: false, null: false
+    t.boolean "streak_slack_status_enabled", default: false, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["leaderboard_optin"], name: "index_user_preferences_on_leaderboard_optin"
@@ -1329,6 +1331,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_23_151542) do
     t.text "banned_reason"
     t.text "bio"
     t.datetime "created_at", null: false
+    t.integer "current_streak", default: 0, null: false
     t.string "display_name"
     t.string "email"
     t.string "enriched_ref"
@@ -1360,6 +1363,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_23_151542) do
     t.datetime "shop_tutorial_completed_at"
     t.datetime "shop_tutorial_started_at"
     t.string "slack_id"
+    t.datetime "streak_synced_at"
     t.datetime "synced_at"
     t.string "things_dismissed", default: [], null: false, array: true
     t.string "timezone"

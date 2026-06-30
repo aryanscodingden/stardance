@@ -260,6 +260,7 @@ class Project < ApplicationRecord
   validates :hardware_stage, inclusion: { in: HARDWARE_STAGES }, allow_nil: true
   validates :project_type, inclusion: { in: AVAILABLE_CATEGORIES }, allow_nil: true
   validate :hardware_stage_locked_after_funding_request
+  validate :hardware_required_by_current_mission
 
   # Set by Certification::FundingRequest#apply_verdict_to_project! to let the
   # approval flow advance the stage; the lock below stays closed for everyone else.
@@ -272,6 +273,16 @@ class Project < ApplicationRecord
     # owner-initiated stage change.
     return if advancing_via_funding_approval
     errors.add(:hardware_stage, "cannot be changed after a funding request has been submitted")
+  end
+
+  # A project on a hardware mission can't drop back to software while attached —
+  # the mission only accepts hardware projects (Mission#hardware?). Detach first.
+  # Only queries the mission when the project is actually leaving hardware.
+  def hardware_required_by_current_mission
+    return unless hardware_stage_changed? && !hardware?
+    return unless current_mission&.hardware?
+
+    errors.add(:hardware_stage, "can't be software while attached to the #{current_mission.name} hardware mission")
   end
 
   def validate_repo_cloneable

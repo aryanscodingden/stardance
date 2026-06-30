@@ -81,6 +81,14 @@ class Notification < ApplicationRecord
     user.present? && Flipper.enabled?(:week_2_release, user)
   end
 
+  # Whether this notification type is relevant enough to a user to be worth
+  # showing in their notification settings. Most types apply to everyone;
+  # role-scoped types (e.g. mission reviewing) override this to hide the row
+  # from users who could never receive them.
+  def self.relevant_for?(user)
+    user.present?
+  end
+
   def self.notify(recipient:, actor: nil, record: nil, params: {}, priority: nil)
     return nil if recipient.nil?
     return nil unless enabled_for?(recipient)

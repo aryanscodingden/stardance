@@ -39,7 +39,10 @@ class Post::DevlogPolicy < ApplicationPolicy
         post = record.post
         return false unless post
 
-        post.user == user
+        # Compare by foreign key rather than loading the association: in feed
+        # rendering this runs once per card, and `post.user` would issue a
+        # SELECT per post even though the post is already loaded.
+        post.user_id == user.id
     end
 
     def project_member?

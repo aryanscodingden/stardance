@@ -3,11 +3,30 @@ class My::SettingsController < ApplicationController
     authorize :my, :update_settings?
 
     current_user.update(hcb_email: params[:hcb_email].presence)
-    current_user.preference.update!(
+
+    pref_attrs = {
       send_votes_to_slack: params[:send_votes_to_slack] == "1",
       leaderboard_optin: params[:leaderboard_optin] == "1",
       search_engine_indexing_off: params[:search_engine_indexing_off] == "1"
-    )
+    }
+
+    if current_user.preference.has_attribute?(:streak_slack_status_enabled)
+      new_val = params[:streak_slack_status_enabled] == "1"
+      old_val = current_user.preference.streak_slack_status_enabled
+      pref_attrs[:streak_slack_status_enabled] = new_val
+
+      current_user.preference.update!(pref_attrs)
+
+      if new_val != old_val
+        if new_val
+          SetSlackStreakStatusJob.perform_later(current_user.id)
+        else
+          ClearSlackStreakStatusJob.perform_later(current_user.id)
+        end
+      end
+    else
+      current_user.preference.update!(pref_attrs)
+    end
     session[:streamer_mode] = params[:streamer_mode] == "1"
     redirect_back fallback_location: root_path, notice: "Settings saved"
   end

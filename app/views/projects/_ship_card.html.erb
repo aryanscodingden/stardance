@@ -63,7 +63,7 @@
         <% else %>
           <span class="project-show__latest-ship-status project-show__latest-ship-status--returned">Mission returned</span>
         <% end %>
-      <% elsif mission_sub&.approved? && mission_sub.payout_path == "static_prize" && mission_sub.shop_order_id.nil? && mission_sub.mission.prizes_count > 0 %>
+      <% elsif mission_sub&.approved? && mission_sub.shop_order_id.nil? && mission_sub.mission.prizes_count > 0 %>
         <%= link_to redeem_mission_submission_path(mission_sub),
                     class: "project-show__latest-ship-status project-show__latest-ship-status--approved project-show__latest-ship-status--clickable" do %>
           Claim prize ↗
@@ -85,7 +85,7 @@
           <%= link_to "@#{author.display_name}",
                       profile_path(author.display_name),
                       class: "feed-post-card__author",
-                      data: { turbo_frame: "_top", turbo_prefetch: "true" } %>
+                      data: { turbo_frame: "_top", turbo_prefetch: "true" } %><%= render StreakBadgeComponent.new(user: author) %>
         <% end %>
         <span class="feed-post-card__context">on</span>
         <%= link_to project.title, project_path(project), class: "feed-post-card__project", data: { turbo_frame: "_top" } %>

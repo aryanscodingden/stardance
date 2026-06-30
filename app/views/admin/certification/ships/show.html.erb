@@ -7,6 +7,11 @@
      data-certification--queue-server-now-value="<%= Time.current.iso8601 %>">
   <div class="app-layout__main app-layout__main--wide ship-review">
     <%= link_to "← back to queue", admin_certification_ships_path, class: "ship-review__back" %>
+    <% if @ship.project.hardware? && Flipper.enabled?(:hardware_flow, current_user) %>
+      <%= link_to "Open hardware review →",
+            admin_certification_hardware_review_path(@ship.project),
+            class: "ship-review__back ship-review__back--alt" %>
+    <% end %>
 
     <div class="ship-review__momentum" role="status" aria-live="polite">
       <% if @reviewed_today.zero? %>
@@ -98,10 +103,33 @@
       </section>
 
       <aside class="ship-review__sidebar">
-        <% if @ship.pending? %>
-          <div class="ship-review__panel">
-            <h2 class="ship-review__panel-title">Actions</h2>
-            <div class="ship-review__actions">
+        <div class="ship-review__panel"
+             data-controller="certification--ships--fraud-report"
+             data-certification--ships--fraud-report-ship-id-value="<%= @ship.id %>">
+          <h2 class="ship-review__panel-title">Actions</h2>
+          <div class="ship-review__actions">
+            <button class="action-btn action-btn--large action-btn--destructive"
+                    data-action="click->certification--ships--fraud-report#toggle">
+              Report to Fraud Squad
+            </button>
+            <div class="ship-review__fraud-form" hidden data-certification--ships--fraud-report-target="form">
+              <textarea class="ship-review__fraud-form__input"
+                        data-certification--ships--fraud-report-target="textarea"
+                        placeholder="Why does this project look suspicious? (20 chars min)"
+                        rows="4"></textarea>
+              <div class="ship-review__fraud-form__footer">
+                <button class="action-btn action-btn--small action-btn--destructive"
+                        data-action="click->certification--ships--fraud-report#submit"
+                        data-certification--ships--fraud-report-target="submitButton">
+                  Send report
+                </button>
+                <button class="action-btn action-btn--small action-btn--secondary"
+                        data-action="click->certification--ships--fraud-report#toggle">
+                  Cancel
+                </button>
+              </div>
+            </div>
+            <% if @ship.pending? %>
               <% if can_review %>
                 <button type="submit" form="unclaim-form-<%= @ship.id %>"
                         class="action-btn action-btn--large action-btn--destructive">
@@ -120,9 +148,9 @@
                       onchange: "this.form.requestSubmit()",
                       class: "ship-queue__select" %>
               <% end %>
-            </div>
+            <% end %>
           </div>
-        <% end %>
+        </div>
 
         <% if @submitter_history %>
           <div class="ship-review__panel submitter-history">

@@ -10,6 +10,7 @@
 #  banned_at                        :datetime
 #  banned_reason                    :text
 #  bio                              :text
+#  current_streak                   :integer          default(0), not null
 #  display_name                     :string
 #  email                            :string
 #  enriched_ref                     :string
@@ -40,6 +41,7 @@
 #  shop_region                      :enum
 #  shop_tutorial_completed_at       :datetime
 #  shop_tutorial_started_at         :datetime
+#  streak_synced_at                 :datetime
 #  synced_at                        :datetime
 #  things_dismissed                 :string           default([]), not null, is an Array
 #  timezone                         :string

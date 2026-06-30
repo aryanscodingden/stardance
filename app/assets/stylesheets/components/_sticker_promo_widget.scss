@@ -1,0 +1,35 @@
+.sticker-promo-widget {
+  align-items: center;
+  text-align: center;
+
+  &__image-wrap {
+    width: 90%;
+  }
+
+  &__image {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  &__countdown {
+    font-family: var(--font-family-text);
+    font-weight: 700;
+    font-size: var(--font-size-s);
+    color: var(--color-space-text);
+    text-transform: uppercase;
+    margin: 0;
+
+    strong {
+      color: var(--color-brand-yellow);
+    }
+  }
+
+  &__eligible {
+    font-family: var(--font-family-text);
+    font-weight: 700;
+    font-size: var(--font-size-m);
+    color: var(--color-brand-cream);
+    margin: 0;
+  }
+}

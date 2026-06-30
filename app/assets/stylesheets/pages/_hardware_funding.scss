@@ -194,6 +194,28 @@ $outpost-teal: #34e0ba;
   text-underline-offset: 2px;
 }
 
+.funding-modal__bom-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: $outpost-ink;
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    accent-color: $outpost-orange;
+  }
+
+  code {
+    padding: 0.1rem 0.35rem;
+    background: rgba($outpost-ink, 0.08);
+    border-radius: 4px;
+    font-size: 0.85em;
+  }
+}
+
 // Inline tier-max validation error (shown on cream — red reads fine).
 .funding-request__error {
   margin: 0 0 1rem;
@@ -269,4 +291,58 @@ $outpost-teal: #34e0ba;
 .tier-guide__max {
   font-weight: 800;
   color: $outpost-orange;
+}
+
+// ---------------------------------------------------------------------------
+// Discover rail — Outpost promo widget.
+// ---------------------------------------------------------------------------
+.outpost-widget {
+  display: block;
+  background: $outpost-cream;
+  border: 2px solid rgba($outpost-ink, 0.12);
+  border-radius: 14px;
+  padding: var(--space-m);
+  text-decoration: none;
+  color: $outpost-ink;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+  overflow: hidden;
+
+  &:hover {
+    border-color: $outpost-orange;
+    transform: translateY(-1px);
+  }
+}
+
+.outpost-widget__logo {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.outpost-widget__highlights {
+  margin: var(--space-xs) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: rgba($outpost-ink, 0.8);
+
+  li {
+    padding: 0.2rem 0;
+
+    &::before {
+      content: "· ";
+    }
+  }
+}
+
+.outpost-widget__cta {
+  display: block;
+  margin-top: var(--space-xs);
+  font-weight: 800;
+  font-size: var(--font-size-s);
+  color: $outpost-orange;
+  text-align: center;
 }

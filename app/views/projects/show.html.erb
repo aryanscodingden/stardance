@@ -103,7 +103,7 @@
                   <p class="project-show__authors">
                     By
                     <% members.each_with_index do |m, i| %>
-                      <%= " and " if i > 0 && i == members.length - 1 %><%= link_to "@#{m.display_name}", profile_path(m.display_name), class: "project-show__author", data: { turbo_frame: "_top", turbo_prefetch: "true" } %><%= "," if i < members.length - 2 && members.length > 2 %>
+                      <%= " and " if i > 0 && i == members.length - 1 %><%= link_to "@#{m.display_name}", profile_path(m.display_name), class: "project-show__author", data: { turbo_frame: "_top", turbo_prefetch: "true" } %><%= render StreakBadgeComponent.new(user: m) %><%= "," if i < members.length - 2 && members.length > 2 %>
                     <% end %>
                   </p>
                 </div>
@@ -407,7 +407,7 @@
                   <p class="project-show__authors">
                     By
                     <% members.each_with_index do |m, i| %>
-                      <%= " and " if i > 0 && i == members.length - 1 %><%= link_to "@#{m.display_name}", profile_path(m.display_name), class: "project-show__author", data: { turbo_frame: "_top", turbo_prefetch: "true" } %><%= "," if i < members.length - 2 && members.length > 2 %>
+                      <%= " and " if i > 0 && i == members.length - 1 %><%= link_to "@#{m.display_name}", profile_path(m.display_name), class: "project-show__author", data: { turbo_frame: "_top", turbo_prefetch: "true" } %><%= render StreakBadgeComponent.new(user: m) %><%= "," if i < members.length - 2 && members.length > 2 %>
                     <% end %>
                   </p>
                 </div>
@@ -439,6 +439,17 @@
               <% end %>
               <div class="project-show__panel-actions">
                 <%= render "projects/fire_controls", project: @project %>
+
+                <% if (safe_repo_url = safe_external_url(@project.repo_url)) %>
+                  <%= link_to safe_repo_url,
+                              class: "project-show__pill project-show__pill--outline project-show__pill--github",
+                              target: "_blank",
+                              rel: "noopener noreferrer",
+                              aria: { label: "View source on GitHub" } do %>
+                    <%= inline_svg_tag "icons/github.svg", class: "project-show__github-icon" %>
+                    Source
+                  <% end %>
+                <% end %>
 
                 <% if can_edit_project %>
                   <%= link_to "Edit project", project_path(@project, editing: true),
@@ -478,7 +489,7 @@
           devlog_modifier_class = devlog_primary ? "project-show__action--primary" : "project-show__action--secondary"
         %>
         <nav class="project-show__actions" aria-label="Project actions">
-          <% if Flipper.enabled?(:hardware_flow, current_user) && @project.hardware? %>
+          <% if Flipper.enabled?(:hardware_flow, current_user) && @project.hardware? && !Flipper.enabled?(:lookout, current_user) %>
             <%= render "projects/record_timelapse_button",
                        project: @project,
                        disabled_message: (@hackatime_linked ? nil : "Link your Hackatime account to start recording") %>
@@ -639,7 +650,7 @@
         </nav>
       <% else %>
         <nav class="project-show__actions" aria-label="Project actions">
-          <% if Flipper.enabled?(:hardware_flow, current_user) && @project.hardware? %>
+          <% if Flipper.enabled?(:hardware_flow, current_user) && @project.hardware? && !Flipper.enabled?(:lookout, current_user) %>
             <%= render "projects/record_timelapse_button",
                        project: @project,
                        disabled_message: "Link your Hackatime account to start recording" %>
@@ -729,40 +740,70 @@
     <% end %>
 
     <% if @show_project_onboarding %>
+      <% onboarding_mission = @project_onboarding_mission %>
+      <% verb = @project.hardware? ? "build" : "code" %>
+      <% time_kind = @project.hardware? ? "timelapse" : "coding" %>
       <section class="project-show__onboarding" aria-labelledby="project-show-onboarding-title">
         <header class="project-show__onboarding-header">
-          <% verb = @project.hardware? ? "build" : "code" %>
-          <% time_kind = @project.hardware? ? "timelapse" : "coding" %>
+          <% onboarding_banner = onboarding_mission&.banner&.attached? %>
+          <% onboarding_image = onboarding_banner ? onboarding_mission.banner : onboarding_mission&.icon %>
+          <% if onboarding_image&.attached? %>
+            <%= image_tag onboarding_image, alt: "", class: class_names("project-show__onboarding-image", "project-show__onboarding-image--icon" => !onboarding_banner) %>
+          <% end %>
+
+          <h2 class="project-show__onboarding-header-title" id="project-show-onboarding-title">
+            <%= onboarding_mission ? onboarding_mission.name : (@hackatime_linked ? "You're all set — go #{verb}!" : "Welcome to your new project!") %>
+          </h2>
+
+          <%# Time-tracking nudge — shown for every new project, mission or not.
+              Suppressed under :lookout; the Track-your-time card owns this message. %>
+          <% unless Flipper.enabled?(:lookout, current_user) %>
           <% if !@hackatime_linked %>
-            <h2 class="project-show__onboarding-header-title" id="project-show-onboarding-title">Welcome to your new project!</h2>
             <p class="project-show__onboarding-header-body">
-              Link Hackatime to start tracking your time. Once you do and post a devlog, you'll unlock free stickers in the shop!
+              <% if onboarding_mission&.has_guide? %>
+                First, link Hackatime to make sure your time is logged, and then open the guide to get started!
+              <% else %>
+                First, link Hackatime to make sure your time is logged, then get started building!
+              <% end %>
             </p>
           <% elsif @project.hackatime_keys.present? %>
-            <h2 class="project-show__onboarding-header-title" id="project-show-onboarding-title">You're all set — go <%= verb %>!</h2>
             <p class="project-show__onboarding-header-body">
               Once you have 15 minutes of <%= time_kind %> time, come back and write your first devlog!
             </p>
           <% elsif @all_hackatime_projects.present? %>
-            <h2 class="project-show__onboarding-header-title" id="project-show-onboarding-title">You're all set — go <%= verb %>!</h2>
             <p class="project-show__onboarding-header-body">
               We found Hackatime projects on your account — <%= link_to "edit your project", project_path(@project, editing: true), class: "project-show__onboarding-header-link", data: { turbo_frame: "project_hero" } %> to link one. Once you have 15 minutes of <%= time_kind %> time, write your first devlog!
             </p>
           <% else %>
-            <h2 class="project-show__onboarding-header-title" id="project-show-onboarding-title">You're all set — go <%= verb %>!</h2>
             <p class="project-show__onboarding-header-body">
               Start coding with Hackatime running. Once you have 15 minutes, <%= link_to "edit your project", project_path(@project, editing: true), class: "project-show__onboarding-header-link", data: { turbo_frame: "project_hero" } %> to link your Hackatime project, then write your first devlog!
             </p>
           <% end %>
+          <% end %>
         </header>
 
-        <% if Flipper.enabled?(:hardware_flow, current_user) && @project.hardware? %>
+        <%# Prominent guide CTA: the mission's own guide when on a mission,
+            otherwise the hardware getting-started guide for hardware projects. %>
+        <% if onboarding_mission&.has_guide? %>
+          <% guide_href = onboarding_mission.external_guide? ? onboarding_mission.guide_url : guide_mission_path(onboarding_mission.slug) %>
+          <%= link_to guide_href,
+                      class: "action-btn action-btn--large action-btn--primary project-show__onboarding-cta",
+                      target: onboarding_mission.external_guide? ? "_blank" : nil,
+                      rel: onboarding_mission.external_guide? ? "noopener" : nil,
+                      data: { turbo: false } do %>
+            Open the guide!<%= inline_svg_tag "icons/right-arrow.svg", class: "action-btn__icon action-btn__icon--trailing", aria: { hidden: true } %>
+          <% end %>
+        <% elsif Flipper.enabled?(:hardware_flow, current_user) && @project.hardware? %>
           <%= link_to guide_path("hardware"),
                       class: "action-btn action-btn--large action-btn--primary project-show__onboarding-cta",
                       target: "_blank", rel: "noopener",
                       data: { turbo: false } do %>
             Read on how to start your hardware project!<%= inline_svg_tag "icons/right-arrow.svg", class: "action-btn__icon action-btn__icon--trailing", aria: { hidden: true } %>
           <% end %>
+        <% end %>
+
+        <% if Flipper.enabled?(:lookout, current_user) %>
+          <%= render "projects/track_time_card", project: @project, hackatime_linked: @hackatime_linked %>
         <% end %>
       </section>
     <% end %>
@@ -946,7 +987,6 @@
             <p class="ship-modal__mission-heading">
               Shipping to <strong><%= ship_mission.name %></strong>
             </p>
-            <%= hidden_field_tag :mission_payout_path, "static_prize" %>
             <% if ship_mission.submission_guide.present? %>
               <div class="ship-modal__mission-guide">
                 <%= render MarkdownContentComponent.new(markdown: ship_mission.submission_guide, flavor: :guide) %>
@@ -1100,6 +1140,11 @@
               <%= link_to "How tiers work", guide_path("tiers"), class: "funding-modal__guide-link", target: "_blank", rel: "noopener" %>
             </p>
 
+            <label class="funding-modal__bom-check">
+              <input type="checkbox" required onchange="fundingValidate(this.form)">
+              <span>I have a <code>BOM.csv</code> in my repository</span>
+            </label>
+
             <div class="ship-modal__actions">
               <button type="button"
                       class="ship-modal__btn ship-modal__btn--secondary"
@@ -1126,10 +1171,12 @@
           var max = tier ? maxes[tier.value] : null;
           if (max != null) amountEl.max = max;
 
+          var bomCheck = form.querySelector('.funding-modal__bom-check input[type="checkbox"]');
+          var bomMissing = bomCheck && !bomCheck.checked;
           var over = max != null && !isNaN(amount) && amount > max;
           err.textContent = over ? "This tier funds up to $" + max + ". Lower your request or pick a higher tier." : "";
           err.hidden = !over;
-          submit.disabled = over;
+          submit.disabled = over || bomMissing;
 
           if (discountEl) {
             var d = tier ? discounts[tier.value] : null;

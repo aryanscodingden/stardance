@@ -12,7 +12,7 @@
     <ul class="admin-mission-edit__memberships">
       <% memberships.each do |m| %>
         <li class="admin-mission-edit__membership">
-          <%= m.user.display_name %> — <em><%= m.role.titleize %></em>
+          <%= m.user&.display_name || "Unknown user (##{m.user_id})" %> — <em><%= m.role.titleize %></em>
           <% if m.reviewer_role? %>
             <%= button_to "Remove",
                           admin_mission_membership_path(mission.slug, m),

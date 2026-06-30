@@ -1,0 +1,6 @@
+<%# Hackpad category pill for a queue row. Rendered for projects whose active
+    mission is Hackpad; `hackpad_project_ids` is the Set the controller built
+    for the displayed rows. Shared by the table and card layouts. %>
+<% if hackpad_project_ids.include?(project.id) %>
+  <span class="ship-queue__tag ship-queue__tag--hackpad">Hackpad</span>
+<% end %>

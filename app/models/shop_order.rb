@@ -62,6 +62,7 @@ class ShopOrder < ApplicationRecord
 
   include AASM
   include Ledgerable
+  include FunnelResyncTrigger
 
   belongs_to :user
   belongs_to :shop_item
@@ -84,6 +85,7 @@ class ShopOrder < ApplicationRecord
 
   validates :quantity, presence: true, numericality: { only_integer: true, greater_than: 0 }, on: :create
   validates :frozen_address, presence: true, on: :create
+  validate :check_item_enabled, on: :create
   validate :check_one_per_person_ever_limit, on: :create
   validate :check_max_quantity_limit, on: :create
   validate :check_user_balance, on: :create
@@ -343,6 +345,10 @@ class ShopOrder < ApplicationRecord
     self.frozen_item_price = shop_item.price_for_user(user, order_region || "XX")
   end
 
+  def check_item_enabled
+    errors.add(:base, "This item is not available for purchase.") unless shop_item.enabled?
+  end
+
   def check_one_per_person_ever_limit
     return unless shop_item&.one_per_person_ever?
 
@@ -390,7 +396,7 @@ class ShopOrder < ApplicationRecord
   end
 
   USPS_SUSPENDED_COUNTRIES = %w[
-    AM AE BH DJ DZ ER IL IQ IR KW LY MG OM PK QA SC SY TZ
+    AF BY CU ER HT IR SC SD YE
   ].freeze
 
   USPS_SUSPENSION_EXEMPT_TYPES = %w[

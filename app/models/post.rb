@@ -25,6 +25,7 @@
 #
 class Post < ApplicationRecord
     include Gorse::SyncablePost
+    include FunnelResyncTrigger
 
     has_paper_trail
 
@@ -99,6 +100,10 @@ class Post < ApplicationRecord
     def repost?
       postable_type == "Post::Repost"
     end
+
+    # Only a first devlog or ship advances the funnel (see FunnelResyncTrigger);
+    # comments, reposts, fire events, etc. don't.
+    def funnel_milestone? = %w[Post::Devlog Post::ShipEvent].include?(postable_type)
 
     # Reposts surface the original post's content, so a view of the repost
     # also counts as a unique view of the original.

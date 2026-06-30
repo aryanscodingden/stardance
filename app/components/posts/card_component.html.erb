@@ -13,7 +13,7 @@
       <span>Reposted by</span>
       <%= link_to "@#{post.user.display_name.presence || "stardancer"}",
             profile_path(post.user.display_name),
-            class: "feed-post-card__reposted-by-link" %>
+            class: "feed-post-card__reposted-by-link" %><%= render StreakBadgeComponent.new(user: post.user) %>
     </div>
   <% end %>
 
@@ -30,6 +30,7 @@
       <p class="feed-post-card__byline">
         <% if author.present? %>
           <%= link_to "@#{author_name}", profile_path(author.display_name), class: "feed-post-card__author" %>
+          <%= render StreakBadgeComponent.new(user: author) %>
         <% else %>
           <span class="feed-post-card__author">@stardancer</span>
         <% end %>

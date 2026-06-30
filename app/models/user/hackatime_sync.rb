@@ -19,6 +19,26 @@ module User::HackatimeSync
     all_time_coding_seconds >= 3600
   end
 
+  # Title of the Stardance project to feature for this user: the project that
+  # has logged the most Hackatime time (summed across all the Hackatime projects
+  # linked to it), falling back to an arbitrary project of theirs when none have
+  # any time yet. The fallback is stable (oldest project) rather than truly
+  # random so it doesn't churn every sync and re-push to Loops; swap the
+  # `order(:id).first` for `order("RANDOM()").first` if you want it randomized.
+  # Reuses the memoized stats fetch, so no extra Hackatime call.
+  def most_active_project_title
+    seconds_by_name = try_sync_hackatime_data!&.dig(:projects) || {}
+
+    totals = Hash.new(0)
+    User::HackatimeProject.where(user_id: id).where.not(project_id: nil).each do |hp|
+      totals[hp.project_id] += seconds_by_name[hp.name].to_i
+    end
+
+    project_id, top_seconds = totals.max_by { |_id, seconds| seconds }
+    project = top_seconds.to_i.positive? ? projects.find_by(id: project_id) : projects.order(:id).first
+    project&.title
+  end
+
   def try_sync_hackatime_data!(force: false)
     return @hackatime_data if @hackatime_data && !force
     return nil unless hackatime_identity

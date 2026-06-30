@@ -40,6 +40,7 @@ class Project::MissionAttachment < ApplicationRecord
 
   validate :project_unshipped_or_follow_up, on: :create
   validate :no_other_active_attachment, on: :create
+  validate :hardware_mission_takes_hardware_project, on: :create
 
   before_validation :default_attached_at, on: :create
 
@@ -75,5 +76,14 @@ class Project::MissionAttachment < ApplicationRecord
     return if project.may_swap_mission_to?(mission)
 
     errors.add(:base, "Can't attach a mission to a project that has already shipped")
+  end
+
+  # Hardware missions only accept hardware projects (Mission#hardware?). The
+  # builder switches their project to hardware on the project page first.
+  def hardware_mission_takes_hardware_project
+    return unless project && mission&.hardware?
+    return if project.hardware?
+
+    errors.add(:base, "#{mission.name} is a hardware mission — switch your project to hardware before attaching.")
   end
 end

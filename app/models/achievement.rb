@@ -37,7 +37,7 @@ Achievement = Data.define(:slug, :name, :description, :icon, :earned_check, :pro
     ),
     new(
       slug: :manual_outpost_ticket_approval,
-      name: "Presentable Hardware Project",
+      name: "Super Hardware Builder",
       description: "Got a hardware project polished enough to show off. Unlocks the Outpost Ticket.",
       icon: "rocket",
       # Manual-only: an admin grants/revokes this via the Outpost Ticket toggle

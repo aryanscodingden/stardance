@@ -450,6 +450,9 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :ambassador_referrals, only: [ :index, :show ]
     end
+    namespace :slack do
+      post "events", to: "events#create"
+    end
   end
 
   # Shop
@@ -644,6 +647,7 @@ Rails.application.routes.draw do
         resource :rejection, only: :create
       end
     end
+    resources :payout_reviews, only: [ :index, :show ]
     get "super_stars", to: "super_stars#show", as: :super_stars
     get "user-perms", to: "users#user_perms"
     resource :support, only: [ :show ], controller: "support/dashboards"
@@ -786,17 +790,25 @@ Rails.application.routes.draw do
           get :monitor, to: "ships/monitor#show"
         end
         patch :set_project_type, on: :member
+        post :report_fraud, on: :member
         scope module: :ships do
           resource :claim, only: [ :create, :destroy ]
         end
       end
 
-      resources :funding_requests, path: "funding", only: [ :index, :show, :update ] do
-        collection do
-          get :next
-        end
+      resources :funding_requests, path: "funding", only: [ :update ] do
         scope module: :funding_requests do
           resource :claim, only: [ :create, :destroy ]
+        end
+      end
+
+      # Unified hardware review surface: one queue and one project page covering
+      # both design funding requests and build ship certifications. Verdicts and
+      # claims reuse the funding/ship mutation endpoints above so PaperTrail and
+      # existing audit behavior stay attached to the underlying records.
+      resources :hardware_reviews, path: "hardware", param: :project_id, only: [ :index, :show ] do
+        collection do
+          get :next
         end
       end
 
@@ -805,6 +817,7 @@ Rails.application.routes.draw do
       get "devlogs/:devlog_id/commits", to: "devlog_commits#index", as: "devlog_commits"
 
       get "review", to: "ysws#index", as: "ysws_reviews"
+      get "review/dashboard", to: "ysws/dashboard#show", as: "ysws_dashboard"
       get "review/:id", to: "ysws#show", as: "ysws_review"
       get "review/:id/commits", to: "ysws#commits", as: "ysws_commits"
       post "review/:id/report_fraud", to: "ysws#report_fraud", as: "ysws_report_fraud"

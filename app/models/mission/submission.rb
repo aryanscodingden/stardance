@@ -104,14 +104,15 @@ class Mission::Submission < ApplicationRecord
     pending.where("created_at < ?", days.days.ago)
   }
 
-  # Per-mission + global reviewers, minus teammates (no self-review).
+  # Per-mission reviewers/owners, minus teammates (no self-review). Global
+  # mission_reviewers manage every mission but are deliberately left out here —
+  # they opt into the queue rather than being paged for each submission.
   def reviewer_recipients
     teammate_ids = ship_event&.post&.project&.users&.pluck(:id) || []
 
     per_mission_ids = mission.memberships.pluck(:user_id)
-    global_ids = User.where("? = ANY (granted_roles)", "mission_reviewer").pluck(:id)
 
-    User.where(id: (per_mission_ids + global_ids).uniq - teammate_ids)
+    User.where(id: per_mission_ids.uniq - teammate_ids)
         .where.not(slack_id: [ nil, "" ])
   end
 

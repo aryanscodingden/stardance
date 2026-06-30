@@ -87,6 +87,12 @@ production:
     concurrency: 1
     description: "Recalculate duration_seconds for all projects"
 
+  sync_pending_lookout_sessions:
+    class: SyncPendingLookoutSessionsJob
+    schedule: every 5 minutes
+    concurrency: 1
+    description: "Re-poll recent non-terminal Lookout sessions so recordings finalize even if the recorder tab was closed"
+
   sync_pyramid_enriched_refs:
     class: SyncPyramidEnrichedRefsJob
     schedule: every hour
@@ -158,6 +164,12 @@ production:
     schedule: every day at 4pm America/New_York
     concurrency: 1
     description: "Enqueue airtable sync for reviews where sync initially failed"
+
+  streak_daily_sync:
+    class: StreakDailySyncJob
+    schedule: every day at 3am UTC
+    concurrency: 1
+    description: "Sync streak activities from Hackatime for all active users"
 
   ahoy_backfill_project_created_ahoy_events:
     class: AhoyBackfillProjectCreatedJob

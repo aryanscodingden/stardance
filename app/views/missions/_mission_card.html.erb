@@ -30,6 +30,9 @@
     </p>
 
     <ul class="mission-card__meta" aria-label="Mission meta">
+      <% if mission.hardware? %>
+        <li class="mission-card__meta-item mission-card__meta-item--hardware">Hardware</li>
+      <% end %>
       <% if mission.difficulty.present? %>
         <li class="mission-card__meta-item mission-card__meta-item--difficulty mission-card__meta-item--difficulty-<%= mission.difficulty %>">
           <%= mission.difficulty.titleize %>

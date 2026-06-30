@@ -91,7 +91,7 @@ class LedgerEntry < ApplicationRecord
 
     # Audit broadcast to the finance review channel — not a user notification,
     # not preference-gated, intentional separate path.
-    SendSlackDmJob.perform_later("C0A3JN1CMNE", "<@#{user.slack_id}>: #{message}") if user.slack_id.present?
+    SendSlackDmJob.perform_later("C0B6NCD8MD5", "<@#{user.slack_id}>: #{message}") if user.slack_id.present?
   end
 
   def invalidate_user_balance_cache = user.invalidate_balance_cache!

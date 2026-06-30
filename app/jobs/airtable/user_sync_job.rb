@@ -6,6 +6,14 @@ class Airtable::UserSyncJob < Airtable::BaseSyncJob
 
   def primary_key_field = "email"
 
+  # Backstop round-robin for the funnel-stuck nudges. Freshness for users who
+  # actually advance is handled event-driven by FunnelResyncTrigger (their
+  # synced_at is nulled, jumping them to the front); this limit just bounds how
+  # long anything those hooks miss can stay stale. 100/min cycles ~29k users in
+  # ~5h — well under the 2-day nudge window. Norairrecord's Faraday middleware
+  # paces requests to Airtable's 5 req/s per-base limit on its own.
+  def sync_limit = 100
+
   def field_mapping(user)
     address = user.addresses.first
 
@@ -18,7 +26,11 @@ class Airtable::UserSyncJob < Airtable::BaseSyncJob
       "has_commented" => user.comments.exists?,
       "has_some_role_of_access" => user.roles.any?,
       "hours" => user.all_time_coding_seconds&.fdiv(3600),
+      "last_hackatime_activity_on" => user.last_hackatime_activity_on,
+      "most_active_project" => user.most_active_project_title,
       "verification_status" => user.verification_status.to_s,
+      "funnel_stage" => user.funnel_stage.to_s,
+      "funnel_stage_entered_at" => user.funnel_stage_entered_at,
       "created_at" => user.created_at,
       "synced_at" => Time.now,
       "is_banned" => user.banned,

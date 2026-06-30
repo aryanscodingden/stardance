@@ -177,10 +177,10 @@ module Post::ShipEvent::Payouts
   end
 
   def hours
-    if reviewed_hardware_minutes
-      reviewed_hardware_minutes / 60.0
+    if reviewed_hardware_devlogs
+      capped_reviewed_hardware_minutes / 60.0
     else
-      hours_at_ship.to_f
+      capped_logged_seconds / 1.hour.to_f
     end
   end
 
@@ -203,6 +203,30 @@ module Post::ShipEvent::Payouts
 
   def estimated_payout
     payout_amount
+  end
+
+  def payout_preview(sample = self.class.payout_score_sample, votes_count: nil, pending_flags_count: nil)
+    scores = payout_preview_scores(sample)
+    preview_hours = payout_basis_locked_at? ? hours_at_payout.to_f : hours
+    preview_percentile = payout_basis_locked_at? ? payout_basis_percentile : scores[:overall_percentile]
+    preview_multiplier = multiplier || payout_multiplier_for_percentile(preview_percentile)
+    preview_blessing = payout_basis_locked_at? ? payout_blessing : payout_blessing_for_snapshot
+    preview_votes_count = votes_count || votes.payout_countable.count
+    preview_pending_flags_count = pending_flags_count || votes.joins(:events).merge(Vote::Event.pending_vote_flags).count
+
+    {
+      hours: preview_hours,
+      overall_score: payout_basis_locked_at? ? payout_basis_overall_score : scores[:overall_score],
+      percentile: preview_percentile,
+      multiplier: preview_multiplier,
+      blessing: preview_blessing,
+      estimated_payout: payout_amount_for(preview_hours, preview_multiplier, preview_blessing),
+      votes_count: preview_votes_count,
+      review_open: payout_review_open_with_flags?(preview_pending_flags_count),
+      review_deadline: payout_review_deadline,
+      pending_flags_count: preview_pending_flags_count,
+      blockers: payout_preview_blockers(preview_hours, preview_votes_count, preview_pending_flags_count)
+    }
   end
 
   def clear_payout_review
@@ -245,19 +269,38 @@ module Post::ShipEvent::Payouts
       submission.nil? || (submission.payout_path == "voting" && !submission.rejected?)
     end
 
-    def reviewed_hardware_minutes
+    def reviewed_hardware_devlogs
       review = certification_ysws_review
-      review.approved_minutes_total if project&.hardware? && review&.devlog_reviews&.any?(&:reviewed?)
+      review.devlog_reviews if project&.hardware? && review&.devlog_reviews&.any?(&:reviewed?)
+    end
+
+    def capped_reviewed_hardware_minutes
+      reviewed_hardware_devlogs.sum do |devlog_review|
+        [ devlog_review.approved_minutes.to_i, Post::ShipEvent::MAX_PAYOUT_HOURS_PER_DEVLOG * 60 ].min
+      end
+    end
+
+    def capped_logged_seconds
+      return 0 unless post&.project && post.created_at
+
+      devlogs_in_ship_window.pluck("post_devlogs.duration_seconds").sum do |duration_seconds|
+        [ duration_seconds.to_i, Post::ShipEvent::MAX_PAYOUT_HOURS_PER_DEVLOG.hours.to_i ].min
+      end
     end
 
     def payout_amount
       return nil if multiplier.nil? || hours_at_payout.nil?
 
-      apply_payout_blessing((hours_at_payout * multiplier).round)
+      payout_amount_for(hours_at_payout, multiplier, payout_blessing)
     end
 
     def payout_multiplier
       percentile = payout_basis_percentile || overall_percentile
+
+      payout_multiplier_for_percentile(percentile)
+    end
+
+    def payout_multiplier_for_percentile(percentile)
       return nil if percentile.nil?
 
       (dollars_per_hour_for_percentile(percentile) * game_constants.tickets_per_dollar.to_f).round(6)
@@ -273,12 +316,49 @@ module Post::ShipEvent::Payouts
       payout_recipient.vote_verdict&.verdict || "neutral"
     end
 
-    def apply_payout_blessing(amount)
-      case payout_blessing
+    def payout_amount_for(amount_hours, amount_multiplier, blessing)
+      return nil if amount_hours.nil? || amount_multiplier.nil?
+
+      apply_payout_blessing((amount_hours * amount_multiplier).round, blessing)
+    end
+
+    def apply_payout_blessing(amount, blessing = payout_blessing)
+      case blessing
       when "blessed" then (amount * 1.2).round
       when "cursed" then (amount * 0.5).round
       else amount
       end
+    end
+
+    def payout_preview_scores(sample)
+      medians = self.class.payout_medians(sample[:scores_by_ship].fetch(id, []))
+      overall = self.class.average(medians.values.compact)
+
+      {
+        overall_score: overall,
+        overall_percentile: self.class.percentile_rank(overall, sample[:overall_scores])
+      }
+    end
+
+    def payout_review_open_with_flags?(pending_flags_count)
+      self.class.payout_feature_enabled?(payout_recipient) &&
+        payout_basis_locked_at.present? &&
+        payout.blank? &&
+        Time.current < payout_review_deadline &&
+        pending_flags_count.zero?
+    end
+
+    def payout_preview_blockers(preview_hours, votes_count, pending_flags_count)
+      blockers = []
+      blockers << "Not approved" unless certification_status == "approved"
+      blockers << "Already paid" if payout.present?
+      blockers << "Static prize path" unless voting_payout_path?
+      blockers << "Needs #{Post::ShipEvent::VOTES_REQUIRED_FOR_PAYOUT} countable votes" if votes_count < Post::ShipEvent::VOTES_REQUIRED_FOR_PAYOUT
+      blockers << "Missing recipient" if payout_recipient.blank?
+      blockers << "Vote balance deficit" if payout_recipient&.vote_balance.to_i.negative?
+      blockers << "No payable hours" unless preview_hours.to_f.positive?
+      blockers << "Pending vote flags" if pending_flags_count.positive?
+      blockers
     end
 
     def create_payout_ledger_entry!
