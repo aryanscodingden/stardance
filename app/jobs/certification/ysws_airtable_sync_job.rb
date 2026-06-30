@@ -32,11 +32,8 @@ module Certification
       # Check if user is banned
       rejection_info = check_user_status(review)
 
-      # Generate AI summary of devlog justifications (optional)
-      ai_summary = generate_ai_summary(review)
-
       # Build Airtable fields
-      fields = build_airtable_fields(review, ai_summary, rejection_info)
+      fields = build_airtable_fields(review, rejection_info)
 
       # Upsert to Airtable
       table.upsert(fields, "ship_cert_id")
@@ -156,7 +153,7 @@ module Certification
       nil # Gracefully fall back to nil if AI fails
     end
 
-    def build_airtable_fields(review, ai_summary, rejection_info)
+    def build_airtable_fields(review, rejection_info)
       user = review.user
       project = review.project
       devlog_reviews = review.devlog_reviews.to_a
@@ -179,7 +176,7 @@ module Certification
       final_rejection_reason = if rejection_info[:rejected]
         rejection_info[:rejection_reason]
       elsif all_rejected
-        summary = ai_summary.presence || review.summary_justification.presence || ""
+        summary = generate_ai_summary(review).presence || review.summary_justification.presence || ""
         "Rejected by YSWS reviewer because: #{summary}".strip
       elsif under_min_threshold
         "Rejected because under #{::Certification::Ysws::MIN_APPROVED_MINUTES} approved minutes."
