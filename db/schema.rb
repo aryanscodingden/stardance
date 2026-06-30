@@ -257,6 +257,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_30_165531) do
 
   create_table "daily_rolls", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.integer "reroll_value"
     t.date "rolled_on", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
