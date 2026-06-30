@@ -108,24 +108,16 @@ module Certification
 
       # Use OpenRouter API to summarize
       prompt = <<~PROMPT
-        You are summarizing the devlog reviews of a YSWS project for an internal reviewer who already knows how the review process works. The project's author submitted several devlogs; for each one a reviewer either approved it (sometimes deducting time) or rejected it, and wrote a justification explaining that decision.
+        You are a reviewer, reviewing the reviews recieved through a program. For each devlog a user submits in a project, a review justification is paired with it.
 
-        Respond with a single lead-in sentence followed by a numbered list.
-
-        Lead-in sentence — the overall outcome:
-        - If every devlog was approved with no concerns (no deductions, inflation, high AI usage, or rejections), the lead-in must be exactly: "All devlogs were approved based on the provided justifications."
-        - Otherwise, state that the devlogs were approved (or, if every devlog was rejected, that the review did not pass) and note the issues across the review — e.g. how many devlog reviews mentioned deductions / inflation / high AI usage, any rejections, and any devlog whose approved time was significantly reduced.
-
-        Numbered list — exactly one entry per devlog, in order, each a SHORT descriptor whether the devlog was approved or rejected:
-        1. Devlog 1: <outcome, plus a brief reason from the reviewer's justification if there was a deduction, rejection, inflation, or high AI usage>
-        2. Devlog 2: ...
-        Keep an approved-as-logged devlog to just a few words; only explain a reason where the reviewer raised something.
+        Your job is to summarize the following devlog reviews into a short summary 2-3 sentences long.
+        Assume the summary is following the text "who mentioned:" and that the user reading the summary knows how the review process works. Assume that the overall review is a passing one (unless all devlogs have rejected status). But do note if there are any devlog reviews that mention malpractice. If there are, highlight that x devlog reviews mentioned deductions / inflation / high AI usage. Also note if any devlogs were rejected.
 
         DEVLOG REVIEWS:
         #{devlog_entries}
 
         OUTPUT:
-        Return only the lead-in sentence and the numbered list, with no headings, preamble, or extra formatting.
+        Return only the summary text, no formatting or explanations and keep it in first person.
       PROMPT
 
       response = Faraday.post("https://openrouter.ai/api/v1/chat/completions") do |req|
