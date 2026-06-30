@@ -207,7 +207,7 @@ class ShopItem < ApplicationRecord
   # affordable items fill the rest. Fails closed to [] so a payout email never
   # breaks on a recommendation error.
   def self.affordable_for(user, limit: 3)
-    region  = user.shop_region.presence || (user.has_regions? ? user.regions.first : nil) || "US"
+    region  = recommended_region_for(user)
     balance = user.balance
 
     priced = cached_shop_page_data[:buyable_standalone]
@@ -231,6 +231,22 @@ class ShopItem < ApplicationRecord
   rescue => e
     Rails.logger.warn("ShopItem.affordable_for failed for user #{user&.id}: #{e.message}")
     []
+  end
+
+  # Region for payout-email recommendations. Mirrors the shop's user-data region
+  # resolution (shop_region -> saved regions -> primary/first address country) so
+  # emailed items + prices match what the recipient sees in the shop. The shop's
+  # request-only fallbacks (GeoIP cookie, timezone) aren't available in a mailer,
+  # so we end on "US" like the shop's final default.
+  def self.recommended_region_for(user)
+    return user.shop_region if user.shop_region.present?
+    return user.regions.first if user.has_regions?
+
+    addresses = Array(user.addresses)
+    address   = addresses.find { |a| a["primary"] } || addresses.first
+    country   = address && address["country"]
+    region    = Shop::Regionalizable.country_to_region(country) if country.present?
+    region.presence || "US"
   end
 
   # True when affordable_for surfaced this item because the user wishlisted it.
