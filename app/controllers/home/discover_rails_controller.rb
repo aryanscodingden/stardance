@@ -1,7 +1,7 @@
 class Home::DiscoverRailsController < ApplicationController
   skip_before_action :remember_page
 
-  def show
+  def streak
     authorize :home, :index?
     render layout: false
   end

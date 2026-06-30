@@ -6,6 +6,18 @@ module DiscoverRail
 
     GOAL = StreakActivity::DAILY_GOAL_SECONDS
 
+    def deferred?
+      true
+    end
+
+    def deferred_frame_id
+      "discover_rail_streak"
+    end
+
+    def deferred_path_helper
+      :streak_home_discover_rail_path
+    end
+
     def render?
       user.present? && user.onboarded?
     end

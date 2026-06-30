@@ -25,7 +25,16 @@
 
   <div class="discover-rail__widgets" data-discover-rail-search-target="widgets">
     <% widgets.each do |widget| %>
-      <%= render widget %>
+      <% if widget.deferred? %>
+        <% if widget.render? %>
+          <%= helpers.turbo_frame_tag widget.deferred_frame_id,
+                src: helpers.public_send(widget.deferred_path_helper),
+                loading: :lazy,
+                class: "discover-rail__widget-frame" %>
+        <% end %>
+      <% else %>
+        <%= render widget %>
+      <% end %>
     <% end %>
   </div>
 </aside>

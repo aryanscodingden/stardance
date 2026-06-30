@@ -38,6 +38,6 @@
   </main>
 
   <% if current_user.present? %>
-    <%= turbo_frame_tag "home_discover_rail", src: home_discover_rail_path %>
+    <%= render DiscoverRailComponent.new %>
   <% end %>
 </div>

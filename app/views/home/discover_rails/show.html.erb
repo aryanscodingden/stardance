@@ -1,3 +1,0 @@
-<%= turbo_frame_tag "home_discover_rail" do %>
-  <%= render DiscoverRailComponent.new(widgets: HomeController.discover_rail_widget_slugs) if current_user.present? %>
-<% end %>
