@@ -489,7 +489,7 @@
           devlog_modifier_class = devlog_primary ? "project-show__action--primary" : "project-show__action--secondary"
         %>
         <nav class="project-show__actions" aria-label="Project actions">
-          <% if Flipper.enabled?(:hardware_flow, current_user) && @project.hardware? %>
+          <% if Flipper.enabled?(:hardware_flow, current_user) && @project.hardware? && !Flipper.enabled?(:lookout, current_user) %>
             <%= render "projects/record_timelapse_button",
                        project: @project,
                        disabled_message: (@hackatime_linked ? nil : "Link your Hackatime account to start recording") %>
@@ -650,7 +650,7 @@
         </nav>
       <% else %>
         <nav class="project-show__actions" aria-label="Project actions">
-          <% if Flipper.enabled?(:hardware_flow, current_user) && @project.hardware? %>
+          <% if Flipper.enabled?(:hardware_flow, current_user) && @project.hardware? && !Flipper.enabled?(:lookout, current_user) %>
             <%= render "projects/record_timelapse_button",
                        project: @project,
                        disabled_message: "Link your Hackatime account to start recording" %>
@@ -755,7 +755,9 @@
             <%= onboarding_mission ? onboarding_mission.name : (@hackatime_linked ? "You're all set — go #{verb}!" : "Welcome to your new project!") %>
           </h2>
 
-          <%# Time-tracking nudge — shown for every new project, mission or not. %>
+          <%# Time-tracking nudge — shown for every new project, mission or not.
+              Suppressed under :lookout; the Track-your-time card owns this message. %>
+          <% unless Flipper.enabled?(:lookout, current_user) %>
           <% if !@hackatime_linked %>
             <p class="project-show__onboarding-header-body">
               <% if onboarding_mission&.has_guide? %>
@@ -777,6 +779,7 @@
               Start coding with Hackatime running. Once you have 15 minutes, <%= link_to "edit your project", project_path(@project, editing: true), class: "project-show__onboarding-header-link", data: { turbo_frame: "project_hero" } %> to link your Hackatime project, then write your first devlog!
             </p>
           <% end %>
+          <% end %>
         </header>
 
         <%# Prominent guide CTA: the mission's own guide when on a mission,
@@ -797,6 +800,10 @@
                       data: { turbo: false } do %>
             Read on how to start your hardware project!<%= inline_svg_tag "icons/right-arrow.svg", class: "action-btn__icon action-btn__icon--trailing", aria: { hidden: true } %>
           <% end %>
+        <% end %>
+
+        <% if Flipper.enabled?(:lookout, current_user) %>
+          <%= render "projects/track_time_card", project: @project, hackatime_linked: @hackatime_linked %>
         <% end %>
       </section>
     <% end %>

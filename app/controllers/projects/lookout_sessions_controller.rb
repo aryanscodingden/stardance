@@ -1,5 +1,5 @@
 class Projects::LookoutSessionsController < ApplicationController
-  before_action -> { head :not_found unless Flipper.enabled?(:hardware_flow, current_user) }
+  before_action -> { head :not_found unless Flipper.enabled?(:hardware_flow, current_user) || Flipper.enabled?(:lookout, current_user) }
   before_action :set_project
   before_action :set_lookout_session, only: %i[show record stop set_mode forward_heartbeats]
 
