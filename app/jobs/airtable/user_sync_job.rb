@@ -49,6 +49,54 @@ class Airtable::UserSyncJob < Airtable::BaseSyncJob
       )
     end
 
+    fields.merge!(payout_loops_fields(user))
     fields
+  end
+
+  private
+
+  # Payout notification data as Loops contact properties, synced through the
+  # `_users` Airtable table (the only sanctioned path to Loops — no direct API).
+  # `Loops - stardancePayoutIssuedAt` is the timestamp property a Loops workflow
+  # (or a filtered campaign) fires on; Stardust/Project + the Rec1-3 items are
+  # templated into the email. All of these `Loops - stardancePayout*` fields exist
+  # on the `_users` table. Recommendations come from ShopItem.affordable_for (full
+  # balance + region + wishlist + live catalog). Per-user latest payout only (one
+  # row per user); blank for users with no ship-event payout; fails closed to {}
+  # so it can never break the sync.
+  def payout_loops_fields(user)
+    entry = user.ledger_entries
+                .where(ledgerable_type: "Post::ShipEvent")
+                .order(created_at: :desc)
+                .first
+    return {} unless entry
+
+    fields = {
+      "Loops - stardancePayoutIssuedAt" => entry.created_at&.iso8601,
+      "Loops - stardancePayoutStardust" => entry.amount&.to_i,
+      "Loops - stardancePayoutProject"  => entry.ledgerable&.project&.title
+    }
+
+    urls     = Rails.application.routes.url_helpers
+    opts     = ActionMailer::Base.default_url_options
+    host     = opts[:host] || "stardance.hackclub.com"
+    protocol = opts[:protocol] || "https"
+
+    ShopItem.affordable_for(user, limit: 3).each_with_index do |item, i|
+      n = i + 1
+      fields["Loops - stardancePayoutRec#{n}Name"]  = item.name
+      fields["Loops - stardancePayoutRec#{n}Price"] = item.recommended_price
+      fields["Loops - stardancePayoutRec#{n}Url"]   = urls.shop_item_url(item, host:, protocol:)
+    end
+
+    fields
+  rescue => e
+    # Fail closed so a bad lookup never breaks the whole sync, but make it loud:
+    # a systemic break here (renamed Airtable field, changed route, bad data)
+    # silently drops the payout-email trigger for everyone, so surface it via
+    # Sentry rather than a warn line no one reads.
+    Rails.logger.error("UserSyncJob payout_loops_fields failed for user #{user.id}: #{e.message}")
+    Sentry.capture_exception(e) if defined?(Sentry)
+    {}
   end
 end
