@@ -2,7 +2,7 @@ module User::Streakable
   extend ActiveSupport::Concern
 
   # How long a streak sync holds off the next throttled sync (sync_streak_if_stale!).
-  STREAK_SYNC_THROTTLE = 2.minutes
+  STREAK_SYNC_THROTTLE = 15.minutes
 
   included do
     has_many :streak_activities, dependent: :destroy
