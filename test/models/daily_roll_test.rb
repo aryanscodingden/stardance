@@ -2,12 +2,13 @@
 #
 # Table name: daily_rolls
 #
-#  id         :bigint           not null, primary key
-#  rolled_on  :date             not null
-#  value      :integer          not null
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  user_id    :bigint           not null
+#  id           :bigint           not null, primary key
+#  reroll_value :integer
+#  rolled_on    :date             not null
+#  value        :integer          not null
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  user_id      :bigint           not null
 #
 # Indexes
 #
