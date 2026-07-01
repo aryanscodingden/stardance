@@ -91,7 +91,12 @@ class Airtable::UserSyncJob < Airtable::BaseSyncJob
 
     fields
   rescue => e
-    Rails.logger.warn("UserSyncJob payout_loops_fields failed for user #{user.id}: #{e.message}")
+    # Fail closed so a bad lookup never breaks the whole sync, but make it loud:
+    # a systemic break here (renamed Airtable field, changed route, bad data)
+    # silently drops the payout-email trigger for everyone, so surface it via
+    # Sentry rather than a warn line no one reads.
+    Rails.logger.error("UserSyncJob payout_loops_fields failed for user #{user.id}: #{e.message}")
+    Sentry.capture_exception(e) if defined?(Sentry)
     {}
   end
 end
