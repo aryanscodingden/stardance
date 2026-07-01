@@ -62,11 +62,16 @@ class Airtable::UserSyncJob < Airtable::BaseSyncJob
   # templated into the email. All of these `Loops - stardancePayout*` fields exist
   # on the `_users` table. Recommendations come from ShopItem.affordable_for (full
   # balance + region + wishlist + live catalog). Per-user latest payout only (one
-  # row per user); blank for users with no ship-event payout; fails closed to {}
-  # so it can never break the sync.
+  # row per user); blank for users with no genuine ship-event payout; fails closed
+  # to {} so it can never break the sync.
   def payout_loops_fields(user)
+    # Only genuine positive payouts drive the email. Ship-event ledger entries
+    # also include clawbacks (created_by "manual_ship_event_payout_reversal",
+    # negative amount); if a reversal were the user's latest entry the email
+    # would announce e.g. "-9 stardust", so scope to real payouts of amount > 0.
     entry = user.ledger_entries
-                .where(ledgerable_type: "Post::ShipEvent")
+                .where(ledgerable_type: "Post::ShipEvent", created_by: "ship_event_payout")
+                .where("amount > 0")
                 .order(created_at: :desc)
                 .first
     return {} unless entry
