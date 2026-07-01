@@ -49,7 +49,7 @@ module Posts
     def card_classes
       class_names(
         "feed-post-card",
-        "feed-post-card--linked": card_link_url.present?,
+        "feed-post-card--linked": card_link_url.present? && request.path != card_link_url,
         "feed-post-card--compact": compact,
         "feed-post-card--quote-repost": quote_repost?,
         "feed-post-card--#{theme}": theme.present?
