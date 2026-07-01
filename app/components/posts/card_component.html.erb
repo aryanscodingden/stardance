@@ -1,5 +1,10 @@
-<article id="<%= dom_id(post) %>" class="<%= card_classes %>" <%= tag.attributes(data: card_data) %>>
-  <% if card_link_url.present? %>
+<% if card_link_url.present? && request.original_fullpath.include?(card_link_url) %>
+<article id="<%= dom_id(post) %>" class="<%= card_classes %>">
+<% else %>
+<article id="<%= dom_id(post) %>" class="<%= card_classes %>"
+  <%= tag.attributes(data: card_data) %>>
+<% end %>
+  <% if card_link_url.present? && !request.original_fullpath.include?(card_link_url) %>
     <%= link_to card_link_url,
           class: "feed-post-card__overlay-link",
           aria: { label: "Open comments for this post" } do %>
