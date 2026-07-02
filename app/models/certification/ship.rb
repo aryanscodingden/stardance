@@ -3,6 +3,7 @@
 # Table name: certification_ship_reviews
 #
 #  id               :bigint           not null, primary key
+#  bonus_stardust   :float
 #  claim_expires_at :datetime
 #  claimed_at       :datetime
 #  decided_at       :datetime
@@ -295,13 +296,15 @@ module Certification
       }
     end
 
-    # How many reviews this reviewer has decided today. Drives the momentum
-    # counter on the review page, so it's scoped to the user, not the queue.
-    def self.reviewed_today(user, now: Time.current)
-      where(reviewer_id: user.id)
+    def self.decided_today_count(reviewer_id, now: Time.current)
+      where(reviewer_id: reviewer_id)
         .where.not(status: :pending)
         .where(decided_at: now.beginning_of_day..)
         .count
+    end
+
+    def self.reviewed_today(user, now: Time.current)
+      decided_today_count(user.id, now: now)
     end
 
     MILESTONE_TIERS = [
@@ -346,10 +349,7 @@ module Certification
     private
 
     def assign_stardust_earned
-      prior_count = Certification::Ship.where(reviewer_id: reviewer_id)
-                                       .where.not(status: :pending)
-                                       .count
-      total_count = prior_count + 1
+      total_count = Certification::Ship.decided_today_count(reviewer_id) + 1
       multiplier = Certification::Ship.multiplier_for_milestone(total_count)
       self.stardust_earned = REVIEW_BOUNTY * multiplier
     end

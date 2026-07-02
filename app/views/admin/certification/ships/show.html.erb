@@ -14,12 +14,12 @@
     <% end %>
 
     <div class="ship-review__momentum" role="status" aria-live="polite">
-      <% if @total_reviews.zero? %>
-        <span class="ship-review__momentum-label">First review ever. Let's go! Base rate: <strong>1.25 ✦</strong>. Complete 5 to unlock <strong>1.25x</strong>.</span>
+      <% if @reviews_today.zero? %>
+        <span class="ship-review__momentum-label">First review of the day. Let's go! Complete <strong>5</strong> to unlock the <strong>1.25x</strong> multiplier.</span>
       <% else %>
-        <span class="ship-review__momentum-count"><%= @total_reviews %></span>
+        <span class="ship-review__momentum-count"><%= @reviews_today %></span>
         <span class="ship-review__momentum-label">
-          total reviews. Current multiplier: <strong><%= @current_multiplier %>x</strong>
+          reviewed today. Current multiplier: <strong><%= @current_multiplier %>x</strong>
           <% if @next_milestone %>
             · <%= @next_milestone[:reviews_needed] %> more to <strong><%= @next_milestone[:multiplier] %>x</strong>
           <% else %>
