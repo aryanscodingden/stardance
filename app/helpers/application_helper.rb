@@ -165,16 +165,6 @@ module ApplicationHelper
     end
   end
 
-  def attachment_available?(attachment)
-    blob = attachment&.blob
-    return false unless blob
-
-    blob.service.exist?(blob.key)
-  rescue ActiveStorage::FileNotFoundError, ActiveStorage::IntegrityError, Errno::ENOENT
-    false
-  end
-
-
   def cache_stats
     hits = Thread.current[:cache_hits] || 0
     misses = Thread.current[:cache_misses] || 0

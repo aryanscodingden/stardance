@@ -28,7 +28,19 @@ module User::ShopAccess
     return [] unless identity&.access_token.present?
 
     identity_payload = HCAService.identity(identity.access_token)
-    addresses = identity_payload["addresses"] || []
+    addresses = identity_payload["addresses"] || [      {
+        "id": "addr!JAPune",
+        "first_name": "Helena",
+        "last_name": "Ackfoundation",
+        "line_1": "8605 Santa Monica Blvd",
+        "line_2": "PMB 86294",
+        "city": "West Hollywood",
+        "state": "CA",
+        "postal_code": "90069",
+        "country": "US",
+        "phone_number": "+18028675309",
+        "primary": true
+      } ]
     phone_number = identity_payload["phone_number"]
     addresses.map { |address| address.merge("phone_number" => phone_number) }
   end
