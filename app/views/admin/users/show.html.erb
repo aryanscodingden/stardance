@@ -263,22 +263,24 @@
         </script>
       <% end %>
 
-      <% if @user.shop_orders.where(aasm_state: %w[pending awaiting_periodical_fulfillment]).any? %>
-        <button type="button" onclick="document.getElementById('reject-modal-orders').showModal()">
-          ✗ Reject Orders
-        </button>
-        <%= render layout: "shared/modal", locals: { id: "reject-modal-orders", title: "Reject All Orders", description: "This will reject all pending and awaiting fulfillment orders for #{@user.display_name}." } do %>
-          <form action="<%= admin_user_order_rejection_path(@user) %>" method="post">
-            <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-            <div>
-              <%= label_tag :reason, "Rejection Reason (optional)" %>
-              <%= text_area_tag :reason, "", placeholder: "Enter reason..." %>
-            </div>
-            <div>
-              <button type="submit">Confirm Reject</button>
-              <button type="button" onclick="document.getElementById('reject-modal-orders').close()">Cancel</button>
-            </div>
-          </form>
+      <% if policy(current_user).view_order_full_details? %>
+        <% if @user.shop_orders.where(aasm_state: %w[pending awaiting_periodical_fulfillment]).any? %>
+          <button type="button" onclick="document.getElementById('reject-modal-orders').showModal()">
+            ✗ Reject Orders
+          </button>
+          <%= render layout: "shared/modal", locals: { id: "reject-modal-orders", title: "Reject All Orders", description: "This will reject all pending and awaiting fulfillment orders for #{@user.display_name}." } do %>
+            <form action="<%= admin_user_order_rejection_path(@user) %>" method="post">
+              <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+              <div>
+                <%= label_tag :reason, "Rejection Reason (optional)" %>
+                <%= text_area_tag :reason, "", placeholder: "Enter reason..." %>
+              </div>
+              <div>
+                <button type="submit">Confirm Reject</button>
+                <button type="button" onclick="document.getElementById('reject-modal-orders').close()">Cancel</button>
+              </div>
+            </form>
+          <% end %>
         <% end %>
       <% end %>
 
