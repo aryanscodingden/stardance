@@ -81,7 +81,8 @@
 
   <% if fire_event? %>
     <div class="feed-post-card__super-star-body markdown-content">
-      <%= helpers.md(body, allow_images: false) %>
+      <!-- Hardcoded body since the old ship events had the header inside the body -->
+      <%= helpers.md("As a prize for your great work, look out for a bonus prize in the mail :)", allow_images: false) %>
     </div>
   <% elsif body.present? && !quote_repost? %>
     <div class="feed-post-card__body markdown-content">

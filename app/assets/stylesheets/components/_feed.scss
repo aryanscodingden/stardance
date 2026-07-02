@@ -1084,9 +1084,6 @@
 
   &__super-star {
     padding-left: var(--space-s);
-    @media (max-width: 640px) {
-      padding-left: 0;
-    }
   }
 
   &__super-star-title {
@@ -1107,11 +1104,14 @@
     &::after {
       content: '';
       position: absolute;
-      bottom: 8px;
+      bottom: 6px;
       left: 0;
       right: 0;
       height: 2px;
       background: var(--gradient-extra-highlight) center / cover no-repeat;
+      @media (min-width: 1024px) {
+        bottom: 8px;
+      }
     }
   }
 
