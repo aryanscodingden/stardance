@@ -28,7 +28,7 @@ class Admin::Shop::SuggestionsController < Admin::ApplicationController
     @suggestion.reject!
 
     SendSlackDmJob.perform_later(
-      @suggestion.user.slack_uid,
+      @suggestion.user.slack_id,
       "Your shop suggestion \"#{@suggestion.name}\" was not approved.#{" Reason: #{@suggestion.rejection_reason}" if @suggestion.rejection_reason.present?}"
     )
 
