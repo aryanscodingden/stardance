@@ -5,8 +5,6 @@
   max-width: 900px;
   padding: 0 var(--space-l) var(--space-xxxxl);
 
-  // ── Header ────────────────────────────────────────────────────────────────
-
   &__header {
     align-items: flex-start;
     display: flex;
@@ -43,8 +41,6 @@
     max-width: 52ch;
   }
 
-  // ── Cost pills row ────────────────────────────────────────────────────────
-
   &__cost-row {
     display: flex;
     flex-wrap: wrap;
@@ -73,8 +69,6 @@
       color: var(--color-space-text);
     }
   }
-
-  // ── Sections ──────────────────────────────────────────────────────────────
 
   &__section {
     margin-bottom: var(--space-xxl);
@@ -123,8 +117,6 @@
     grid-template-columns: repeat(auto-fill, 280px);
   }
 
-  // ── Empty state ───────────────────────────────────────────────────────────
-
   &__empty {
     border: 2px dashed rgba(255, 255, 255, 0.12);
     border-radius: 14px;
@@ -139,8 +131,6 @@
   }
 }
 
-// ── Suggestion card ─────────────────────────────────────────────────────────
-
 .suggestion-card {
   background: var(--color-space-card, rgba(255, 255, 255, 0.04));
   border: 1px solid var(--color-space-border, rgba(255, 255, 255, 0.12));
@@ -153,8 +143,6 @@
     background 140ms ease,
     border-color 140ms ease,
     transform 140ms ease;
-
-  // ── Image ──────────────────────────────────────────────────────────────────
 
   &__image-wrap {
     height: 160px;
@@ -200,8 +188,6 @@
       color: #4ade80;
     }
   }
-
-  // ── Body ───────────────────────────────────────────────────────────────────
 
   &__body {
     display: flex;
@@ -252,8 +238,6 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
-
-  // ── Footer ─────────────────────────────────────────────────────────────────
 
   &__footer {
     align-items: center;
@@ -306,8 +290,6 @@
       color: var(--color-space-text);
     }
   }
-
-  // ── Admin strip ─────────────────────────────────────────────────────────────
 
   &__admin-strip {
     background: rgba(255, 176, 122, 0.05);
@@ -413,8 +395,6 @@
     }
   }
 }
-
-// ── Suggest-item modal ──────────────────────────────────────────────────────
 
 .suggestion-modal {
   background: var(--color-space-bg-2);
