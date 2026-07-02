@@ -103,12 +103,6 @@
               ) %>
         </div>
 
-        <% if current_user && Flipper.enabled?(:shop_suggestion_box, current_user) && !current_user.has_dismissed?("shop_suggestion_box") %>
-          <button type="button" class="shop-hub__suggest" onclick="document.getElementById('shop-suggestion-modal').showModal()">
-            <%= image_tag "Rummage.avif", alt: "", class: "shop-hub__suggest-img" %>
-            <span class="shop-hub__suggest-pill">Suggest a prize?</span>
-          </button>
-        <% end %>
       </div>
     </header>
 
@@ -228,5 +222,3 @@
     </div>
   <% end %>
 </div>
-
-<%= render "shop/items/suggestion_modal" if current_user && Flipper.enabled?(:shop_suggestion_box, current_user) && !current_user.has_dismissed?("shop_suggestion_box") %>

@@ -80,8 +80,7 @@ class Shop::ItemsController < Shop::BaseController
   def prepare_shop_chrome
     @shop_open = Flipper.enabled?(:shop_open, current_user)
     @hardware_flow_enabled = Flipper.enabled?(:hardware_flow, current_user)
-    @show_shop_suggestion_modal = current_user && Flipper.enabled?(:shop_suggestion_box, current_user) && !current_user.has_dismissed?("shop_suggestion_box")
-    @user_region = user_region
+@user_region = user_region
     @body_class = "shop-page"
     @region_options = Shop::Regionalizable::REGIONS.map do |code, config|
       { label: config[:name], value: code }

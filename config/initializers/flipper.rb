@@ -22,7 +22,6 @@ Rails.application.config.after_initialize do
       %w[
         shop_open
         git_commit_2025-12-25
-        shop_suggestion_box
         voting
         shop_backlogged
         kitchen_comic
