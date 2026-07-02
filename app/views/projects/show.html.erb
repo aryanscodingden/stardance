@@ -910,6 +910,10 @@
     </dialog>
   <% end %>
 
+  <% if @project.hardware? && Flipper.enabled?(:hardware_to_outpost, current_user) %>
+    <%= render "projects/hardware_outpost_modal" %>
+  <% end %>
+
   <% if is_member && @hackatime_linked && @project.has_devlog_since_last_ship? %>
     <%
       ship_warn_seconds = [ @project.hackatime_keys.sum { |k| @hackatime_times[k].to_i } - @project.duration_seconds, 0 ].max

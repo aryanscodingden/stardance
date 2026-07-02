@@ -6,6 +6,13 @@ class Projects::LookoutSessionsController < ApplicationController
   def create
     authorize @project, :create_devlog?
 
+    # Hardware projects moved to Outpost — don't start a timelapse for one; tell
+    # the recorder to show the Outpost notice instead (see lookout_recorder JS).
+    if @project.hardware? && Flipper.enabled?(:hardware_to_outpost, current_user)
+      render json: { hardware_outpost_redirect: project_path(@project, hardware: "outpost") }, status: :forbidden
+      return
+    end
+
     # A session's tracked time is forwarded to Hackatime, so a linked Hackatime
     # account is required before one can be started.
     unless current_user.hackatime_identity.present?

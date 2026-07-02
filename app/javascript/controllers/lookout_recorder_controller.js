@@ -23,7 +23,25 @@ export default class extends Controller {
         },
       });
 
-      if (!res.ok) throw new Error(await this.errorDetail(res));
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        // Hardware projects moved to Outpost — show the notice instead of
+        // recording. Prefer the popup already on the page; otherwise send the
+        // just-opened tab to the project page, where it auto-opens.
+        if (body.hardware_outpost_redirect) {
+          const popup = document.getElementById("hardware-outpost-modal");
+          if (popup) {
+            recorderWindow?.close();
+            popup.showModal();
+          } else if (recorderWindow) {
+            recorderWindow.location = body.hardware_outpost_redirect;
+          } else {
+            window.location.assign(body.hardware_outpost_redirect);
+          }
+          return;
+        }
+        throw new Error(body.error || `The server returned ${res.status}.`);
+      }
 
       const session = await res.json();
       const recorderUrl = session.record_url;
@@ -40,16 +58,6 @@ export default class extends Controller {
       console.error("Lookout record error", error);
       window.alert(`Couldn't start a screen recording.\n\n${error.message}`);
     }
-  }
-
-  async errorDetail(res) {
-    try {
-      const body = await res.json();
-      if (body && body.error) return body.error;
-    } catch (_) {
-      // non-JSON response
-    }
-    return `The server returned ${res.status}.`;
   }
 
   csrfToken() {
