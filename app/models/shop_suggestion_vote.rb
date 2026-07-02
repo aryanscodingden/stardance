@@ -73,6 +73,8 @@ class ShopSuggestionVote < ApplicationRecord
   def suggestion_is_pending
     return unless shop_suggestion
 
-    errors.add(:base, "This suggestion is no longer accepting votes") unless shop_suggestion.pending?
+    unless shop_suggestion.pending? && !shop_suggestion.discarded?
+      errors.add(:base, "This suggestion is no longer accepting votes")
+    end
   end
 end
