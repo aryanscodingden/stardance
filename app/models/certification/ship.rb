@@ -3,7 +3,6 @@
 # Table name: certification_ship_reviews
 #
 #  id               :bigint           not null, primary key
-#  bonus_stardust   :float
 #  claim_expires_at :datetime
 #  claimed_at       :datetime
 #  decided_at       :datetime
@@ -320,7 +319,7 @@ module Certification
     end
 
     def self.next_milestone(total_count)
-      thresholds = [ 5, 10, 20, 40 ]
+      thresholds = MILESTONE_TIERS.map { |t| t[:min] }.reject(&:zero?).sort
       next_thresh = thresholds.find { |t| t > total_count }
       return nil if next_thresh.nil?
       { threshold: next_thresh, multiplier: multiplier_for_milestone(next_thresh), reviews_needed: next_thresh - total_count }
