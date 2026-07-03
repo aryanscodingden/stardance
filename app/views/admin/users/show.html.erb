@@ -29,6 +29,8 @@
         <% end %>
         <dt>Balance</dt>
         <dd><%= @user.balance %> tickets</dd>
+        <dt>Vote Balance</dt>
+        <dd><%= @user.vote_balance %> votes</dd>
         <dt>Roles</dt>
         <dd><%= @user.roles.map { |r| r.to_s.titleize }.join(", ").presence || content_tag(:span, "None", class: "admin-user-show__muted") %></dd>
         <dt>Projects (<%= @all_projects.size %>)</dt>
@@ -154,12 +156,12 @@
   <% end %>
 </div>
 <br>
-<div>
+<div class="admin-user-show__list">
   <div>
     <h2>Actions</h2>
     <div>
       <% if policy(Message).create? %>
-        <%= link_to "✉️ Send Message", admin_messages_path(slack_id: @user.slack_id) %>
+       <%= render ActionButtonComponent.new(text: "Send Message", href: admin_messages_path(slack_id: @user.slack_id), size: :small, variant: :secondary) %>
       <% end %>
       <% if policy(@user).impersonate? && !impersonating? %>
         <%= button_to "Impersonate User",
@@ -169,15 +171,19 @@
                         confirm: "Are you sure you want to impersonate #{@user.display_name}? You will see the site as they do."
                       } %>
       <% end %>
+      <% if policy(@user).sync_hackatime? %>
       <%= button_to "🔄 Sync Hackatime Data",
                     admin_user_hackatime_sync_path(@user),
                     method: :post,
                     title: "Sync Hackatime Data" %>
+      <% end %>
+      <% if policy(@user).refresh_verification? %>
       <%= button_to "🔄 Refresh Verification",
                     admin_user_verification_path(@user),
                     method: :post,
                     title: "Refresh verification status from HCA",
                     data: { confirm: "Refresh verification status for #{@user.display_name}?" } %>
+      <% end %>
       <% if policy(@user).ban? %>
         <% if @user.banned? %>
           <%= button_to "🔓 Unban", admin_user_ban_path(@user), method: :delete,
@@ -257,22 +263,24 @@
         </script>
       <% end %>
 
-      <% if @user.shop_orders.where(aasm_state: %w[pending awaiting_periodical_fulfillment]).any? %>
-        <button type="button" onclick="document.getElementById('reject-modal-orders').showModal()">
-          ✗ Reject Orders
-        </button>
-        <%= render layout: "shared/modal", locals: { id: "reject-modal-orders", title: "Reject All Orders", description: "This will reject all pending and awaiting fulfillment orders for #{@user.display_name}." } do %>
-          <form action="<%= admin_user_order_rejection_path(@user) %>" method="post">
-            <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-            <div>
-              <%= label_tag :reason, "Rejection Reason (optional)" %>
-              <%= text_area_tag :reason, "", placeholder: "Enter reason..." %>
-            </div>
-            <div>
-              <button type="submit">Confirm Reject</button>
-              <button type="button" onclick="document.getElementById('reject-modal-orders').close()">Cancel</button>
-            </div>
-          </form>
+      <% if policy(current_user).view_order_full_details? %>
+        <% if @user.shop_orders.where(aasm_state: %w[pending awaiting_periodical_fulfillment]).any? %>
+          <button type="button" onclick="document.getElementById('reject-modal-orders').showModal()">
+            ✗ Reject Orders
+          </button>
+          <%= render layout: "shared/modal", locals: { id: "reject-modal-orders", title: "Reject All Orders", description: "This will reject all pending and awaiting fulfillment orders for #{@user.display_name}." } do %>
+            <form action="<%= admin_user_order_rejection_path(@user) %>" method="post">
+              <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+              <div>
+                <%= label_tag :reason, "Rejection Reason (optional)" %>
+                <%= text_area_tag :reason, "", placeholder: "Enter reason..." %>
+              </div>
+              <div>
+                <button type="submit">Confirm Reject</button>
+                <button type="button" onclick="document.getElementById('reject-modal-orders').close()">Cancel</button>
+              </div>
+            </form>
+          <% end %>
         <% end %>
       <% end %>
 
@@ -289,7 +297,9 @@
             <button type="button" onclick="document.getElementById('adjust-balance-modal').close()">Cancel</button>
           </form>
         <% end %>
-        <%= render ActionButtonComponent.new(text: "View Votes", href: admin_user_votes_path(@user), size: :small, variant: :secondary) %>
+        <% if policy(@user).view_votes? %>
+          <%= render ActionButtonComponent.new(text: "View Votes", href: admin_user_votes_path(@user), size: :small, variant: :secondary) %>
+        <% end %>
         <button type="button" id="set-vote-bal">Set Vote Balance (<%= @user.vote_balance %>)</button>
         <script>
           document.getElementById("set-vote-bal").addEventListener("click", function() {

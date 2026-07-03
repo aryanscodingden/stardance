@@ -610,7 +610,6 @@ dialog {
   border: 1px solid var(--color-space-border);
   border-radius: 0.5rem;
   padding: var(--space-m);
-  margin-top: var(--space-m);
 
   &--highlighted {
     border: 2px solid var(--color-brand-yellow);
@@ -707,7 +706,6 @@ dialog {
 
 /* ── Audit log component ─────────────────────────────────────────── */
 .audit-log {
-  margin-top: var(--space-l);
   border: 1px solid var(--color-space-border);
   border-radius: 8px;
   background: var(--color-space-surface-faint);

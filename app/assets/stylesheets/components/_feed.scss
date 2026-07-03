@@ -894,8 +894,6 @@
     min-width: 0;
     min-height: 0;
     aspect-ratio: 1 / 1;
-    display: grid;
-    place-items: center;
     margin: 0;
     border: 1px solid var(--color-space-surface-faint);
     border-radius: calc(var(--border-radius) * 0.45);

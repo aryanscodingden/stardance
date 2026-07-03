@@ -31,8 +31,8 @@
         <% end %>
         <dt>Created</dt>      <dd><%= @project.created_at.strftime("%Y-%m-%d %H:%M") %></dd>
         <dt>Updated</dt>      <dd><%= @project.updated_at.strftime("%Y-%m-%d %H:%M") %></dd>
-        <dt>Shipped</dt>      <dd><%= @project.shipped_at&.strftime("%Y-%m-%d %H:%M") || content_tag(:span, "Not shipped", class: "admin-user-show__muted") %></dd>
-        <dt>Status</dt>       <dd><%= @project.deleted? ? "Deleted" : "Active" %></dd>
+        <dt>Last Shipped</dt> <dd><%= @project.shipped_at&.strftime("%Y-%m-%d %H:%M") || content_tag(:span, "Not shipped", class: "admin-user-show__muted") %></dd>
+        <dt>Active</dt>       <dd><%= @project.deleted? ? "Deleted" : "Yes" %></dd>
         <dt>Tutorial</dt>     <dd><%= @project.tutorial? ? "Yes" : "No" %></dd>
         <dt>Duration</dt>     <dd><%= @project.duration_seconds > 0 ? "#{(@project.duration_seconds / 3600.0).round(1)}h" : "0h" %></dd>
         <dt>Devlogs</dt>      <dd><%= @project.devlogs_count %></dd>
@@ -90,13 +90,15 @@
     </div>
   </div>
 
-  <% if policy(current_user).view_order_full_details? %>
-    <div class="mission-panel">
-      <h2 class="admin-user-show__section-title">Actions</h2>
-      <div class="admin-user-show__actions">
-        <%= render ActionButtonComponent.new(text: "← Back", href: admin_projects_path, size: :small, variant: :secondary) %>
-        <%= render ActionButtonComponent.new(text: "Public Page", href: project_path(@project), size: :small, variant: :secondary) %>
+  <div class="mission-panel">
+    <h2 class="admin-user-show__section-title">Actions</h2>
+    <div class="admin-user-show__actions">
+      <%= render ActionButtonComponent.new(text: "← Back", href: admin_projects_path, size: :small, variant: :secondary) %>
+      <%= render ActionButtonComponent.new(text: "Public Page", href: project_path(@project), size: :small, variant: :secondary) %>
+      <% if policy(@project).view_votes? %>
         <%= render ActionButtonComponent.new(text: "Votes", href: votes_admin_project_path(@project), size: :small, variant: :secondary) %>
+      <% end %>
+      <% if policy(current_user).view_order_full_details? %>
         <% if @project.deleted? %>
           <%= button_to "Restore Project", restore_admin_project_path(@project), method: :post,
               data: { confirm: "Restore this project?" } %>
@@ -104,9 +106,11 @@
           <%= button_to "Delete Project", delete_admin_project_path(@project), method: :post,
               data: { confirm: "Delete this project?" } %>
         <% end %>
-      </div>
+      <% end %>
     </div>
+  </div>
 
+  <% if policy(current_user).view_order_full_details? %>
     <%= render layout: "shared/modal", locals: { id: "change-ship-status-modal", title: "Change Ship Status", description: "Bypasses AASM transitions and is logged to PaperTrail." } do %>
       <form action="<%= update_ship_status_admin_project_path(@project) %>" method="post">
         <%= hidden_field_tag :authenticity_token, form_authenticity_token %>

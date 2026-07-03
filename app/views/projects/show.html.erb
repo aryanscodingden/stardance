@@ -684,7 +684,7 @@
         ship_tour_text = if is_fixed_payout
           "Your ship is now in review. Once it's approved, you'll earn the mission's prizes!"
         else
-          "Yay congrats on your first ship! To get your payout, you need to vote at least #{Post::ShipEvent::VOTES_REQUIRED_FOR_PAYOUT} times on other people's projects."
+          "Yay congrats on your first ship! To get your payout, you need to vote at least #{Post::ShipEvent::VOTE_COST_PER_SHIP} times on other people's projects."
         end
 
         ship_tour_steps = [

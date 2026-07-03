@@ -103,7 +103,9 @@ class Post::ShipEvent < ApplicationRecord
   end
 
   def capture_hours_at_ship
-    reload.recalculate_hours_at_ship
+    association(:post).reset
+    association(:project).reset
+    recalculate_hours_at_ship
   end
 
   def recalculate_hours_at_ship

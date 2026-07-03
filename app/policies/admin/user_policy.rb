@@ -67,7 +67,7 @@ class Admin::UserPolicy < ApplicationPolicy
   end
 
   def view_votes?
-    user&.admin? || user&.fraud_dept?
+    user&.admin?
   end
   def view_order_full_details?
     user&.admin? || user&.fraud_dept? || user&.fulfillment_person? || user&.shop_manager?
