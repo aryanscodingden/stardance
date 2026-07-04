@@ -120,7 +120,10 @@ module ExternalDashboard
     end
 
     def apply_decision!(cert, target_status)
-      cert.verdict_ship_event&.update!(feedback_video_url: proof_video_url)
+      # An omitted proofVideoUrl means "no video for this decision", not
+      # "clear the previous one" — a re-review without a video must not erase
+      # the walkthrough stored by the earlier cycle on the same ship event.
+      cert.verdict_ship_event&.update!(feedback_video_url: proof_video_url) if proof_video_url
       cert.update!(status: target_status, feedback: reviewer_comment, reviewer_id: reviewer&.id)
       cert.assign_external_certification_id!(certification[:id])
     end

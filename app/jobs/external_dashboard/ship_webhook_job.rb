@@ -26,7 +26,9 @@ module ExternalDashboard
       def fill_feedback_video_url(cert)
         return unless cert.verdict_video.attached?
 
-        ship_event = cert.verdict_ship_event
+        # Only the event this cert judged — the last_ship_event fallback would
+        # stamp an old verdict video onto a newer, unrelated ship.
+        ship_event = cert.post_ship_event
         return unless ship_event && ship_event.feedback_video_url.blank?
 
         url_options = Rails.application.config.action_controller.default_url_options || {}
@@ -40,12 +42,15 @@ module ExternalDashboard
 
       def chain_pending_return(cert)
         return unless cert.approved? && cert.external_certification_id.present?
+        return if cert.post_ship_event_id.nil?
 
         project = cert.project
         return unless project
-        return unless cert == project.ship_reviews.where(status: :approved).order(:created_at).last
 
-        active_return = project.ship_reviews.pending.where.not(returned_by_id: nil).first
+        # A YSWS return re-reviews a specific ship event; only the approved
+        # cert for that same event may hand over its dashboard UUID.
+        active_return = project.ship_reviews.pending.where.not(returned_by_id: nil)
+                               .find_by(post_ship_event_id: cert.post_ship_event_id)
         return unless active_return
 
         Certification::Ship.transaction do

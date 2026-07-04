@@ -9,6 +9,7 @@ module ExternalDashboard
 
       active_returns = Certification::Ship.pending.where.not(returned_by_id: nil)
       scope ||= Certification::Ship.where(external_certification_id: nil).where.not(id: active_returns.select(:id))
+      link_ship_events(scope)
       cert_ids = scope.pluck(:id)
       cert_ids.each_with_index do |cert_id, index|
         delay = (index.to_f / rate_per_second).seconds
@@ -20,6 +21,25 @@ module ExternalDashboard
 
       Rails.logger.info "[ExternalDashboard::ShipBackfillService] enqueued=#{cert_ids.size} returns=#{return_ids.size} rate=#{rate_per_second}/s"
       Result.new(status: :ok, enqueued: cert_ids.size + return_ids.size)
+    end
+
+    # Certs created before post_ship_event_id existed judged the ship event
+    # that was current when they were created. Pin them before pushing so the
+    # payload (hours, proof video) describes that event, not whatever the
+    # project shipped most recently.
+    def self.link_ship_events(scope)
+      linked = 0
+      scope.where(post_ship_event_id: nil).find_each do |cert|
+        event = cert.project&.ship_events
+                    &.where(post_ship_events: { created_at: ..cert.created_at })
+                    &.order("post_ship_events.created_at DESC")
+                    &.first
+        next unless event
+
+        cert.update!(post_ship_event_id: event.id)
+        linked += 1
+      end
+      Rails.logger.info "[ExternalDashboard::ShipBackfillService] linked=#{linked} ship events" if linked.positive?
     end
   end
 end
