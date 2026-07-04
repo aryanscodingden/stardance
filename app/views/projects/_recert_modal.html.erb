@@ -18,12 +18,7 @@
       <p class="recert-modal__subtitle">Reviewer feedback and walkthrough left for this project.</p>
     <% end %>
 
-    <% verdict_video_src =
-         if recert_review&.verdict_video&.attached?
-           rails_blob_path(recert_review.verdict_video, disposition: :inline)
-         else
-           project.last_ship_event&.feedback_video_url.presence
-         end %>
+    <% verdict_video_src = certification_verdict_video_src(recert_review) %>
     <% if verdict_video_src %>
       <div class="recert-modal__video-wrap">
         <video class="recert-modal__video"

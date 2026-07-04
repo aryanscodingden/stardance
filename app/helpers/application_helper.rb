@@ -129,6 +129,16 @@ module ApplicationHelper
     nil
   end
 
+  # Verdict walkthrough source for a Certification::Ship: the attached video
+  # when a Shipwright reviewed locally, otherwise the external dashboard's
+  # proof video URL stored on the ship event.
+  def certification_verdict_video_src(cert)
+    return if cert.nil?
+    return url_for(cert.verdict_video) if cert.verdict_video.attached?
+
+    safe_external_url(cert.verdict_ship_event&.feedback_video_url)
+  end
+
   def achievement_icon(icon_name, earned: true, **options)
     asset_path = find_achievement_asset(icon_name)
 
