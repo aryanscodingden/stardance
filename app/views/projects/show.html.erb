@@ -478,8 +478,7 @@
       <% if @hackatime_linked || @test_time_granted %>
         <%
           no_hackatime_project = @project.hackatime_keys.blank? && !@test_time_granted
-          live_seconds = @project.hackatime_keys.sum { |k| @hackatime_times[k].to_i }
-          unposted_seconds = [ live_seconds - @project.duration_seconds, 0 ].max
+          unposted_seconds = @unposted_seconds.to_i
           enough_time = !no_hackatime_project && (unposted_seconds >= 15 * 60 || @test_time_granted)
           devlog_disabled_message = "Edit this project to add a Hackatime project" if no_hackatime_project
           # Only call it the primary action when devlogging is actually
@@ -912,7 +911,7 @@
 
   <% if is_member && @hackatime_linked && @project.has_devlog_since_last_ship? %>
     <%
-      ship_warn_seconds = [ @project.hackatime_keys.sum { |k| @hackatime_times[k].to_i } - @project.duration_seconds, 0 ].max
+      ship_warn_seconds = @unposted_seconds.to_i
       ship_warn_hours = ship_warn_seconds / 3600
       ship_warn_minutes = (ship_warn_seconds % 3600) / 60
       ship_warn_time = ship_warn_hours > 0 ? "#{ship_warn_hours}h #{ship_warn_minutes}m" : "#{ship_warn_minutes}m"
