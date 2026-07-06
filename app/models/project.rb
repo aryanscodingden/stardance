@@ -418,7 +418,7 @@ class Project < ApplicationRecord
     end
 
     event :return_for_changes do
-      transitions from: :under_review, to: :needs_changes
+      transitions from: [ :under_review, :approved ], to: :needs_changes
     end
 
     event :resubmit_for_review do
