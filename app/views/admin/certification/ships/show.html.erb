@@ -213,11 +213,10 @@
                 <p><%= @ship.feedback %></p>
               </div>
             <% end %>
-            <% if @ship.verdict_video.attached? %>
+            <% if (verdict_video_src = certification_verdict_video_src(@ship)) %>
               <div class="ship-review__verdict-video">
                 <h3>Walkthrough Video</h3>
-                <video controls playsinline class="ship-review__video-player">
-                  <source src="<%= url_for(@ship.verdict_video) %>" type="<%= @ship.verdict_video.content_type %>">
+                <video controls playsinline class="ship-review__video-player" src="<%= verdict_video_src %>">
                   Your browser does not support the video tag.
                 </video>
               </div>

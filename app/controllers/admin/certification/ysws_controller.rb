@@ -248,24 +248,33 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
     @review = ::Certification::Ysws.find(params[:id])
     authorize @review, :update?
 
-    recert_reason = params[:recert_reason].to_s.strip
+    recert_reason = params[:recert_reason].to_s.strip.truncate(::Post::ShipEvent::RETURN_REASON_MAX_LENGTH, omission: "")
     if recert_reason.blank?
       return render json: { success: false, error: "A reason is required." }, status: :unprocessable_entity
     end
 
     if ::Certification::Ship.pending.exists?(project_id: @review.project_id)
-      if @review.project.last_ship_event&.id == @review.post_ship_event_id
-        return render json: { success: false, error: "This project already has a pending ship certification." }, status: :unprocessable_entity
-      end
+      return render json: { success: false, error: "This project already has a pending ship certification." }, status: :unprocessable_entity
     end
 
     ActiveRecord::Base.transaction do
-      ::Certification::Ship.create!(
+      approved_certs = ::Certification::Ship
+        .where(project_id: @review.project_id, status: :approved)
+        .lock
+      approved_cert = approved_certs.find_by(id: @review.ship_cert_id) ||
+                      approved_certs.find_by(post_ship_event_id: @review.post_ship_event_id)
+
+      new_cert = ::Certification::Ship.create!(
         project_id: @review.project_id,
+        post_ship_event_id: @review.post_ship_event_id,
         recert_reason: recert_reason, # codeql[rb/cleartext-storage-sensitive-data]
         returned_by_id: current_user.id
       )
       @review.update!(returned_at: Time.current)
+
+      if approved_cert&.transfer_external_certification_id_to!(new_cert)
+        ::ExternalDashboard::CertReturnJob.perform_later(new_cert.id)
+      end
     end
 
     render json: {

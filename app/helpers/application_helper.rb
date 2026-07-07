@@ -129,6 +129,13 @@ module ApplicationHelper
     nil
   end
 
+  def certification_verdict_video_src(cert)
+    return if cert.nil?
+    return url_for(cert.verdict_video) if cert.verdict_video.attached?
+
+    safe_external_url(cert.proof_video_url)
+  end
+
   def achievement_icon(icon_name, earned: true, **options)
     asset_path = find_achievement_asset(icon_name)
 

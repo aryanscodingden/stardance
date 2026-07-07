@@ -4,6 +4,16 @@ class Projects::ShipsController < ApplicationController
 
   def create
     authorize @project, :ship?
+
+    latest_review = @project.ship_reviews.order(created_at: :desc, id: :desc).first
+    if latest_review&.pending?
+      redirect_to project_path(@project),
+                  alert: "Your project is being reviewed. You can ship again once it's approved." and return
+    elsif latest_review&.returned? && @project.needs_changes?
+      redirect_to project_path(@project),
+                  alert: "Your last review wasn't approved — address the feedback and request re-certification instead." and return
+    end
+
     # Everything posts from the modal on the project show page.
     submission_guide_ack = params[:mission_submission_guide_acknowledged].to_s == "1"
 
@@ -34,7 +44,8 @@ class Projects::ShipsController < ApplicationController
       # First Ship: Always create ship certification for manual review    ----------- Ask @AVD if you want to change this! - May need to notify teams of any changes!
       # Reships: If links alive - approves project, create a 'reship' YSWS review, if links dead - Creates ship cert for manual review
       if !reship
-        @project.ship_reviews.create!(status: :pending)
+        cert = @project.ship_reviews.create!(status: :pending, post_ship_event_id: ship_event.id)
+        ExternalDashboard::ShipWebhookJob.perform_later(cert.id)
       elsif probe_result.ok?
         @project.approve! if @project.may_approve?
         @post.postable.update!(certification_status: "approved")
@@ -42,6 +53,7 @@ class Projects::ShipsController < ApplicationController
       else
         @project.ship_reviews.create!(
           status: :returned,
+          post_ship_event_id: ship_event.id,
           feedback: "Automated URL check failed: #{probe_result.failures.join('; ')}. Please make sure your links are online and public, then re-ship!"
         )
       end
@@ -58,6 +70,8 @@ class Projects::ShipsController < ApplicationController
     end
   rescue ActiveRecord::RecordInvalid => e
     redirect_back fallback_location: project_path(@project), alert: e.record.errors.full_messages.to_sentence
+  rescue ActiveRecord::RecordNotUnique
+    redirect_to project_path(@project), alert: "A review is already pending for this project."
   end
 
   private
