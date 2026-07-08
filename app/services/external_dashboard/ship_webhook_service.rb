@@ -4,12 +4,13 @@ module ExternalDashboard
 
     Result = Struct.new(:status, :cert_id, :http_status, :error, keyword_init: true)
 
-    def self.call(cert)
-      new(cert).call
+    def self.call(cert, require_complete_fields: false)
+      new(cert, require_complete_fields: require_complete_fields).call
     end
 
-    def initialize(cert)
+    def initialize(cert, require_complete_fields: false)
       @cert = cert
+      @require_complete_fields = require_complete_fields
     end
 
     def call
@@ -18,6 +19,9 @@ module ExternalDashboard
       return Result.new(status: :skipped, error: "hardware project — out of scope") if project.hardware?
       return Result.new(status: :skipped, error: "cert has no ship_event") if ship_event.nil?
       return Result.new(status: :skipped, error: "owner has no slack_id") if owner_slack_id.blank?
+      if @require_complete_fields && missing_required_fields.any?
+        return Result.new(status: :skipped, error: "missing required fields: #{missing_required_fields.join(', ')}")
+      end
 
       response = Client.connection.post(INGEST_PATH, payload.to_json)
       parse_response(response)
@@ -26,6 +30,17 @@ module ExternalDashboard
     private
 
     attr_reader :cert
+
+    def missing_required_fields
+      @missing_required_fields ||= {
+        "projectName" => project.title,
+        "description" => project.description,
+        "demo" => project.demo_url,
+        "repo" => project.repo_url,
+        "readme" => project.readme_url,
+        "username" => cert.owner&.display_name
+      }.select { |_field, value| value.blank? }.keys
+    end
 
     def project
       @project ||= cert.project

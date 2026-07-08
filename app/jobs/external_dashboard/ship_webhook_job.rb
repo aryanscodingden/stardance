@@ -1,14 +1,15 @@
 module ExternalDashboard
   class ShipWebhookJob < WebhookJob
-    def perform(cert_id)
+    def perform(cert_id, backfill_run_id: nil)
       cert = Certification::Ship.find(cert_id)
       fill_proof_video_url(cert)
-      result = ExternalDashboard::ShipWebhookService.call(cert)
+      result = ExternalDashboard::ShipWebhookService.call(cert, require_complete_fields: backfill_run_id.present?)
+      BackfillRun.record(backfill_run_id, result.status)
 
       case result.status
       when :ok, :duplicate
         cert.assign_external_certification_id!(result.cert_id)
-        chain_pending_return(cert)
+        chain_pending_return(cert, backfill_run_id)
         verb = result.status == :duplicate ? "already ingested" : "ingested"
         Rails.logger.info "[#{self.class.name}] cert=#{cert_id} #{verb} external_cert_id=#{result.cert_id}"
       when :not_configured, :skipped
@@ -35,7 +36,7 @@ module ExternalDashboard
         Rails.logger.warn "[#{self.class.name}] cert=#{cert.id} proof_video_url fill failed: #{e.class}: #{e.message}"
       end
 
-      def chain_pending_return(cert)
+      def chain_pending_return(cert, backfill_run_id)
         return unless cert.approved? && cert.external_certification_id.present?
         return if cert.post_ship_event_id.nil?
 
@@ -48,7 +49,8 @@ module ExternalDashboard
 
         Certification::Ship.transaction do
           if cert.transfer_external_certification_id_to!(active_return)
-            ExternalDashboard::CertReturnJob.perform_later(active_return.id)
+            BackfillRun.record_enqueued(backfill_run_id)
+            ExternalDashboard::CertReturnJob.perform_later(active_return.id, backfill_run_id: backfill_run_id)
           end
         end
       end
