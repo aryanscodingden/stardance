@@ -193,6 +193,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_153613) do
     t.index ["user_id"], name: "index_certification_funding_requests_on_user_id"
   end
 
+  create_table "certification_integrities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "decision_justification"
+    t.integer "deduction_minutes"
+    t.integer "flags", default: 0, null: false
+    t.datetime "reviewed_at"
+    t.bigint "reviewer_id"
+    t.bigint "ship_event_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["reviewer_id"], name: "index_certification_integrities_on_reviewer_id"
+    t.index ["ship_event_id"], name: "index_certification_integrities_on_ship_event_id", unique: true
+    t.index ["status"], name: "index_certification_integrities_on_status"
+  end
+
   create_table "certification_ship_reviews", force: :cascade do |t|
     t.datetime "claim_expires_at"
     t.datetime "claimed_at"
@@ -1507,6 +1522,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_153613) do
   add_foreign_key "certification_funding_requests", "projects"
   add_foreign_key "certification_funding_requests", "users"
   add_foreign_key "certification_funding_requests", "users", column: "reviewer_id"
+  add_foreign_key "certification_integrities", "post_ship_events", column: "ship_event_id"
+  add_foreign_key "certification_integrities", "users", column: "reviewer_id"
   add_foreign_key "certification_ship_reviews", "post_ship_events", on_delete: :nullify
   add_foreign_key "certification_ship_reviews", "projects"
   add_foreign_key "certification_ship_reviews", "users", column: "reviewer_id"

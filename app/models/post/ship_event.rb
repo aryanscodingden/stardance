@@ -71,6 +71,11 @@ class Post::ShipEvent < ApplicationRecord
                                inverse_of: :ship_event,
                                dependent: :destroy
 
+  has_one :integrity_check, class_name: "Certification::Integrity",
+                            foreign_key: :ship_event_id,
+                            inverse_of: :ship_event,
+                            dependent: :destroy
+
   after_update :sync_mission_submission_status, if: :saved_change_to_certification_status?
 
   scope :voteable, -> {
