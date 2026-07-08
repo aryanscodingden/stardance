@@ -1,7 +1,7 @@
 // Shared cross-component mixins. Pull in from a component file with
 // `@use "../config/mixins" as *;`.
 
-// Round salmon `!` warning pill — shared by `.idv-badge` and the composer's
+// Round salmon `!` warning pill, shared by `.idv-badge` and the composer's
 // devlog-cap help button so warning marks read the same everywhere.
 @mixin warn-badge {
   appearance: none;

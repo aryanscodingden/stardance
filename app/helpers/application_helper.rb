@@ -84,7 +84,7 @@ module ApplicationHelper
     hours.positive? ? format("%d:%02d:%02d", hours, mins, secs) : format("%d:%02d", mins, secs)
   end
 
-  # ie: 9h 0m — hour/minute wall format shared by the devlog time preview,
+  # ie: 9h 0m. Hour/minute wall format shared by the devlog time preview,
   # the un-devlogged time banner, and the devlog-cap notification.
   def format_hours_minutes(seconds)
     seconds = seconds.to_i
