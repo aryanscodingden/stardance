@@ -76,6 +76,16 @@ module GitHost
       normalize_commit(raw) if raw.is_a?(Hash)
     end
 
+    def fetch_filenames
+      return [] unless owner && repo
+
+      full_url = "#{api_base}/repos/#{owner}/#{repo}/git/trees/HEAD?recursive=1"
+      tree = http_get(full_url, headers: auth_headers)
+      return [] unless tree.is_a?(Hash) && tree["tree"].is_a?(Array)
+
+      tree["tree"].filter_map { |node| node["path"] if node["type"] == "blob" }
+    end
+
     protected
 
     def parse_url!

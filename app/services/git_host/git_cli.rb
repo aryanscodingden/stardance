@@ -45,6 +45,22 @@ module GitHost
       nil  # Stats not available via CLI; caller falls back to the list commit
     end
 
+    def fetch_filenames
+      return [] unless repo_url.present?
+
+      Dir.mktmpdir("git_sync") do |tmpdir|
+        clone_path = File.join(tmpdir, "repo")
+
+        unless clone_repo(clone_path)
+          Rails.logger.error("Failed to clone #{repo_url}")
+          return []
+        end
+
+        output, status = Open3.capture2("git", "-C", clone_path, "ls-tree", "-r", "--name-only", "HEAD")
+        status.success? ? output.split("\n") : []
+      end
+    end
+
     protected
 
     def parse_url!
