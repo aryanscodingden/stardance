@@ -1,0 +1,139 @@
+<% content_for :title, "Certificate" %>
+<% content_for :og_title, "Stardance Certificate" %>
+<% content_for :og_description, "Earn an official Stardance certificate, or verify one and see the projects behind it." %>
+<%= content_for :stylesheets do %>
+  <%= stylesheet_link_tag "certificate", "data-turbo-track": "reload" %>
+<% end %>
+
+<main class="certificate-page">
+  <% if current_user %>
+    <header class="certificate-page__earn">
+      <div class="certificate-page__earn-copy">
+        <p class="certificate-page__eyebrow">Stardance certificate</p>
+        <h1 class="certificate-page__title">
+          Earn a <span class="certificate-page__title-em">Stardance</span> certificate
+        </h1>
+        <p class="certificate-page__subtitle">
+          Get a certificate recognized by NASA, AMD, and GitHub for having
+          <%= Certificate::REQUIRED_APPROVED_HOURS %> hours approved on Stardance.
+        </p>
+      </div>
+      <%= image_tag "certificate/preview.jpg",
+            alt: "Preview of a Stardance certificate",
+            class: "certificate-page__preview",
+            draggable: false %>
+    </header>
+
+    <section class="certificate-page__mine">
+      <% if (certificate = current_user.certificate) %>
+        <h2 class="certificate-page__section-title">Your certificate</h2>
+        <% if certificate.approved? %>
+          <p class="certificate-page__mine-text">
+            Issued to <strong><%= certificate.name %></strong> with code
+            <span class="certificate-page__mine-code"><%= certificate.code %></span>.
+          </p>
+          <%= render ActionButtonComponent.new(text: "Download certificate", size: :small,
+                href: download_certificate_path) %>
+        <% elsif certificate.pending? %>
+          <p class="certificate-page__mine-text">
+            Your certificate for <strong><%= certificate.name %></strong> is waiting on a quick
+            name review. Since it doesn't match your verified identity, a human checks it first.
+          </p>
+        <% else %>
+          <p class="certificate-page__mine-text">
+            The name <strong><%= certificate.name %></strong> wasn't approved.
+            Try again with a different name:
+          </p>
+          <%= render "certificates/request_form", certificate: certificate, button: "Request again" %>
+          <p class="certificate-page__mine-hint">
+            Names that don't exactly match your verified identity need a quick review before issue.
+          </p>
+        <% end %>
+      <% else %>
+        <h2 class="certificate-page__section-title">Your progress</h2>
+        <%= render "shared/progress_bar",
+              value: @approved_hours.floor,
+              max: Certificate::REQUIRED_APPROVED_HOURS,
+              label: "Approved hours toward certificate",
+              class_name: "certificate-page__progress-bar" %>
+        <p class="certificate-page__progress-text">
+          <%= @approved_hours.floor %> / <%= Certificate::REQUIRED_APPROVED_HOURS %> approved hours
+        </p>
+        <% if @approved_hours >= Certificate::REQUIRED_APPROVED_HOURS %>
+          <p class="certificate-page__mine-text">
+            You've earned a certificate! Enter the name you want printed on it:
+          </p>
+          <%= render "certificates/request_form", certificate: Certificate.new, button: "Request certificate" %>
+          <p class="certificate-page__mine-hint">
+            This is the name printed on your certificate. It can't be changed after issue, and
+            names that don't exactly match your verified identity need a quick review first.
+          </p>
+        <% end %>
+      <% end %>
+    </section>
+
+    <section class="certificate-page__faq">
+      <h2 class="certificate-page__section-title">FAQ</h2>
+      <%= render "certificates/faq", items: [
+            [ "What hours count towards the certificate?",
+              "All hours that have been devlogged and submitted as part of a ship that has been approved." ],
+            [ "What will show up on the certificate?",
+              "You'll get to choose your name, and there will be a code that lets anyone verify the
+               certificate's authenticity. The code also shows off the projects you've submitted." ],
+            [ "Can I get the certificate sent to me?",
+              "If you want a physical certificate, there will be one available in the shop soon!
+               It's only buyable once you have qualified for the certificate." ]
+          ] %>
+    </section>
+  <% end %>
+
+  <% if current_user %>
+    <section class="certificate-page__verify">
+      <h2 class="certificate-page__section-title">Want to verify a certificate?</h2>
+      <p class="certificate-page__subtitle">Enter the 6-character code printed on the certificate.</p>
+      <%= render "certificates/verifier" %>
+    </section>
+  <% else %>
+    <section class="certificate-page__verify">
+      <header class="certificate-page__hero">
+        <p class="certificate-page__eyebrow">Certificate verification</p>
+        <h1 class="certificate-page__title">
+          Verify a <span class="certificate-page__title-em">Stardance</span> certificate
+        </h1>
+        <p class="certificate-page__subtitle">Enter the 6-character code printed on the certificate.</p>
+      </header>
+      <%= render "certificates/verifier" %>
+    </section>
+
+    <% hack_club_answer = capture do %>
+      Hack Club is a 501(c)(3) nonprofit dedicated to helping teens worldwide build real
+      technical projects by hosting online and in-person hackathons and events. With a
+      community of over 150,000 teen hackers, any teen ages 13&ndash;18 is welcome to join
+      the community at <%= link_to "hackclub.com", "https://hackclub.com", class: "certificate-page__faq-link" %>.
+    <% end %>
+    <section class="certificate-page__faq">
+      <h2 class="certificate-page__section-title">FAQ</h2>
+      <%= render "certificates/faq", items: [
+            [ "What is Stardance Challenge?",
+              "Stardance Challenge is a teen online hackathon run by Hack Club in partnership with
+               NASA, AMD, and GitHub. It is open to any teen 13–18 worldwide, and gives free
+               prizes for each project submitted." ],
+            [ "What is Hack Club?", hack_club_answer ],
+            [ "What does this certificate mean?",
+              "This certificate verifies that the recipient spent at least
+               #{Certificate::REQUIRED_APPROVED_HOURS} hours working on personal projects that
+               have been shipped so anyone can experience it." ],
+            [ "How can I earn a certificate?",
+              "See below! Anyone ages 13–18 can get a certificate (plus free prizes) by just
+               logging the time you spend on personal technical projects. We even have guides if you
+               have no experience!" ]
+          ] %>
+    </section>
+
+    <section class="certificate-page__join">
+      <h2 class="certificate-page__section-title">Teen 13-18?</h2>
+      <%= render ActionButtonComponent.new(text: "Join Stardance Challenge", size: :large,
+            variant: :primary, href: root_path) %>
+    </section>
+  <% end %>
+</main>

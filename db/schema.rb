@@ -153,6 +153,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_153613) do
     t.index ["creator_id"], name: "index_blazer_queries_on_creator_id"
   end
 
+  create_table "certificates", force: :cascade do |t|
+    t.string "code", null: false
+    t.datetime "created_at", null: false
+    t.float "hours_at_issue", null: false
+    t.string "name", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["code"], name: "index_certificates_on_code", unique: true
+    t.index ["user_id"], name: "index_certificates_on_user_id", unique: true
+  end
+
   create_table "certification_devlog_reviews", force: :cascade do |t|
     t.integer "approved_minutes"
     t.datetime "created_at", null: false
@@ -1517,6 +1529,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_153613) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "certificates", "users"
   add_foreign_key "certification_devlog_reviews", "certification_ysws_reviews", column: "ysws_review_id"
   add_foreign_key "certification_devlog_reviews", "post_devlogs"
   add_foreign_key "certification_funding_requests", "projects"

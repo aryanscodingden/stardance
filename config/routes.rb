@@ -554,6 +554,11 @@ Rails.application.routes.draw do
   # Events — listing of missions and (eventually) other themed events.
   resources :events, only: [ :index ]
 
+  # Certificate: request your own (≥30 approved hours) + public code verification.
+  resource :certificate, only: [ :show, :create, :update ] do
+    get :download
+  end
+
   # My
   namespace :my do
     resource :balance, only: [ :show ]

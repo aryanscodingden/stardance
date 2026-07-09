@@ -22,6 +22,9 @@ application.register("bulk-select", BulkSelectController);
 import CardLinkController from "./card_link_controller";
 application.register("card-link", CardLinkController);
 
+import CertificateCodeController from "./certificate_code_controller";
+application.register("certificate-code", CertificateCodeController);
+
 import Certification__FeedbackTemplatesController from "./certification/feedback_templates_controller";
 application.register(
   "certification--feedback-templates",
