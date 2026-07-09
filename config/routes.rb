@@ -652,6 +652,12 @@ Rails.application.routes.draw do
         get  :votes
       end
     end
+    resources :certificates, only: [ :index ] do
+      scope module: :certificates do
+        resource :approval, only: :create
+        resource :rejection, only: :create
+      end
+    end
     resources :vote_flags, only: [ :index ] do
       scope module: :vote_flags do
         resource :approval, only: :create
