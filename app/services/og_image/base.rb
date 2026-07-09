@@ -61,6 +61,16 @@ module OgImage
 
     protected
 
+    # Canvas dimensions resolve through the subclass so a renderer can
+    # declare its own WIDTH/HEIGHT constants (e.g. a square canvas).
+    def canvas_width
+      self.class::WIDTH
+    end
+
+    def canvas_height
+      self.class::HEIGHT
+    end
+
     def draw_rounded_rect(x:, y:, width:, height:, radius: 24, fill: "#ffffff", fill_opacity: 1.0, stroke: nil, stroke_width: 0)
       r, g, b = hex_to_rgb(fill)
       rect = rounded_rect_mask(width, height, radius)
@@ -85,10 +95,10 @@ module OgImage
       fr, fg, fb = hex_to_rgb(frame_color)
       cr, cg, cb = hex_to_rgb(card_color)
 
-      canvas = solid_rgba(WIDTH, HEIGHT, fr, fg, fb)
+      canvas = solid_rgba(canvas_width, canvas_height, fr, fg, fb)
 
-      cw = WIDTH - inset * 2
-      ch = HEIGHT - inset * 2
+      cw = canvas_width - inset * 2
+      ch = canvas_height - inset * 2
       card_mask = rounded_rect_mask(cw, ch, card_radius)
       card = solid_rgba(cw, ch, cr, cg, cb)
       card = card.extract_band(0, n: 3).bandjoin(card_mask)
@@ -97,10 +107,10 @@ module OgImage
       pattern_path = Rails.root.join("app", "assets", "images", "mask", "pattern.png").to_s
       if File.exist?(pattern_path)
         pattern = Vips::Image.new_from_file(pattern_path)
-        pattern = pattern.resize(WIDTH.to_f / pattern.width, vscale: HEIGHT.to_f / pattern.height)
+        pattern = pattern.resize(canvas_width.to_f / pattern.width, vscale: canvas_height.to_f / pattern.height)
 
         pat_rgb = pattern.extract_band(0, n: 3)
-        pat_alpha = pattern.bands >= 4 ? pattern.extract_band(3) : Vips::Image.black(WIDTH, HEIGHT).new_from_image(255).cast(:uchar)
+        pat_alpha = pattern.bands >= 4 ? pattern.extract_band(3) : Vips::Image.black(canvas_width, canvas_height).new_from_image(255).cast(:uchar)
 
         canvas_rgb = canvas.extract_band(0, n: 3)
         canvas_alpha = canvas.extract_band(3)
@@ -169,10 +179,10 @@ module OgImage
       br, bg, bb = hex_to_rgb(bg_color)
       cr, cg, cb = hex_to_rgb(card_color)
 
-      canvas = solid_rgba(WIDTH, HEIGHT, br, bg, bb)
+      canvas = solid_rgba(canvas_width, canvas_height, br, bg, bb)
 
-      cw = WIDTH - inset * 2
-      ch = HEIGHT - inset * 2
+      cw = canvas_width - inset * 2
+      ch = canvas_height - inset * 2
       card_mask = rounded_rect_mask(cw, ch, card_radius)
       card = solid_rgba(cw, ch, cr, cg, cb)
       card = card.extract_band(0, n: 3).bandjoin(card_mask)
@@ -181,7 +191,7 @@ module OgImage
       nebula_path = Rails.root.join("app", "assets", "images", "landing", "how-this-works", "nebula-bg.png").to_s
       if File.exist?(nebula_path)
         nebula = Vips::Image.new_from_file(nebula_path)
-        nebula = nebula.resize(WIDTH.to_f / nebula.width, vscale: HEIGHT.to_f / nebula.height)
+        nebula = nebula.resize(canvas_width.to_f / nebula.width, vscale: canvas_height.to_f / nebula.height)
         nebula = ensure_four_bands(nebula)
         neb_rgb = nebula.extract_band(0, n: 3)
         neb_alpha = nebula.extract_band(3)
@@ -283,14 +293,14 @@ module OgImage
 
     def draw_diagonal_scrim(opacity: 0.55)
       r, g, b = hex_to_rgb("#08061e")
-      h_ramp = Vips::Image.identity(bands: 1).resize(WIDTH / 256.0, vscale: 1.0)
-      h_ramp = h_ramp.linear(-1.0, 255.0).resize(1, vscale: HEIGHT.to_f)
+      h_ramp = Vips::Image.identity(bands: 1).resize(canvas_width / 256.0, vscale: 1.0)
+      h_ramp = h_ramp.linear(-1.0, 255.0).resize(1, vscale: canvas_height.to_f)
 
-      v_ramp = Vips::Image.identity(bands: 1).resize(1, vscale: HEIGHT / 256.0)
-      v_ramp = v_ramp.resize(WIDTH.to_f, vscale: 1.0)
+      v_ramp = Vips::Image.identity(bands: 1).resize(1, vscale: canvas_height / 256.0)
+      v_ramp = v_ramp.resize(canvas_width.to_f, vscale: 1.0)
 
       diag = ((h_ramp + v_ramp) / 2.0 * opacity).cast(:uchar)
-      scrim = solid_rgba(WIDTH, HEIGHT, r, g, b).extract_band(0, n: 3).bandjoin(diag).copy(interpretation: :srgb)
+      scrim = solid_rgba(canvas_width, canvas_height, r, g, b).extract_band(0, n: 3).bandjoin(diag).copy(interpretation: :srgb)
       @image = image.composite(scrim, :over, x: [ 0 ], y: [ 0 ])
     end
 
@@ -384,13 +394,13 @@ module OgImage
       when "NorthWest"
         [ x, y ]
       when "NorthEast"
-        [ WIDTH - x - obj_width, y ]
+        [ canvas_width - x - obj_width, y ]
       when "SouthWest"
-        [ x, HEIGHT - y - obj_height ]
+        [ x, canvas_height - y - obj_height ]
       when "SouthEast"
-        [ WIDTH - x - obj_width, HEIGHT - y - obj_height ]
+        [ canvas_width - x - obj_width, canvas_height - y - obj_height ]
       when "Center"
-        [ (WIDTH - obj_width) / 2 + x, (HEIGHT - obj_height) / 2 + y ]
+        [ (canvas_width - obj_width) / 2 + x, (canvas_height - obj_height) / 2 + y ]
       else
         [ x, y ]
       end

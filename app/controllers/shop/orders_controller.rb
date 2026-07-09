@@ -6,6 +6,7 @@ class Shop::OrdersController < Shop::BaseController
                           .where(parent_order_id: nil)
                           .includes(accessory_orders: { shop_item: { image_attachment: :blob } }, shop_item: { image_attachment: :blob })
                           .order(id: :desc)
+    @sharable_order = find_sharable_order
   end
 
   def create
@@ -194,6 +195,16 @@ class Shop::OrdersController < Shop::BaseController
   end
 
   private
+
+  def find_sharable_order
+    return nil unless Flipper.enabled?(:sharable_purchase, current_user)
+
+    latest = @orders.worth_counting.first
+    return nil unless latest && latest.created_at > 10.minutes.ago
+    return nil if latest.shop_item.is_a?(ShopItem::TutorialNothing)
+
+    latest
+  end
 
   def fulfill_free_stickers!
     @shop_item.fulfill!(@order)

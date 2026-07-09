@@ -74,9 +74,48 @@ class Admin::Missions::SubmissionsControllerTest < ActionDispatch::IntegrationTe
     assert_response :success
   end
 
+  test "overview only lists missions the user can review" do
+    member = create_member
+    other_mission = create_mission
+    other_mission.memberships.create!(user: member, role: :reviewer)
+
+    sign_in member
+    get admin_mission_reviews_path
+    assert_response :success
+    assert_includes response.body, other_mission.name
+    assert_not_includes response.body, @mission.name
+  end
+
+  test "helpers without memberships cannot browse the review queues" do
+    helper = create_member(granted_roles: [ "helper" ])
+    sign_in helper
+    get admin_mission_reviews_path
+    assert_not_equal 200, response.status
+  end
+
+  test "the all-missions queue never hands out inaccessible submissions" do
+    member = create_member
+    other_mission = create_mission
+    other_mission.memberships.create!(user: member, role: :reviewer)
+
+    sign_in member
+    get next_admin_mission_submissions_path("all")
+    assert_redirected_to admin_mission_submissions_path("all")
+    assert_nil @submission.reload.reviewed_by_id
+  end
+
   test "builders cannot reach the queue" do
     sign_in @builder
     get admin_mission_submissions_path(@mission.slug)
     assert_not_equal 200, response.status
+  end
+
+  private
+
+  def create_member(granted_roles: [])
+    User.create!(email: "member-#{SecureRandom.hex(4)}@example.test",
+                 display_name: "member-#{SecureRandom.hex(4)}",
+                 slack_id: "U#{SecureRandom.hex(8)}",
+                 granted_roles: granted_roles)
   end
 end

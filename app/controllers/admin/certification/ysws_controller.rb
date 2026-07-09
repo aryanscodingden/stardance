@@ -5,7 +5,7 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
     @sort         = params[:sort].presence_in(%w[length todo])
     @dir          = params[:dir] == "asc" ? "asc" : "desc"
 
-    scope = ::Certification::Ysws.where(reviewed_at: nil, returned_at: nil)
+    scope = ::Certification::Ysws.pending.unclaimed_or_claimed_by(current_user)
 
     # Type filter options are whatever project types are actually present in the
     # pending queue (plus an "unclassified" bucket) — never hardcoded.
@@ -25,6 +25,11 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
     # Loaded eagerly so the view can count the collection without re-running the
     # custom-select query as a COUNT(*), which the aliased column would break.
     @reviews = scope.to_a
+
+    # Per-reviewer progress toward the devlog-review goal.
+    @devlog_goal      = ::Certification::Ysws::DEFAULT_DEVLOG_REVIEW_GOAL
+    @devlog_reviewed  = ::Certification::Ysws.reviewer_devlog_count(current_user.id)
+    @devlog_remaining = [ @devlog_goal - @devlog_reviewed, 0 ].max
   end
 
   def show
@@ -36,6 +41,19 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
     if @review.project.nil?
       redirect_to admin_certification_ysws_reviews_path, alert: "Review ##{@review.id} has no associated project."
       return
+    end
+
+    # Claim this review for the current admin so it drops off everyone else's
+    # queue. Already-decided reviews (reached via "prior reviews" history
+    # links) are read-only and aren't claimed.
+    if @review.pending?
+      claimed = ::Certification::Ysws.atomic_claim!(@review.id, current_user)
+      if claimed.nil?
+        redirect_to admin_certification_ysws_reviews_path, alert: "This review is currently claimed by another admin."
+        return
+      end
+      @review.claimed_by_id = claimed.claimed_by_id
+      @review.claimed_at = claimed.claimed_at
     end
 
     # Check if review is already in unified DB
@@ -217,10 +235,23 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
       return render json: { success: false, error: "This review is already in the unified DB" }, status: :unprocessable_entity
     end
 
-    incomplete = @review.devlog_reviews.select { |dr| dr.pending? || dr.justification.blank? }
-    if incomplete.any?
-      Rails.logger.warn "[YSWS#complete] user=#{current_user&.id} review=#{params[:id]} Blocked: #{incomplete.count} incomplete devlog(s): #{incomplete.map(&:id).inspect}"
-      return render json: { success: false, error: "Fill in all devlogs" }, status: :unprocessable_entity
+    devlog_reviews = @review.devlog_reviews
+    pending = devlog_reviews.select(&:pending?)
+    if pending.any?
+      Rails.logger.warn "[YSWS#complete] user=#{current_user&.id} review=#{params[:id]} Blocked: #{pending.count} unreviewed devlog(s): #{pending.map(&:id).inspect}"
+      return render json: { success: false, error: "Review all devlogs before completing." }, status: :unprocessable_entity
+    end
+
+    approved = devlog_reviews.select(&:approved?)
+    if approved.any? && approved.none? { |dr| dr.justification.present? }
+      Rails.logger.warn "[YSWS#complete] user=#{current_user&.id} review=#{params[:id]} Blocked: no justification on any of #{approved.count} approved devlog(s)"
+      return render json: { success: false, error: "Add a justification to at least one approved devlog." }, status: :unprocessable_entity
+    end
+
+    unjustified_rejections = devlog_reviews.select { |dr| dr.rejected? && dr.justification.blank? }
+    if unjustified_rejections.any?
+      Rails.logger.warn "[YSWS#complete] user=#{current_user&.id} review=#{params[:id]} Blocked: #{unjustified_rejections.count} rejected devlog(s) missing justification: #{unjustified_rejections.map(&:id).inspect}"
+      return render json: { success: false, error: "Add a justification to every rejected devlog." }, status: :unprocessable_entity
     end
 
     @review.update_columns(reviewer_id: current_user.id, reviewed_at: Time.current)

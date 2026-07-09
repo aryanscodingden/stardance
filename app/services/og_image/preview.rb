@@ -6,7 +6,8 @@ module OgImage
       OgImage::User,
       OgImage::Devlog,
       OgImage::Missions,
-      OgImage::Shop
+      OgImage::Shop,
+      OgImage::ShopOrderFlex
     ].freeze
 
     class << self
