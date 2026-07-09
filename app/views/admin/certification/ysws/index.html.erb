@@ -63,7 +63,7 @@
         </thead>
         <tbody>
           <% @reviews.each do |review| %>
-            <tr>
+            <tr class="<%= "ysws-queue__row--claimed" if review.claimed_by?(current_user) %>">
               <td data-label="ID">#<%= review.id %></td>
               <td data-label="Type">
                 <%= review.project&.project_type.presence || tag.span("—", class: "ysws-queue__placeholder") %>

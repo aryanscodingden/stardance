@@ -5,7 +5,7 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
     @sort         = params[:sort].presence_in(%w[length todo])
     @dir          = params[:dir] == "asc" ? "asc" : "desc"
 
-    scope = ::Certification::Ysws.where(reviewed_at: nil, returned_at: nil)
+    scope = ::Certification::Ysws.pending.unclaimed_or_claimed_by(current_user)
 
     # Type filter options are whatever project types are actually present in the
     # pending queue (plus an "unclassified" bucket) — never hardcoded.
@@ -36,6 +36,19 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
     if @review.project.nil?
       redirect_to admin_certification_ysws_reviews_path, alert: "Review ##{@review.id} has no associated project."
       return
+    end
+
+    # Claim this review for the current admin so it drops off everyone else's
+    # queue. Already-decided reviews (reached via "prior reviews" history
+    # links) are read-only and aren't claimed.
+    if @review.pending?
+      claimed = ::Certification::Ysws.atomic_claim!(@review.id, current_user)
+      if claimed.nil?
+        redirect_to admin_certification_ysws_reviews_path, alert: "This review is currently claimed by another admin."
+        return
+      end
+      @review.claimed_by_id = claimed.claimed_by_id
+      @review.claimed_at = claimed.claimed_at
     end
 
     # Check if review is already in unified DB

@@ -118,6 +118,16 @@
     font-weight: 400;
   }
 
+  // A review claimed by the current admin, on desktop rows — borders on <tr>
+  // don't paint with border-collapse: separate, so an inset ring stands in.
+  // The mobile (card) equivalent lives with the rest of the card rules below,
+  // where it can win on specificity against the shared card border.
+  & &__row--claimed {
+    @media (min-width: 961px) {
+      box-shadow: inset 0 0 0 2px var(--color-brand-yellow);
+    }
+  }
+
   & &__table-container {
     @media (min-width: 961px) {
       background: var(--color-set-1-bg);
@@ -168,6 +178,10 @@
 
         &:last-child {
           margin-bottom: 0;
+        }
+
+        &.ysws-queue__row--claimed {
+          border-color: var(--color-brand-yellow);
         }
       }
 
