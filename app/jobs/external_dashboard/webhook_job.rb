@@ -6,10 +6,13 @@ module ExternalDashboard
 
     self.enqueue_after_transaction_commit = true
 
-    discard_on ActiveRecord::RecordNotFound
+    discard_on ActiveRecord::RecordNotFound do |job, _error|
+      BackfillRun.record(BackfillRun.run_id_from(job.arguments), :skipped)
+    end
 
     retry_on Faraday::Error, RetriableServerError, wait: :polynomially_longer, attempts: 4 do |job, error|
       cert_id = job.arguments.first
+      BackfillRun.record(BackfillRun.run_id_from(job.arguments), :failed)
       Rails.logger.warn "[#{job.class.name}] cert=#{cert_id} giving up after #{error.class}: #{error.message}"
       Sentry.capture_message(
         "ExternalDashboard webhook gave up after retries",
