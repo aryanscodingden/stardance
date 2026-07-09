@@ -242,6 +242,7 @@ class User < ApplicationRecord
   include User::UsernameBloomSync
   include User::Streakable
   include User::Funnel
+  include User::Certificates
 
   # Tracks platform signups/verifications for the raffle referral program
   # (no-ops unless the signup carried a raffle referral code). See the engine.

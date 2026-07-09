@@ -541,6 +541,7 @@ Rails.application.routes.draw do
   namespace :home do
     resource :discover_rail, only: [] do
       get :streak, on: :member
+      get :certificate, on: :member
     end
     resource :feed, only: [ :show ]
   end
@@ -553,6 +554,12 @@ Rails.application.routes.draw do
 
   # Events — listing of missions and (eventually) other themed events.
   resources :events, only: [ :index ]
+
+  # Certificate: request your own (≥30 approved hours) + public code verification.
+  resource :certificate, only: [ :show, :create, :update ] do
+    get :download
+    resource :og_image, only: [ :show ], module: :certificates, defaults: { format: :png }
+  end
 
   # My
   namespace :my do
@@ -645,6 +652,12 @@ Rails.application.routes.draw do
         post :update_ship_status
         post :force_state
         get  :votes
+      end
+    end
+    resources :certificates, only: [ :index ] do
+      scope module: :certificates do
+        resource :approval, only: :create
+        resource :rejection, only: :create
       end
     end
     resources :vote_flags, only: [ :index ] do

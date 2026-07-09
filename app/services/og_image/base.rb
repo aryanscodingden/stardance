@@ -71,17 +71,11 @@ module OgImage
       self.class::HEIGHT
     end
 
-    def draw_rounded_rect(x:, y:, width:, height:, radius: 24, fill: "#ffffff", fill_opacity: 1.0, stroke: nil, stroke_width: 0)
+    def draw_rounded_rect(x:, y:, width:, height:, radius: 24, fill: "#ffffff", fill_opacity: 1.0)
       r, g, b = hex_to_rgb(fill)
-      rect = rounded_rect_mask(width, height, radius)
-
-      if fill_opacity < 1.0
-        a = (fill_opacity * 255).round
-        overlay = rect * [ r, g, b, a ]
-      else
-        overlay = rect * [ r, g, b ]
-        overlay = overlay.bandjoin(rect * 255) if image.bands == 4
-      end
+      mask = rounded_rect_mask(width, height, radius)
+      mask = (mask * fill_opacity).cast(:uchar) if fill_opacity < 1.0
+      overlay = solid_rgba(width, height, r, g, b).extract_band(0, n: 3).bandjoin(mask).copy(interpretation: :srgb)
 
       @image = image.composite(overlay, :over, x: [ x ], y: [ y ])
     end
@@ -128,7 +122,7 @@ module OgImage
     def draw_text(text, x:, y:, size: 48, color: "#ffffff", gravity: "NorthWest", font: nil)
       r, g, b = hex_to_rgb(color)
       face = font || font_name
-      text_img = Vips::Image.text(text.to_s, font: "#{face} #{size}", fontfile: fontfile_for(face), dpi: 72)
+      text_img = Vips::Image.text(pango_escape(text), font: "#{face} #{size}", fontfile: fontfile_for(face), dpi: 72)
       w, h = text_img.width, text_img.height
       colored = solid_rgba(w, h, r, g, b).extract_band(0, n: 3)
       overlay = colored.bandjoin(text_img).copy(interpretation: :srgb)
@@ -205,7 +199,7 @@ module OgImage
 
     def draw_soft_shadow(text, x:, y:, size: 48, gravity: "NorthWest", font: nil, radius: 6, opacity: 0.6, offset: 2)
       face = font || font_name
-      text_img = Vips::Image.text(text.to_s, font: "#{face} #{size}", fontfile: fontfile_for(face), dpi: 72)
+      text_img = Vips::Image.text(pango_escape(text), font: "#{face} #{size}", fontfile: fontfile_for(face), dpi: 72)
       w, h = text_img.width, text_img.height
 
       pad = radius * 3
@@ -219,8 +213,8 @@ module OgImage
       shadow_layer = Vips::Image.black(padded_w, padded_h).new_from_image([ 0, 0, 0 ]).cast(:uchar)
       shadow_layer = shadow_layer.bandjoin(shadow_mask).copy(interpretation: :srgb)
 
-      tx, ty = apply_gravity(gravity, x - pad, y - pad, padded_w, padded_h)
-      @image = image.composite(shadow_layer, :over, x: [ tx ], y: [ ty ])
+      tx, ty = apply_gravity(gravity, x, y, w, h)
+      @image = image.composite(shadow_layer, :over, x: [ tx - pad ], y: [ ty - pad ])
     end
 
     def draw_glowing_text(text, x:, y:, size: 48, color: "#ffffff", glow_color: nil, gravity: "NorthWest", glow_radius: 8, glow_opacity: 0.5, font: nil)
@@ -228,7 +222,7 @@ module OgImage
       gr, gg, gb = hex_to_rgb(glow_color)
       face = font || font_name
 
-      text_img = Vips::Image.text(text.to_s, font: "#{face} #{size}", fontfile: fontfile_for(face), dpi: 72)
+      text_img = Vips::Image.text(pango_escape(text), font: "#{face} #{size}", fontfile: fontfile_for(face), dpi: 72)
       w, h = text_img.width, text_img.height
 
       pad = glow_radius * 3
@@ -242,8 +236,8 @@ module OgImage
       glow_layer = solid_rgba(padded_w, padded_h, gr, gg, gb).extract_band(0, n: 3)
       glow_layer = glow_layer.bandjoin(glow_mask).copy(interpretation: :srgb)
 
-      tx, ty = apply_gravity(gravity, x - pad, y - pad, padded_w, padded_h)
-      @image = image.composite(glow_layer, :over, x: [ tx ], y: [ ty ])
+      tx, ty = apply_gravity(gravity, x, y, w, h)
+      @image = image.composite(glow_layer, :over, x: [ tx - pad ], y: [ ty - pad ])
 
       draw_text(text, x: x, y: y, size: size, color: color, gravity: gravity, font: font)
     end
@@ -305,6 +299,10 @@ module OgImage
     end
 
     private
+
+    def pango_escape(text)
+      CGI.escapeHTML(text.to_s)
+    end
 
     def ensure_four_bands(img)
       if img.bands == 3
@@ -393,6 +391,8 @@ module OgImage
       case gravity
       when "NorthWest"
         [ x, y ]
+      when "North"
+        [ (canvas_width - obj_width) / 2 + x, y ]
       when "NorthEast"
         [ canvas_width - x - obj_width, y ]
       when "SouthWest"
