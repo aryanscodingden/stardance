@@ -47,6 +47,7 @@ class Projects::ShipsController < ApplicationController
         cert = @project.ship_reviews.create!(status: :pending, post_ship_event_id: ship_event.id)
         ExternalDashboard::ShipWebhookJob.perform_later(cert.id)
       elsif probe_result.ok?
+        @project.start_review! if @project.may_start_review?
         @project.approve! if @project.may_approve?
         @post.postable.update!(certification_status: "approved")
         create_ysws_review(ship_event)
