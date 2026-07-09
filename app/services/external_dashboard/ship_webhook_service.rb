@@ -55,7 +55,14 @@ module ExternalDashboard
     end
 
     def payload
-      base_payload.merge(cert.pending? ? {} : decision_payload).compact
+      base_payload.merge(cert.pending? ? pending_payload : decision_payload).compact
+    end
+
+    def pending_payload
+      {
+        status: "pending",
+        createdAt: cert.created_at&.iso8601
+      }
     end
 
     def base_payload
