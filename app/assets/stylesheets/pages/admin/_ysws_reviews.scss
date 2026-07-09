@@ -77,6 +77,33 @@
     }
   }
 
+  // Per-reviewer goal widget, sits beside the project-type dropdown and counts
+  // down the reviews remaining until the devlog-review goal is reached.
+  & &__goal {
+    display: flex;
+    align-items: baseline;
+    align-self: flex-end;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-s);
+    background: var(--color-set-1-bg);
+    border: 2px solid var(--color-set-1-fg-secondary);
+    border-radius: var(--profile-radius);
+  }
+
+  & &__goal-count {
+    color: var(--color-brand-highlight);
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+  }
+
+  & &__goal-label {
+    color: var(--color-set-1-fg-secondary);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
   // Sortable column header: the title doubles as a sort toggle, with an arrow
   // that points up/down when its column is the active sort and is dimmed
   // otherwise.

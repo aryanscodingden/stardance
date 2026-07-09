@@ -124,6 +124,10 @@ module Certification
     # the dashboard leaderboard uses this to show a projected payout.
     STARDUST_PER_DEVLOG = 0.2
 
+    # Default per-reviewer target for completed devlog reviews. Shown as a
+    # "reviews left until goal reached" widget on the review queue.
+    DEFAULT_DEVLOG_REVIEW_GOAL = 222
+
     # Limited-time bonus rate: devlogs whose parent review was completed within
     # BONUS_WINDOW pay out at this higher rate instead of STARDUST_PER_DEVLOG.
     BONUS_STARDUST_PER_DEVLOG = 0.3
@@ -165,6 +169,17 @@ module Certification
           }
         end
         .sort_by { |row| [ -row[:devlogs], row[:name] ] }
+    end
+
+    # All-time count of devlogs a given reviewer has reviewed. A devlog counts
+    # as reviewed once its parent YSWS review is completed (reviewed_at present),
+    # matching the leaderboard's definition.
+    def self.reviewer_devlog_count(reviewer_id)
+      Certification::Devlog
+        .joins(:ysws_review)
+        .where.not(certification_ysws_reviews: { reviewed_at: nil })
+        .where(certification_ysws_reviews: { reviewer_id: reviewer_id })
+        .count
     end
 
     # Devlogs reviewed per reviewer per day over the trailing window, bucketed by

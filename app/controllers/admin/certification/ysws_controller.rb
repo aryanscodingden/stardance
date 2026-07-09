@@ -25,6 +25,11 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
     # Loaded eagerly so the view can count the collection without re-running the
     # custom-select query as a COUNT(*), which the aliased column would break.
     @reviews = scope.to_a
+
+    # Per-reviewer progress toward the devlog-review goal.
+    @devlog_goal      = ::Certification::Ysws::DEFAULT_DEVLOG_REVIEW_GOAL
+    @devlog_reviewed  = ::Certification::Ysws.reviewer_devlog_count(current_user.id)
+    @devlog_remaining = [ @devlog_goal - @devlog_reviewed, 0 ].max
   end
 
   def show

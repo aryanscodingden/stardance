@@ -39,6 +39,15 @@
             include_blank: "All types (#{type_total})", id: "filter-type",
             class: "ysws-queue__select", onchange: "this.form.requestSubmit()" %>
     </div>
+
+    <div class="ysws-queue__goal" role="status" aria-live="polite">
+      <% if @devlog_remaining.positive? %>
+        <span class="ysws-queue__goal-count"><%= @devlog_remaining %></span>
+        <span class="ysws-queue__goal-label">devlogs left until goal reached</span>
+      <% else %>
+        <span class="ysws-queue__goal-label">Goal of <%= @devlog_goal %> devlogs reached</span>
+      <% end %>
+    </div>
   <% end %>
 
   <% if @reviews.any? %>
