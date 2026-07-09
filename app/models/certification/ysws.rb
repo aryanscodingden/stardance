@@ -54,6 +54,7 @@ module Certification
     belongs_to :ship_cert, class_name: "Certification::Ship", optional: true
     belongs_to :post_ship_event, class_name: "Post::ShipEvent"
     belongs_to :spotchecked_by, class_name: "User", optional: true
+    belongs_to :claimed_by, class_name: "User", optional: true
 
     has_many :devlog_reviews, class_name: "Certification::Devlog", foreign_key: :ysws_review_id, dependent: :destroy
 
@@ -62,7 +63,20 @@ module Certification
 
     MIN_APPROVED_MINUTES = 6
 
+    # How long a reviewer's claim on a review holds before it's up for grabs
+    # again. There's no separate expiry column — expiry is just claimed_at + TTL.
+    CLAIM_TTL = 20.minutes
+
     # ---- Review-queue scopes ---------------------------------------------
+
+    scope :pending, -> { where(reviewed_at: nil, returned_at: nil) }
+
+    # A review is visible to a reviewer if nobody holds an active claim on it,
+    # or they're the one holding it.
+    scope :unclaimed_or_claimed_by, ->(user) {
+      where("claimed_by_id IS NULL OR claimed_at IS NULL OR claimed_at < :expired OR claimed_by_id = :user_id",
+            expired: CLAIM_TTL.ago, user_id: user.id)
+    }
 
     # Correlated subquery counting a review's still-pending child devlog
     # reviews — the "todo" work left on it. Reused by the count select and the
@@ -84,6 +98,20 @@ module Certification
         ? joins(:project).where(projects: { project_type: nil })
         : joins(:project).where(projects: { project_type: type })
     }
+
+    # Claims (or refreshes an existing claim on) a pending review for the
+    # given user, unless someone else already holds an active claim on it.
+    # Conditioned atomically in the UPDATE itself so two reviewers opening the
+    # same review at once can't both win the claim. Returns the claimed
+    # record, or nil if another reviewer's claim is still active.
+    def self.atomic_claim!(record_id, user)
+      now = Time.current
+      updated = pending.where(id: record_id)
+        .where("claimed_by_id IS NULL OR claimed_at IS NULL OR claimed_at < :expired OR claimed_by_id = :user_id",
+               expired: CLAIM_TTL.ago, user_id: user.id)
+        .update_all(claimed_by_id: user.id, claimed_at: now, updated_at: now)
+      updated.zero? ? nil : find(record_id)
+    end
 
     # Count of still-pending child devlog reviews. Available only on records
     # loaded through .with_todo_devlog_count.
@@ -141,6 +169,18 @@ module Certification
         end
 
       { labels: labels, series: series }
+    end
+
+    def pending?
+      reviewed_at.nil? && returned_at.nil?
+    end
+
+    def claim_active?
+      claimed_by_id.present? && claimed_at.present? && claimed_at > CLAIM_TTL.ago
+    end
+
+    def claimed_by?(user)
+      claim_active? && claimed_by_id == user.id
     end
 
     def approved_minutes_total
