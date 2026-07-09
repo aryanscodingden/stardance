@@ -558,6 +558,7 @@ Rails.application.routes.draw do
   # Certificate: request your own (≥30 approved hours) + public code verification.
   resource :certificate, only: [ :show, :create, :update ] do
     get :download
+    resource :og_image, only: [ :show ], module: :certificates, defaults: { format: :png }
   end
 
   # My

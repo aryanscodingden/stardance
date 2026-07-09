@@ -1,6 +1,15 @@
 <% content_for :title, "Certificate" %>
-<% content_for :og_title, "Stardance Certificate" %>
-<% content_for :og_description, "Earn an official Stardance certificate, or verify one and see the projects behind it." %>
+<% if @certificate %>
+  <% content_for :og_title, "#{@certificate.name}'s Stardance Certificate" %>
+  <% content_for :og_description,
+       "#{pluralize(@certificate.hours_at_issue.floor, "approved hour")} building and shipping
+        projects on Stardance, Hack Club's Summer 2026 challenge.".squish %>
+  <% content_for :og_image, certificate_og_image_url(code: @certificate.code, format: :png) %>
+  <% content_for :twitter_card, "summary_large_image" %>
+<% else %>
+  <% content_for :og_title, "Stardance Certificate" %>
+  <% content_for :og_description, "Earn an official Stardance certificate, or verify one and see the projects behind it." %>
+<% end %>
 <%= content_for :stylesheets do %>
   <%= stylesheet_link_tag "certificate", "data-turbo-track": "reload" %>
 <% end %>
@@ -32,8 +41,27 @@
             Issued to <strong><%= certificate.name %></strong> with code
             <span class="certificate-page__mine-code"><%= certificate.code %></span>.
           </p>
-          <%= render ActionButtonComponent.new(text: "Download certificate", size: :small,
-                href: download_certificate_path) %>
+          <% share_url = certificate_share_url(certificate) %>
+          <div class="certificate-page__actions">
+            <%= render ActionButtonComponent.new(text: "Download certificate", size: :small,
+                  href: download_certificate_path) %>
+            <%= render ActionButtonComponent.new(text: "Add to LinkedIn profile", size: :small,
+                  variant: :secondary, leading_icon: "icons/linkedin.svg",
+                  href: linkedin_add_to_profile_url(certificate),
+                  target: "_blank", rel: "noopener") %>
+            <%= render ActionButtonComponent.new(text: "Share on LinkedIn", size: :small,
+                  variant: :secondary, leading_icon: "icons/linkedin.svg",
+                  href: linkedin_share_url(share_url),
+                  target: "_blank", rel: "noopener") %>
+            <%= render ActionButtonComponent.new(text: "Post on X", size: :small,
+                  variant: :secondary, leading_icon: "icons/x.svg",
+                  href: x_share_url(share_url, text: certificate_share_text(certificate)),
+                  target: "_blank", rel: "noopener") %>
+            <%= render ActionButtonComponent.new(text: "Copy link", size: :small,
+                  variant: :secondary, leading_icon: "icons/link.svg", type: :button,
+                  data: { controller: "tooltip copy", tooltip_message_value: "Click to copy",
+                          copy_text_value: share_url, action: "click->copy#copy" }) %>
+          </div>
         <% elsif certificate.pending? %>
           <p class="certificate-page__mine-text">
             Your certificate for <strong><%= certificate.name %></strong> is waiting on a quick

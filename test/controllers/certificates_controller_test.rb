@@ -23,6 +23,8 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     assert_match "This certificate is valid", response.body
     assert_match "Orpheus Star", response.body
     assert_match "42 approved hours", response.body
+    assert_match CGI.escapeHTML(certificate_og_image_url(code: certificate.code, format: :png)), response.body
+    assert_match "Orpheus Star&#39;s Stardance Certificate", response.body
   end
 
   test "pending certificates do not verify" do
@@ -194,6 +196,23 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal "application/pdf", response.media_type
     assert_includes response.headers["Content-Disposition"], "stardance-certificate-#{certificate.code}.pdf"
+  end
+
+  test "owner sees share buttons for their approved certificate" do
+    create_approved_ship(@user, hours: 31)
+    certificate = Certificate.create!(user: @user, name: "Orpheus Star", hours_at_issue: 31)
+    certificate.approved!
+    sign_in @user
+
+    get certificate_path
+
+    assert_response :success
+    share_url = certificate_url(code: certificate.code)
+    assert_match "https://www.linkedin.com/sharing/share-offsite/?#{{ url: share_url }.to_query}", response.body
+    assert_match "https://www.linkedin.com/profile/add?", response.body
+    assert_match CGI.escapeHTML(certificate.code), response.body
+    assert_match "https://x.com/intent/post", response.body
+    assert_match CGI.escapeHTML(share_url), response.body
   end
 
   test "download is forbidden while the name is under review" do
