@@ -6,6 +6,7 @@
 #  decision_justification :text
 #  deduction_minutes      :integer
 #  flags                  :integer          default(0), not null
+#  fraud_detection_data   :jsonb
 #  reviewed_at            :datetime
 #  status                 :integer          default("auto_passed"), not null
 #  created_at             :datetime         not null
