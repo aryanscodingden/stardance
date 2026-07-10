@@ -730,9 +730,13 @@ class Project < ApplicationRecord
   def previous_ship_event_has_payout?
     return true if last_ship_event.nil?
     return true if last_ship_event.payout.present?
+    # Only an approved ship that is still awaiting its payout should block the
+    # next ship. A ship that's pending, returned for changes, or rejected isn't
+    # a "previous ship awaiting payout" — it's the one currently being
+    # (re-)certified, so it must not block re-certification.
+    return true unless last_ship_event.certification_status == "approved"
     sub = last_ship_event.mission_submission
     return true if sub&.payout_path == "static_prize"
-    return true if sub&.rejected?
     false
   end
 
