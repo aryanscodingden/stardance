@@ -387,6 +387,13 @@ button.btn-danger {
   }
 }
 
+// A .flex row directly after an actions row (badges, buttons) needs a gap of
+// its own — .admin-actions-wrap has no bottom margin since it's also reused
+// inline inside table cells, where extra spacing would misalign content.
+.admin-actions-wrap + .flex {
+  margin-top: var(--space-m);
+}
+
 /* Cards */
 .card {
   background: var(--color-tan-300);
@@ -692,8 +699,8 @@ dialog {
 }
 
 .admin-avatar {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;

@@ -559,6 +559,7 @@ Rails.application.routes.draw do
       post :streamer_mode, on: :member, action: :toggle_streamer_mode
     end
     resources :dismissals, only: [ :create ]
+    resources :reports, only: [ :index ]
     post "verification/refresh", to: "verifications#refresh", as: :verification_refresh
     post "dev/pretend_idv", to: "dev_tools#pretend_idv", as: :pretend_idv_dev
     resources :notifications, only: [ :index ] do

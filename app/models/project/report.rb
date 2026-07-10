@@ -54,6 +54,17 @@ class Project::Report < ApplicationRecord
         message: "cannot report own project"
       }, unless: -> { Rails.env.development? || reason == "fraud" }
 
+    REASON_LABELS = {
+      "low_effort" => "Low-effort project",
+      "undeclared_ai" => "Uses AI but it's undeclared",
+      "demo_broken" => "Demo does not work",
+      "other" => "Other"
+    }.freeze
+
+    def reason_label
+      REASON_LABELS.fetch(reason, reason.humanize)
+    end
+
     private
 
     def notify_slack_channel

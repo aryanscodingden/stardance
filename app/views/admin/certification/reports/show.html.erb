@@ -23,7 +23,7 @@
           <dd>
             <% if owner %>
               <div class="admin-actions-wrap">
-                <img src="<%= owner.avatar %>" alt="" style="width:24px;height:24px;border-radius:50%;">
+                <img src="<%= owner.avatar %>" alt="" class="admin-avatar">
                 <%= link_to owner.display_name, admin_user_path(owner) %>
               </div>
             <% else %>
@@ -82,10 +82,14 @@
       <dl class="admin-user-show__dl">
         <dt>Reporter</dt>
         <dd>
-          <div class="admin-actions-wrap">
-            <img src="<%= @report.reporter.avatar %>" alt="" style="width:24px;height:24px;border-radius:50%;">
-            <%= link_to @report.reporter.display_name, admin_user_path(@report.reporter) %>
-          </div>
+          <% if @report.reporter %>
+            <div class="admin-actions-wrap">
+              <img src="<%= @report.reporter.avatar %>" alt="" class="admin-avatar">
+              <%= link_to @report.reporter.display_name, admin_user_path(@report.reporter) %>
+            </div>
+          <% else %>
+            (Deleted user)
+          <% end %>
         </dd>
 
         <dt>Reason</dt>
