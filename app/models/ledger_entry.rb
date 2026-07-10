@@ -23,6 +23,19 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class LedgerEntry < ApplicationRecord
+  CATEGORIES = {
+    "ship_payout" => { label: "Ship payouts", types: [ "Post::ShipEvent" ] },
+    "shop" => { label: "Shop purchases & refunds", types: [ "ShopOrder" ] },
+    "manual" => { label: "Manual grants & adjustments", types: [ "User" ] },
+    "achievement" => { label: "Achievements", types: [ "User::Achievement" ] },
+    "fulfillment" => { label: "Fulfillment payouts", types: [ "FulfillmentPayoutLine" ] },
+    "reviewer" => { label: "Reviewer payouts", types: [ "ReviewerPayoutRequest" ] },
+    "mission" => { label: "Mission payouts", types: [ "Mission::Submission" ] },
+    "show_and_tell" => { label: "Show & tell payouts", types: [ "ShowAndTellAttendance" ] },
+    "vote" => { label: "Vote charges", types: [ "Vote" ] },
+    "other" => { label: "Other", types: [] }
+  }.freeze
+
   belongs_to :ledgerable, polymorphic: true
   belongs_to :user
 
@@ -35,6 +48,13 @@ class LedgerEntry < ApplicationRecord
   after_create :create_audit_log
   after_create :notify_balance_change
   after_create :invalidate_user_balance_cache
+
+  def self.category_key_for(ledgerable_type)
+    CATEGORIES.find { |key, details| key != "other" && details[:types].include?(ledgerable_type) }&.first || "other"
+  end
+
+  def category_key = self.class.category_key_for(ledgerable_type)
+  def category_label = CATEGORIES.fetch(category_key)[:label]
 
   private
 
@@ -91,7 +111,7 @@ class LedgerEntry < ApplicationRecord
 
     # Audit broadcast to the finance review channel — not a user notification,
     # not preference-gated, intentional separate path.
-    SendSlackDmJob.perform_later("C0A3JN1CMNE", "<@#{user.slack_id}>: #{message}") if user.slack_id.present?
+    SendSlackDmJob.perform_later("C0B6NCD8MD5", "<@#{user.slack_id}>: #{message}") if user.slack_id.present?
   end
 
   def invalidate_user_balance_cache = user.invalidate_balance_cache!

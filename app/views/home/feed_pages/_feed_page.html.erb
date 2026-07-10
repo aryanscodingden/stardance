@@ -7,7 +7,9 @@
           source: source,
           position: index + 1,
           page: @pagy.page,
-          feed_request_id: @feed_request_id %>
+          feed_request_id: @feed_request_id,
+          media_variant: :medium,
+          lazy_media: true %>
   <% else %>
     <%= render Posts::CardComponent.new(
           post: post,
@@ -16,6 +18,8 @@
           position: index + 1,
           page: @pagy.page,
           feed_request_id: @feed_request_id,
+          media_variant: :medium,
+          lazy_media: true,
           current_user_reposted_post_ids: @reposted_post_ids,
           show_views: @show_post_views
         ) %>

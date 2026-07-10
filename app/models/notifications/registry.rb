@@ -17,6 +17,7 @@ module Notifications
       Notifications::Missions::SubmissionRejected
       Notifications::Missions::SubmissionPendingForReviewer
       Notifications::Projects::SuperStar
+      Notifications::Projects::DevlogCapApproaching
       Notifications::AchievementEarned
       Notifications::StardustBalanceChanged
       Notifications::Payouts::ShipEventIssued

@@ -13,7 +13,7 @@
             <span class="mission-home__crumb-dot" aria-hidden="true">·</span>
             <%= link_to "Manage", edit_admin_mission_path(@mission.slug), class: "mission-home__crumb-link" %>
           <% end %>
-          <% if policy(@mission).manage? || current_user&.has_role?(:mission_reviewer) %>
+          <% if policy(@mission).review_queue? %>
             <span class="mission-home__crumb-dot" aria-hidden="true">·</span>
             <%= link_to "Review", admin_mission_submissions_path(@mission.slug), class: "mission-home__crumb-link" %>
           <% end %>
@@ -60,6 +60,9 @@
               <li class="mission-home__hero-chip mission-home__hero-chip--status mission-home__hero-chip--status-<%= @progress_state.to_s.dasherize %>">
                 <span class="mission-home__hero-chip-dot" aria-hidden="true"><%= status_glyph %></span> <%= status_label %>
               </li>
+              <% if @mission.hardware? %>
+                <li class="mission-home__hero-chip mission-home__hero-chip--hardware">hardware</li>
+              <% end %>
               <% if @mission.difficulty.present? %>
                 <li class="mission-home__hero-chip mission-home__hero-chip--difficulty mission-home__hero-chip--difficulty-<%= @mission.difficulty %>">
                   <%= @mission.difficulty %>
@@ -112,10 +115,18 @@
                 Continue project
               </button>
             <% end %>
+            <%# Onboarded builders (HCA-linked with a project) would be bounced
+                back to an existing draft by the setup flow's redirect_if_setup_complete
+                guard, so they create through the standard projects#create path —
+                which attaches the mission and applies hardware conversion. New
+                builders still funnel through the onboarding setup step. %>
+            <% onboarded = current_user&.hca_linked? && current_user.projects.exists? %>
             <%= button_to "Create a project",
-                          projects_setup_submit_mission_path,
+                          onboarded ? projects_path : projects_setup_submit_mission_path,
                           method: :post,
-                          params: { mission_slug: @mission.slug },
+                          params: onboarded ?
+                            { mission_slug: @mission.slug, project: { title: "Untitled" } } :
+                            { mission_slug: @mission.slug },
                           data: { turbo: false },
                           form: { class: "mission-home__cta-form" },
                           class: "action-btn action-btn--large #{continue_flow ? "action-btn--secondary" : "action-btn--primary"}" %>
@@ -150,15 +161,15 @@
           </section>
         <% end %>
 
-        <%# Prizes card %>
+        <%# Prizes card — always shown so every mission surfaces its rating status %>
         <% has_stardust = @mission.fixed_stardust_payout&.positive? %>
-        <% if @ordered_prizes.any? || @shop_unlocks.any? || has_stardust || @unlocked_missions.any? %>
-          <section class="mission-home__card mission-home__rewards"
-                   aria-labelledby="mission-home-rewards">
+        <section class="mission-home__card mission-home__rewards"
+                 aria-labelledby="mission-home-rewards">
             <h2 id="mission-home-rewards" class="mission-home__card-title">
               <em class="mission-home__card-title-accent">Prizes</em>
             </h2>
             <ul class="mission-home__prize-list">
+              <%= render "missions/rating_status", mission: @mission %>
               <% tones = %w[yellow lilac peach mint] %>
               <% tone_idx = 0 %>
               <% if has_stardust %>
@@ -230,8 +241,7 @@
                 </li>
               <% end %>
             </ul>
-          </section>
-        <% end %>
+        </section>
       </div>
 
       <% if @gallery_projects.any? %>

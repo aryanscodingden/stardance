@@ -10,6 +10,13 @@ module Notifications
       self.category_group       = "Missions"
       self.inbox_record_preloads = :mission
 
+      # Only mission reviewers and members (owners or per-mission reviewers)
+      # ever receive this, so hide the settings row from everyone else.
+      def self.relevant_for?(user)
+        return false unless user
+        user.has_role?(:mission_reviewer) || user.mission_memberships.exists?
+      end
+
       def slack_locals
         record&.notification_locals || {}
       end

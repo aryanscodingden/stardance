@@ -1,0 +1,40 @@
+// Hardware review pages layer on top of the ship queue/review styles. Hardware
+// has one reviewer surface, with a compact pipeline summary instead of separate
+// funding/build review cards.
+
+.hardware-review {
+  &__tag {
+    padding: 0.15rem 0.6rem;
+    font-size: var(--font-size-s);
+    font-weight: 600;
+    color: var(--color-brand-lilac);
+    background: rgba(235, 183, 255, 0.1);
+    border: 1px solid rgba(235, 183, 255, 0.3);
+    border-radius: 999px;
+  }
+
+  &__timeline {
+    display: grid;
+    gap: var(--space-s);
+  }
+
+  &__timeline-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-s);
+    padding: var(--space-s);
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+  }
+
+  &__timeline-label {
+    min-width: 10rem;
+    font-weight: 700;
+  }
+
+  &__timeline-meta {
+    color: var(--color-space-text-muted, rgba(255, 255, 255, 0.7));
+  }
+}

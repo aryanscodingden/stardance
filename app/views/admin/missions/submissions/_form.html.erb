@@ -22,11 +22,11 @@
   </label>
 
   <% grants = [] %>
-  <% if submission.payout_path == "static_prize" %>
-    <% grants << "#{mission.fixed_stardust_payout} stardust" if mission.fixed_stardust_payout&.positive? %>
-    <% mission.prizes.includes(:shop_item).each do |prize| %>
-      <% grants << "the \"#{prize.shop_item.name}\" shop item" if prize.shop_item %>
-    <% end %>
+  <% if submission.payout_path == "static_prize" && mission.fixed_stardust_payout&.positive? %>
+    <% grants << "#{mission.fixed_stardust_payout} stardust" %>
+  <% end %>
+  <% mission.prizes.includes(:shop_item).each do |prize| %>
+    <% grants << "the \"#{prize.shop_item.name}\" shop item" if prize.shop_item %>
   <% end %>
   <% grants << "the \"#{mission.achievement_slug.titleize}\" achievement" if mission.achievement_slug.present? %>
   <% unlocks = mission.shop_unlocks.includes(:shop_item).map { |u| u.shop_item&.name }.compact %>

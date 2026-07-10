@@ -87,13 +87,30 @@ class Projects::SetupController < ApplicationController
       redirect_to mission_path(mission.slug), alert: "Complete #{unmet} first to unlock this mission." and return
     end
 
+    # Hardware missions would make this project hardware — but hardware lives on
+    # Outpost now. Bounce back to the missions step with the Outpost popup open
+    # instead of attaching it here. Staying in setup keeps this reachable for
+    # guests (the new-project page requires an HCA-linked user).
+    if mission.hardware? && Flipper.enabled?(:hardware_to_outpost, current_user)
+      redirect_to projects_setup_missions_path(hardware: "outpost") and return
+    end
+
     if project.current_mission&.id == mission.id
       redirect_to(next_gate_after_details_path) and return
     end
 
     is_first_attach = !project.mission_attachments.exists?(mission_id: mission.id)
 
-    project.attach_mission!(mission)
+    # A project created for a hardware mission is born hardware (design stage,
+    # the entry point of the hardware flow) so it satisfies the mission's
+    # hardware-only requirement instead of being turned away on attach.
+    project.update!(hardware_stage: "design") if mission.hardware? && !project.hardware?
+
+    begin
+      project.attach_mission!(mission)
+    rescue ActiveRecord::RecordInvalid => e
+      redirect_to mission_path(mission.slug), alert: e.record.errors.full_messages.to_sentence and return
+    end
 
     # Authored defaults apply only on first attach — never overwrite a
     # builder's edits on re-attach.

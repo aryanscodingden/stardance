@@ -449,6 +449,10 @@ Rails.application.routes.draw do
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       resources :ambassador_referrals, only: [ :index, :show ]
+      resources :certification_decisions, only: [ :create ]
+    end
+    namespace :slack do
+      post "events", to: "events#create"
     end
   end
 
@@ -460,6 +464,7 @@ Rails.application.routes.draw do
       member do
         delete :cancel
       end
+      resource :flex_image, only: [ :show ], module: :orders, defaults: { format: :png }
     end
     resource :region, only: [ :update ]
     get "category/:slug", to: "items#category", as: :category
@@ -475,7 +480,7 @@ Rails.application.routes.draw do
   # Voting
   get "rate/new", to: "votes#new", as: :new_rate
   resources :ship_events, only: [] do
-    resource :vote_reasons, only: :show, controller: "ship_events/vote_reasons"
+    resource :payout_acceptance, only: :create, controller: "ship_events/payout_acceptances"
   end
   resources :votes, only: [ :new, :create ] do
     resource :flag, only: :create, controller: "votes/flags"
@@ -526,13 +531,18 @@ Rails.application.routes.draw do
   get "home", to: "home#index"
   resources :feed_events, only: [ :create ]
   resource :daily_roll, only: [ :create ]
+  post "daily_roll/reroll", to: "daily_rolls#reroll", as: :reroll_daily_roll
+  get "daily_roll/reroll_status", to: "daily_rolls#reroll_status", as: :reroll_status_daily_roll
   patch "streaks/timezone", to: "streaks#update_timezone"
   get "streaks/month", to: "streaks#month", as: :streak_month
   get "rng", to: "daily_rolls#leaderboard", as: :rng
   get "rng/history", to: "daily_rolls#history", as: :rng_history
   delete "daily_roll/clear", to: "daily_rolls#clear", as: :clear_daily_roll if Rails.env.development? || Rails.env.test?
   namespace :home do
-    resource :discover_rail, only: [ :show ]
+    resource :discover_rail, only: [] do
+      get :streak, on: :member
+      get :certificate, on: :member
+    end
     resource :feed, only: [ :show ]
   end
 
@@ -544,6 +554,12 @@ Rails.application.routes.draw do
 
   # Events — listing of missions and (eventually) other themed events.
   resources :events, only: [ :index ]
+
+  # Certificate: request your own (≥30 approved hours) + public code verification.
+  resource :certificate, only: [ :show, :create, :update ] do
+    get :download
+    resource :og_image, only: [ :show ], module: :certificates, defaults: { format: :png }
+  end
 
   # My
   namespace :my do
@@ -638,12 +654,20 @@ Rails.application.routes.draw do
         get  :votes
       end
     end
+    resources :certificates, only: [ :index ] do
+      scope module: :certificates do
+        resource :approval, only: :create
+        resource :rejection, only: :create
+      end
+    end
     resources :vote_flags, only: [ :index ] do
       scope module: :vote_flags do
         resource :approval, only: :create
         resource :rejection, only: :create
       end
     end
+    resources :payout_reviews, only: [ :index, :show ]
+    resources :ledger_entries, only: [ :index ]
     get "super_stars", to: "super_stars#show", as: :super_stars
     get "user-perms", to: "users#user_perms"
     resource :support, only: [ :show ], controller: "support/dashboards"
@@ -734,6 +758,15 @@ Rails.application.routes.draw do
         post :trigger
       end
     end
+    resources :fraud_payouts, only: [ :index, :show ] do
+      member do
+        post :approve
+        post :reject
+      end
+      collection do
+        post :trigger
+      end
+    end
   end
 
   # Mission management under /admin/ — the URL prefix is `admin`, but
@@ -786,17 +819,25 @@ Rails.application.routes.draw do
           get :monitor, to: "ships/monitor#show"
         end
         patch :set_project_type, on: :member
+        post :report_fraud, on: :member
         scope module: :ships do
           resource :claim, only: [ :create, :destroy ]
         end
       end
 
-      resources :funding_requests, path: "funding", only: [ :index, :show, :update ] do
-        collection do
-          get :next
-        end
+      resources :funding_requests, path: "funding", only: [ :update ] do
         scope module: :funding_requests do
           resource :claim, only: [ :create, :destroy ]
+        end
+      end
+
+      # Unified hardware review surface: one queue and one project page covering
+      # both design funding requests and build ship certifications. Verdicts and
+      # claims reuse the funding/ship mutation endpoints above so PaperTrail and
+      # existing audit behavior stay attached to the underlying records.
+      resources :hardware_reviews, path: "hardware", param: :project_id, only: [ :index, :show ] do
+        collection do
+          get :next
         end
       end
 
@@ -805,6 +846,7 @@ Rails.application.routes.draw do
       get "devlogs/:devlog_id/commits", to: "devlog_commits#index", as: "devlog_commits"
 
       get "review", to: "ysws#index", as: "ysws_reviews"
+      get "review/dashboard", to: "ysws/dashboard#show", as: "ysws_dashboard"
       get "review/:id", to: "ysws#show", as: "ysws_review"
       get "review/:id/commits", to: "ysws#commits", as: "ysws_commits"
       post "review/:id/report_fraud", to: "ysws#report_fraud", as: "ysws_report_fraud"

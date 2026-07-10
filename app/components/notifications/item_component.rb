@@ -16,6 +16,7 @@ module Notifications
       "Notifications::Payouts::ShipEventIssued"                 => "rocket",
       "Notifications::Payouts::VoteDeficitBlocked"              => "thumbs-up",
       "Notifications::Projects::SuperStar"                      => "star",
+      "Notifications::Projects::DevlogCapApproaching"           => "alert-triangle",
       "Notifications::Missions::SubmissionApproved"             => "check-circle",
       "Notifications::Missions::SubmissionRejected"             => "alert-triangle",
       "Notifications::Missions::SubmissionPendingForReviewer"   => "clipboard",

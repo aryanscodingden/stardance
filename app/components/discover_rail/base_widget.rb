@@ -34,5 +34,17 @@ module DiscoverRail
       @user = user
       @context = context || {}
     end
+
+    def deferred?
+      false
+    end
+
+    def deferred_frame_id
+      raise NotImplementedError
+    end
+
+    def deferred_path_helper
+      raise NotImplementedError
+    end
   end
 end

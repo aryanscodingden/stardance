@@ -107,6 +107,7 @@ class Project < ApplicationRecord
   has_many :reports, class_name: "Project::Report", dependent: :destroy
   has_many :ship_reviews, class_name: "Certification::Ship", dependent: :restrict_with_exception
   has_many :certification_funding_requests, class_name: "Certification::FundingRequest", dependent: :destroy
+  has_many :integrity_checks, through: :ship_events, source: :integrity_check
   has_many :skips, class_name: "Project::Skip", dependent: :destroy
   has_many :project_follows, dependent: :destroy
   has_many :followers, through: :project_follows, source: :user
@@ -260,6 +261,8 @@ class Project < ApplicationRecord
   validates :hardware_stage, inclusion: { in: HARDWARE_STAGES }, allow_nil: true
   validates :project_type, inclusion: { in: AVAILABLE_CATEGORIES }, allow_nil: true
   validate :hardware_stage_locked_after_funding_request
+  validate :required_shipping_fields_locked_while_pending_review
+  validate :hardware_required_by_current_mission
 
   # Set by Certification::FundingRequest#apply_verdict_to_project! to let the
   # approval flow advance the stage; the lock below stays closed for everyone else.
@@ -272,6 +275,23 @@ class Project < ApplicationRecord
     # owner-initiated stage change.
     return if advancing_via_funding_approval
     errors.add(:hardware_stage, "cannot be changed after a funding request has been submitted")
+  end
+
+  def required_shipping_fields_locked_while_pending_review
+    return unless ship_reviews.pending.exists?
+    return if shippable?
+
+    errors.add(:base, "Cannot save: #{ship_blocker_message&.downcase}. Fix this before your review completes.")
+  end
+
+  # A project on a hardware mission can't drop back to software while attached —
+  # the mission only accepts hardware projects (Mission#hardware?). Detach first.
+  # Only queries the mission when the project is actually leaving hardware.
+  def hardware_required_by_current_mission
+    return unless hardware_stage_changed? && !hardware?
+    return unless current_mission&.hardware?
+
+    errors.add(:hardware_stage, "can't be software while attached to the #{current_mission.name} hardware mission")
   end
 
   def validate_repo_cloneable
@@ -379,6 +399,13 @@ class Project < ApplicationRecord
     )
   end
 
+  # Where the current devlog window opened: the previous devlog, or for the
+  # first devlog the earlier of project creation and season start.
+  def devlog_window_start(at)
+    previous_devlog = devlogs.where("post_devlogs.created_at < ?", at).order("post_devlogs.created_at desc").first
+    previous_devlog&.created_at || [ created_at, Date.parse(HackatimeService::START_DATE).beginning_of_day ].min
+  end
+
   aasm column: :ship_status do
     state :draft, initial: true
     state :submitted
@@ -388,10 +415,10 @@ class Project < ApplicationRecord
     state :rejected
 
     event :submit_for_review do
-      transitions from: [ :draft, :submitted, :under_review, :needs_changes, :approved, :rejected ], to: :submitted, guard: :shippable?
-      after do
-        self.shipped_at = Time.current # I moved this logic to the ships controller as there's differences in how we handle reships - @AVD
-      end
+      transitions from: [ :draft, :submitted, :under_review, :needs_changes, :approved, :rejected ],
+                  to: :submitted,
+                  guard: :shippable?,
+                  after: -> { self.shipped_at = Time.current }
     end
 
     event :start_review do
@@ -407,11 +434,11 @@ class Project < ApplicationRecord
     end
 
     event :return_for_changes do
-      transitions from: :under_review, to: :needs_changes
+      transitions from: [ :under_review, :approved ], to: :needs_changes
     end
 
     event :resubmit_for_review do
-      transitions from: :needs_changes, to: :submitted
+      transitions from: :needs_changes, to: :submitted, guard: :shippable?
     end
   end
 
@@ -698,11 +725,6 @@ class Project < ApplicationRecord
       read_timeout: 5
     )
     response.code.to_i
-  end
-
-  def devlog_window_start(at)
-    previous_devlog = devlogs.where("post_devlogs.created_at < ?", at).order("post_devlogs.created_at desc").first
-    previous_devlog&.created_at || [ created_at, Date.parse(HackatimeService::START_DATE).beginning_of_day ].min
   end
 
   def previous_ship_event_has_payout?

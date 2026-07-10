@@ -1,11 +1,35 @@
 class Admin::Certification::YswsController < Admin::Certification::ApplicationController
   def index
     authorize ::Certification::Ysws
+    @project_type = params[:project_type].presence
+    @sort         = params[:sort].presence_in(%w[length todo])
+    @dir          = params[:dir] == "asc" ? "asc" : "desc"
 
-    @reviews = ::Certification::Ysws
-      .where(reviewed_at: nil, returned_at: nil)
-      .includes(:project, :user)
-      .order(created_at: :asc)
+    scope = ::Certification::Ysws.pending.unclaimed_or_claimed_by(current_user)
+
+    # Type filter options are whatever project types are actually present in the
+    # pending queue (plus an "unclassified" bucket) — never hardcoded.
+    @type_counts = scope.joins(:project).group("projects.project_type").count
+
+    scope = scope.by_project_type(@project_type) if @project_type
+
+    scope = scope.with_todo_devlog_count.includes(:project, :user)
+
+    scope =
+      case @sort
+      when "length" then scope.order(Arel.sql("certification_ysws_reviews.original_minutes #{@dir}"))
+      when "todo"   then scope.order(Arel.sql("todo_devlog_count #{@dir}"))
+      else               scope.order(created_at: :asc)
+      end
+
+    # Loaded eagerly so the view can count the collection without re-running the
+    # custom-select query as a COUNT(*), which the aliased column would break.
+    @reviews = scope.to_a
+
+    # Per-reviewer progress toward the devlog-review goal.
+    @devlog_goal      = ::Certification::Ysws::DEFAULT_DEVLOG_REVIEW_GOAL
+    @devlog_reviewed  = ::Certification::Ysws.reviewer_devlog_count(current_user.id)
+    @devlog_remaining = [ @devlog_goal - @devlog_reviewed, 0 ].max
   end
 
   def show
@@ -17,6 +41,19 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
     if @review.project.nil?
       redirect_to admin_certification_ysws_reviews_path, alert: "Review ##{@review.id} has no associated project."
       return
+    end
+
+    # Claim this review for the current admin so it drops off everyone else's
+    # queue. Already-decided reviews (reached via "prior reviews" history
+    # links) are read-only and aren't claimed.
+    if @review.pending?
+      claimed = ::Certification::Ysws.atomic_claim!(@review.id, current_user)
+      if claimed.nil?
+        redirect_to admin_certification_ysws_reviews_path, alert: "This review is currently claimed by another admin."
+        return
+      end
+      @review.claimed_by_id = claimed.claimed_by_id
+      @review.claimed_at = claimed.claimed_at
     end
 
     # Check if review is already in unified DB
@@ -198,10 +235,23 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
       return render json: { success: false, error: "This review is already in the unified DB" }, status: :unprocessable_entity
     end
 
-    incomplete = @review.devlog_reviews.select { |dr| dr.pending? || dr.justification.blank? }
-    if incomplete.any?
-      Rails.logger.warn "[YSWS#complete] user=#{current_user&.id} review=#{params[:id]} Blocked: #{incomplete.count} incomplete devlog(s): #{incomplete.map(&:id).inspect}"
-      return render json: { success: false, error: "Fill in all devlogs" }, status: :unprocessable_entity
+    devlog_reviews = @review.devlog_reviews
+    pending = devlog_reviews.select(&:pending?)
+    if pending.any?
+      Rails.logger.warn "[YSWS#complete] user=#{current_user&.id} review=#{params[:id]} Blocked: #{pending.count} unreviewed devlog(s): #{pending.map(&:id).inspect}"
+      return render json: { success: false, error: "Review all devlogs before completing." }, status: :unprocessable_entity
+    end
+
+    approved = devlog_reviews.select(&:approved?)
+    if approved.any? && approved.none? { |dr| dr.justification.present? }
+      Rails.logger.warn "[YSWS#complete] user=#{current_user&.id} review=#{params[:id]} Blocked: no justification on any of #{approved.count} approved devlog(s)"
+      return render json: { success: false, error: "Add a justification to at least one approved devlog." }, status: :unprocessable_entity
+    end
+
+    unjustified_rejections = devlog_reviews.select { |dr| dr.rejected? && dr.justification.blank? }
+    if unjustified_rejections.any?
+      Rails.logger.warn "[YSWS#complete] user=#{current_user&.id} review=#{params[:id]} Blocked: #{unjustified_rejections.count} rejected devlog(s) missing justification: #{unjustified_rejections.map(&:id).inspect}"
+      return render json: { success: false, error: "Add a justification to every rejected devlog." }, status: :unprocessable_entity
     end
 
     @review.update_columns(reviewer_id: current_user.id, reviewed_at: Time.current)
@@ -229,24 +279,33 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
     @review = ::Certification::Ysws.find(params[:id])
     authorize @review, :update?
 
-    recert_reason = params[:recert_reason].to_s.strip
+    recert_reason = params[:recert_reason].to_s.strip.truncate(::Post::ShipEvent::RETURN_REASON_MAX_LENGTH, omission: "")
     if recert_reason.blank?
       return render json: { success: false, error: "A reason is required." }, status: :unprocessable_entity
     end
 
     if ::Certification::Ship.pending.exists?(project_id: @review.project_id)
-      if @review.project.last_ship_event&.id == @review.post_ship_event_id
-        return render json: { success: false, error: "This project already has a pending ship certification." }, status: :unprocessable_entity
-      end
+      return render json: { success: false, error: "This project already has a pending ship certification." }, status: :unprocessable_entity
     end
 
     ActiveRecord::Base.transaction do
-      ::Certification::Ship.create!(
+      approved_certs = ::Certification::Ship
+        .where(project_id: @review.project_id, status: :approved)
+        .lock
+      approved_cert = approved_certs.find_by(id: @review.ship_cert_id) ||
+                      approved_certs.find_by(post_ship_event_id: @review.post_ship_event_id)
+
+      new_cert = ::Certification::Ship.create!(
         project_id: @review.project_id,
+        post_ship_event_id: @review.post_ship_event_id,
         recert_reason: recert_reason, # codeql[rb/cleartext-storage-sensitive-data]
         returned_by_id: current_user.id
       )
       @review.update!(returned_at: Time.current)
+
+      if approved_cert&.transfer_external_certification_id_to!(new_cert)
+        ::ExternalDashboard::CertReturnJob.perform_later(new_cert.id)
+      end
     end
 
     render json: {

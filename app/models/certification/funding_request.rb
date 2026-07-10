@@ -184,6 +184,13 @@ module Certification
     def final_amount_cents = approved_amount_cents || requested_amount_cents
     def final_amount_dollars = (final_amount_cents || 0) / 100
 
+    # The hardware builder this request belongs to: the project's owner
+    # membership, falling back to the submitting user when no owner membership
+    # remains (mirrors how grants/discounts resolve the recipient).
+    def owner
+      @owner ||= project.memberships.owner.first&.user || user
+    end
+
     # Reviewers enter whole-dollar amounts; we persist cents.
     def approved_amount_dollars
       approved_amount_cents ? approved_amount_cents / 100 : nil

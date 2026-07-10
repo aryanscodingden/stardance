@@ -37,13 +37,21 @@ Achievement = Data.define(:slug, :name, :description, :icon, :earned_check, :pro
     ),
     new(
       slug: :manual_outpost_ticket_approval,
-      name: "Presentable Hardware Project",
+      name: "Super Hardware Builder",
       description: "Got a hardware project polished enough to show off. Unlocks the Outpost Ticket.",
       icon: "rocket",
       # Manual-only: an admin grants/revokes this via the Outpost Ticket toggle
       # on the user admin page. The achievement row is the source of truth.
       earned_check: ->(user) { user.earned_achievement?(:manual_outpost_ticket_approval) },
       visibility: :visible
+    ),
+    new(
+      slug: :rng_winner,
+      name: "RNG Winner",
+      description: "Got the biggest number in the daily RNG. Unlocks free ticket to NASA's Kennedy Space Center.",
+      icon: "trophy",
+      earned_check: ->(user) { DailyRoll.topped_a_day(user) },
+      visibility: :hidden
     )
   ].freeze
 

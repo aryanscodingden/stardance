@@ -136,6 +136,16 @@
         <small class="settings-form__hint">Blur sensitive info like addresses and API keys</small>
       </div>
 
+      <% if user.slack_id.present? %>
+        <div class="settings-form__field">
+          <label class="settings-form__checkbox">
+            <%= check_box_tag :streak_slack_status_enabled, "1", preference.streak_slack_status_enabled, id: "streak_slack_status_enabled" %>
+            <span>Show streak as Slack status</span>
+          </label>
+          <small class="settings-form__hint">Sets your Slack status to your current coding streak</small>
+        </div>
+      <% end %>
+
       <div class="settings-form__field">
         <label class="settings-form__label">Hackatime</label>
         <% if user.hackatime_identity.present? %>

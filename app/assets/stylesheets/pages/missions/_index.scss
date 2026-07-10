@@ -147,6 +147,14 @@
     background: var(--color-space-accent-soft, rgba(167, 139, 250, 0.18));
   }
 
+  &--hardware {
+    background: rgba(149, 219, 255, 0.2);
+    color: var(--color-brand-blue, #95dbff);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
   &--draft {
     background: var(--color-brand-orange-soft);
     color: var(--color-brand-orange);

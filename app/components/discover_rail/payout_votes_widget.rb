@@ -18,7 +18,7 @@ module DiscoverRail
     end
 
     def render?
-      votes.present? && !votes[:static_prize]
+      votes.present? && !votes[:static_prize] && !votes[:paid_out]
     end
   end
 end

@@ -2,6 +2,7 @@
 
 class Gorse::Recommendations
   DEFAULT_LIMIT = 6
+  CACHE_TTL = 2.minutes
 
   def initialize(user:, client: Gorse::Client.new)
     @user = user
@@ -32,7 +33,7 @@ class Gorse::Recommendations
     end
 
     def recommended_posts(limit)
-      ids = client.recommend(Gorse::Ids.user(user), category: "feed", count: limit * 3)
+      ids = recommendation_ids(category: "feed", count: limit * 3)
       posts = posts_from_ids(ids)
       if posts.size >= limit
         posts.first(limit)
@@ -52,12 +53,21 @@ class Gorse::Recommendations
     end
 
     def recommended_projects(limit)
-      ids = client.recommend(Gorse::Ids.user(user), category: "project", count: limit * 3)
+      ids = recommendation_ids(category: "project", count: limit * 3)
       projects = projects_from_ids(ids)
       if projects.size >= limit
         projects.first(limit)
       else
         projects
+      end
+    end
+
+    def recommendation_ids(category:, count:)
+      Rails.cache.fetch(
+        [ "gorse", "recommendations", user.id, category, count ],
+        expires_in: CACHE_TTL
+      ) do
+        client.recommend(Gorse::Ids.user(user), category: category, count: count)
       end
     end
 

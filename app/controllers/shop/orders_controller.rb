@@ -6,6 +6,7 @@ class Shop::OrdersController < Shop::BaseController
                           .where(parent_order_id: nil)
                           .includes(accessory_orders: { shop_item: { image_attachment: :blob } }, shop_item: { image_attachment: :blob })
                           .order(id: :desc)
+    @sharable_order = find_sharable_order
   end
 
   def create
@@ -19,7 +20,7 @@ class Shop::OrdersController < Shop::BaseController
     @shop_item = ShopItem.find(params[:shop_item_id])
     @mission_submission = load_redeemable_submission(@shop_item)
 
-    unless @shop_item.enabled? || @mission_submission.present?
+    unless @shop_item.enabled?
       redirect_to shop_path, alert: "This item cannot be ordered."
       return
     end
@@ -194,6 +195,16 @@ class Shop::OrdersController < Shop::BaseController
   end
 
   private
+
+  def find_sharable_order
+    return nil unless Flipper.enabled?(:sharable_purchase, current_user)
+
+    latest = @orders.worth_counting.first
+    return nil unless latest && latest.created_at > 10.minutes.ago
+    return nil if latest.shop_item.is_a?(ShopItem::TutorialNothing)
+
+    latest
+  end
 
   def fulfill_free_stickers!
     @shop_item.fulfill!(@order)

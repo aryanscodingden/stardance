@@ -112,9 +112,14 @@ class Vote < ApplicationRecord
   def flaggable_by?(user)
     user.present? &&
       ship_event&.payout_review_open? &&
-      project&.memberships&.where(role: :owner, user: user)&.exists? &&
+      in_active_payout_snapshot? &&
+      (user.admin? || project&.memberships&.where(user: user)&.exists?) &&
       !pending_flag? &&
       !discarded?
+  end
+
+  def in_active_payout_snapshot?
+    ship_event&.payout_basis_vote_ids&.include?(id) || false
   end
 
   def flag_for_review_by(user)
@@ -144,6 +149,9 @@ class Vote < ApplicationRecord
         )
         ship_event.clear_payout_review
       end
+
+      ShipEventPayoutRefreshJob.perform_later
+      true
     else
       false
     end

@@ -5,7 +5,7 @@ class My::NotificationSettingsController < ApplicationController
   def show
     authorize :my, :show_notification_settings?
 
-    @grouped_types = Notifications::Registry.all.group_by(&:category_group)
+    @grouped_types = relevant_types.group_by(&:category_group)
     @preferences_by_category = current_user.notification_preferences.index_by(&:category)
   end
 
@@ -14,7 +14,7 @@ class My::NotificationSettingsController < ApplicationController
 
     submitted = permitted_preferences
 
-    Notifications::Registry.all.each do |klass|
+    relevant_types.each do |klass|
       next if klass.default_priority.to_s == "critical"
 
       category = klass.category_key.to_s
@@ -51,8 +51,15 @@ class My::NotificationSettingsController < ApplicationController
   end
 
   def permitted_preferences
-    categories = Notifications::Registry.all.map { |k| k.category_key.to_s }
+    categories = relevant_types.map { |k| k.category_key.to_s }
     nested = categories.index_with { [ :in_app, :slack, :email ] }
     params.fetch(:preferences, {}).permit(nested).to_h
+  end
+
+  # Notification types worth showing this user — most apply to everyone, but
+  # role-scoped ones (e.g. mission reviewing) hide themselves from users who
+  # would never receive them.
+  def relevant_types
+    Notifications::Registry.all.select { |klass| klass.relevant_for?(current_user) }
   end
 end

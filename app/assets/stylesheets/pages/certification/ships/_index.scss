@@ -299,16 +299,6 @@
     font-variant-numeric: tabular-nums;
   }
 
-  &__rank-mult {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--color-brand-yellow);
-    background: rgba(255, 229, 100, 0.12);
-    padding: 1px 6px;
-    border-radius: 999px;
-    font-variant-numeric: tabular-nums;
-  }
-
   // --- Filters -----------------------------------------------------------
   &__filters {
     display: flex;
@@ -505,6 +495,22 @@
     flex-wrap: wrap;
     align-items: baseline;
     gap: var(--space-xs);
+  }
+
+  // Category tag on a queue row (e.g. Hackpad) — a pill, not a status.
+  &__tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+
+    &--hackpad {
+      background: rgba(235, 183, 255, 0.18);
+      color: var(--color-brand-lilac);
+    }
   }
 
   // Submitter, relative age, and the claim flag all share one meta line under

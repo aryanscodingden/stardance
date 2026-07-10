@@ -1,10 +1,90 @@
-<%# Echo the requesting frame's id so the response matches whichever card opened the modal. %>
-<%= turbo_frame_tag(request.headers["Turbo-Frame"].presence || dom_id(@commentable, :comments)) do %>
-  <div class="comment-modal__replies-list">
-    <% if @comments.any? %>
-      <%= render partial: "comments/comment", collection: @comments %>
-    <% else %>
-      <p class="comment-modal__replies-empty">No replies yet — be the first to reply.</p>
-    <% end %>
+<% frame_id = request.headers["Turbo-Frame"].presence || dom_id(@commentable, :comment_modal) %>
+<%= turbo_frame_tag frame_id, class: "comment-modal__lazy-content" do %>
+  <div class="comment-modal__body" data-comment-modal-target="body">
+    <article class="comment-modal__op">
+      <span class="comment-modal__op-eyebrow">Original post</span>
+      <header class="comment-modal__op-head">
+        <% if @post&.user.present? %>
+          <%= image_tag @post.user.avatar,
+                alt: "",
+                class: "comment-modal__op-avatar",
+                loading: "lazy",
+                decoding: "async" %>
+        <% end %>
+        <div class="comment-modal__op-meta">
+          <span class="comment-modal__op-author">@<%= @post&.user&.display_name.presence || "stardancer" %></span>
+          <% if @post.present? %>
+            <time class="comment-modal__op-time" datetime="<%= @post.created_at.iso8601 %>">· <%= time_ago_in_words(@post.created_at) %> ago</time>
+          <% end %>
+        </div>
+      </header>
+
+      <% if @commentable.body.present? %>
+        <div class="comment-modal__op-body markdown-content"><%= md(@commentable.body, allow_images: false) %></div>
+      <% end %>
+      <% if @commentable.attachments.any? %>
+        <div class="comment-modal__op-media">
+          <%= render "shared/post_media",
+                attachments: @commentable.attachments,
+                variant: :medium,
+                lazy: true %>
+        </div>
+      <% end %>
+    </article>
+
+    <p class="comment-modal__replies-label">Replies</p>
+    <div class="comment-modal__replies-list">
+      <% if @comments.any? %>
+        <%= render partial: "comments/comment", collection: @comments %>
+      <% else %>
+        <p class="comment-modal__replies-empty">No replies yet — be the first to reply.</p>
+      <% end %>
+    </div>
   </div>
+
+  <% if current_user %>
+    <%= form_with url: devlog_comments_path(@commentable),
+                  scope: :comment,
+                  class: "comment-modal__composer",
+                  data: { turbo: true } do |f| %>
+      <p class="comment-modal__replying-to">
+        Replying to
+        <span class="comment-modal__replying-to-name">@<%= @post&.user&.display_name.presence || "stardancer" %></span>
+      </p>
+      <div class="comment-modal__thread-reply">
+        <div class="comment-modal__thread-left">
+          <%= image_tag current_user.avatar,
+                alt: "",
+                class: "comment-modal__reply-avatar",
+                loading: "lazy",
+                decoding: "async" %>
+        </div>
+        <div class="comment-modal__thread-right">
+          <%= f.text_area :body,
+                class: "comment-modal__textarea",
+                placeholder: "Post your reply (type @ to mention someone)",
+                rows: 2,
+                maxlength: Comment::BODY_MAX_LENGTH,
+                data: {
+                  comment_modal_target: "textarea",
+                  controller: "submit-on-meta-enter mention-autocomplete",
+                  action: "keydown->submit-on-meta-enter#submit keydown->mention-autocomplete#onKeydown input->mention-autocomplete#onInput blur->mention-autocomplete#onBlur"
+                } %>
+        </div>
+      </div>
+      <div class="comment-modal__footer">
+        <%= render ActionButtonComponent.new(
+              text: "Reply",
+              size: :small,
+              type: :submit,
+              variant: :primary,
+              disable_with: "Posting..."
+            ) %>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="comment-modal__sign-in">
+      <%= link_to "Sign in", root_path %> to join the conversation.
+    </p>
+  <% end %>
 <% end %>

@@ -2,6 +2,9 @@
 
 <div class="admin-users">
   <h1 class="admin-user-show__title">Users</h1>
+  <% if current_user.admin? %>
+    <p><%= link_to "✦ View global Stardust ledger", admin_ledger_entries_path %></p>
+  <% end %>
   <%= form_with url: admin_users_path, method: :get, local: true, class: "admin-users__search" do %>
     <%= text_field_tag :query, params[:query],
       placeholder: "Search by name or email...",

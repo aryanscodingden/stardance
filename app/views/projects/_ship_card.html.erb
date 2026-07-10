@@ -5,13 +5,16 @@
   ship        = post.postable
   author      = post.user
   ship_text   = ship.body.to_s
-  total_hours = (project.duration_seconds / 3600.0).round
+  ship_hours  = ship.hours_at_ship.to_f.round
   ship_number      = local_assigns[:ship_number]
   recert_modal_id  = local_assigns[:recert_modal_id]
   pending_review   = ship.certification_status == "pending"
   track_engagement = local_assigns.fetch(:track_engagement, true)
   demo_url         = local_assigns.fetch(:demo_url, project.demo_url)
   repo_url         = local_assigns.fetch(:repo_url, project.repo_url)
+  payout_review    = local_assigns[:payout_review]
+  media_variant    = local_assigns.fetch(:media_variant, :large)
+  lazy_media       = local_assigns.fetch(:lazy_media, false)
   engagement_data = if track_engagement
     {
       controller: "feed-engagement",
@@ -63,7 +66,7 @@
         <% else %>
           <span class="project-show__latest-ship-status project-show__latest-ship-status--returned">Mission returned</span>
         <% end %>
-      <% elsif mission_sub&.approved? && mission_sub.payout_path == "static_prize" && mission_sub.shop_order_id.nil? && mission_sub.mission.prizes_count > 0 %>
+      <% elsif mission_sub&.approved? && mission_sub.shop_order_id.nil? && mission_sub.mission.prizes_count > 0 %>
         <%= link_to redeem_mission_submission_path(mission_sub),
                     class: "project-show__latest-ship-status project-show__latest-ship-status--approved project-show__latest-ship-status--clickable" do %>
           Claim prize ↗
@@ -75,7 +78,11 @@
   <header class="feed-post-card__header">
     <% if author %>
       <%= link_to profile_path(author.display_name), class: "feed-post-card__avatar-link", aria: { label: "@#{author.display_name}" } do %>
-        <%= image_tag author.avatar, alt: "", class: "feed-post-card__avatar" %>
+        <%= image_tag author.avatar,
+                      alt: "",
+                      class: "feed-post-card__avatar",
+                      loading: (lazy_media ? "lazy" : nil),
+                      decoding: (lazy_media ? "async" : nil) %>
       <% end %>
     <% end %>
 
@@ -85,7 +92,7 @@
           <%= link_to "@#{author.display_name}",
                       profile_path(author.display_name),
                       class: "feed-post-card__author",
-                      data: { turbo_frame: "_top", turbo_prefetch: "true" } %>
+                      data: { turbo_frame: "_top", turbo_prefetch: "true" } %><%= render StreakBadgeComponent.new(user: author) %><%= " ⚡" if author.admin? %>
         <% end %>
         <span class="feed-post-card__context">on</span>
         <%= link_to project.title, project_path(project), class: "feed-post-card__project", data: { turbo_frame: "_top" } %>
@@ -102,16 +109,19 @@
     </div>
   </header>
 
-  <%= render "shared/post_media", attachments: ship.attachments %>
+  <%= render "shared/post_media",
+        attachments: ship.attachments,
+        variant: media_variant,
+        lazy: lazy_media %>
 
-  <ul class="feed-post-card__body project-show__latest-ship-stats" aria-label="Project totals">
+  <ul class="feed-post-card__body project-show__latest-ship-stats" aria-label="Ship totals">
     <li class="profile-project-card__meta-item">
       <%= inline_svg_tag "icons/devlogs.svg", class: "profile-project-card__meta-icon" %>
-      <span><%= pluralize(project.devlogs_count, "devlog") %></span>
+      <span><%= pluralize(ship.window_devlogs_count, "devlog") %></span>
     </li>
     <li class="profile-project-card__meta-item profile-project-card__meta-item--time">
       <%= inline_svg_tag "icons/time.svg", class: "profile-project-card__meta-icon profile-project-card__meta-icon--time" %>
-      <span><%= total_hours %>h</span>
+      <span><%= ship_hours %>h<%= " build" if project.hardware? %></span>
     </li>
     <% mission = ship.mission_submission&.mission %>
     <% if mission %>
@@ -127,7 +137,7 @@
     <% end %>
   </ul>
 
-  <% if demo_url.present? || repo_url.present? %>
+  <% if demo_url.present? || repo_url.present? || payout_review.present? %>
     <div class="feed-post-card__body project-show__latest-ship-cta">
       <% if demo_url.present? %>
         <%= link_to project.hardware? ? "Video of Project →" : "Try project →",
@@ -142,6 +152,14 @@
                     target: "_blank",
                     rel: "noopener",
                     class: "project-show__latest-ship-btn" %>
+      <% end %>
+      <% if payout_review.present? %>
+        <button type="button"
+                class="project-show__latest-ship-btn"
+                onclick="document.getElementById('payout-review-modal').showModal()"
+                aria-haspopup="dialog">
+          <%= payout_review[:paid_out] ? "View rating reasons →" : "Review payout →" %>
+        </button>
       <% end %>
     </div>
   <% end %>

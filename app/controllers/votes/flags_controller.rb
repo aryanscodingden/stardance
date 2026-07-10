@@ -6,9 +6,9 @@ class Votes::FlagsController < ApplicationController
     authorize @vote, :flag?
 
     if @vote.flag_for_review_by(current_user)
-      redirect_to ship_event_vote_reasons_path(@vote.ship_event), notice: "Rating flagged for review."
+      redirect_to project_path(@vote.project, anchor: "payout-review"), notice: "Rating flagged for review."
     else
-      redirect_to ship_event_vote_reasons_path(@vote.ship_event), alert: "That rating cannot be flagged right now."
+      redirect_to project_path(@vote.project, anchor: "payout-review"), alert: "That rating cannot be flagged right now."
     end
   end
 end

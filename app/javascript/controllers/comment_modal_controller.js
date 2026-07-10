@@ -1,7 +1,8 @@
 import { Controller } from "@hotwired/stimulus";
 
 export default class extends Controller {
-  static targets = ["dialog", "textarea", "body", "repliesFrame"];
+  static targets = ["dialog", "textarea", "body", "contentFrame"];
+  static values = { contentUrl: String };
 
   connect() {
     this._scrollToEndOnLoad = false;
@@ -28,16 +29,11 @@ export default class extends Controller {
     document.body.style.overflow = "hidden";
     this.dialogTarget.showModal();
 
-    // Keep the thread scrolled to the original post on open, and focus the
-    // composer without yanking the scroll position down to it.
-    if (this.hasBodyTarget) {
-      this.bodyTarget.scrollTop = 0;
+    if (this.hasContentFrameTarget && !this.contentFrameTarget.src) {
+      this.contentFrameTarget.src = this.contentUrlValue;
     }
-    if (this.hasTextareaTarget) {
-      requestAnimationFrame(() =>
-        this.textareaTarget.focus({ preventScroll: true }),
-      );
-    }
+
+    this.focusComposer();
   }
 
   close() {
@@ -69,23 +65,33 @@ export default class extends Controller {
       this.textareaTarget.value = "";
     }
 
-    // Keep the modal open and refresh the thread so the new reply lands in
-    // context; repliesLoaded then scrolls it into view.
-    if (this.hasRepliesFrameTarget) {
+    if (this.hasContentFrameTarget) {
       this._scrollToEndOnLoad = true;
-      this.repliesFrameTarget.reload();
+      this.contentFrameTarget.reload();
     }
   }
 
-  repliesLoaded() {
-    if (!this._scrollToEndOnLoad) return;
-    this._scrollToEndOnLoad = false;
+  contentLoaded() {
+    if (!this._scrollToEndOnLoad) {
+      if (this.hasBodyTarget) this.bodyTarget.scrollTop = 0;
+      this.focusComposer();
+      return;
+    }
 
+    this._scrollToEndOnLoad = false;
     if (this.hasBodyTarget) {
       this.bodyTarget.scrollTo({
         top: this.bodyTarget.scrollHeight,
         behavior: "smooth",
       });
     }
+  }
+
+  focusComposer() {
+    if (!this.hasTextareaTarget) return;
+
+    requestAnimationFrame(() =>
+      this.textareaTarget.focus({ preventScroll: true }),
+    );
   }
 }

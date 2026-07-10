@@ -197,6 +197,69 @@ class ShopItem < ApplicationRecord
     "#{SHOP_PAGE_CACHE_KEY}/v=#{version}"
   end
 
+  # Top affordable items for a user, for payout-email recommendations. Reuses the
+  # cached shop-page set (already enabled/listed/buyable, non-prize, with stock +
+  # purchase counts preloaded) so it adds no extra catalog queries. Only items
+  # available in the user's region and within their balance at the real
+  # region/user price are eligible (price_for_user is computed once per item and
+  # stashed for display, so the email shows exactly what it filtered on). Items
+  # the user has wishlisted come first (highest intent), then the most popular
+  # affordable items fill the rest. Fails closed to [] so a payout email never
+  # breaks on a recommendation error.
+  def self.affordable_for(user, limit: 3)
+    region  = recommended_region_for(user)
+    balance = user.balance
+
+    priced = cached_shop_page_data[:buyable_standalone]
+      .reject(&:is_free?)
+      .reject(&:out_of_stock?)
+      .select { |item| item.enabled_in_region?(region) }
+      .map    { |item| [ item, item.price_for_user(user, region) ] }
+      .select { |(_item, price)| price <= balance }
+
+    wishlisted_ids = user.wishlisted_shop_items.pluck(:id).to_set
+    ordered = priced
+      .partition { |(item, _price)| wishlisted_ids.include?(item.id) }
+      .flat_map  { |group| group.sort_by { |(item, _price)| -item.current_event_purchases } }
+      .first(limit)
+
+    ordered.map do |(item, price)|
+      item.instance_variable_set(:@recommended_from_wishlist, wishlisted_ids.include?(item.id))
+      item.instance_variable_set(:@recommended_price, price)
+      item
+    end
+  rescue => e
+    Rails.logger.warn("ShopItem.affordable_for failed for user #{user&.id}: #{e.message}")
+    []
+  end
+
+  # Region for payout-email recommendations. Mirrors the shop's user-data region
+  # resolution (shop_region -> saved regions -> primary/first address country) so
+  # emailed items + prices match what the recipient sees in the shop. The shop's
+  # request-only fallbacks (GeoIP cookie, timezone) aren't available in a mailer,
+  # so we end on "US" like the shop's final default.
+  def self.recommended_region_for(user)
+    return user.shop_region if user.shop_region.present?
+    return user.regions.first if user.has_regions?
+
+    addresses = Array(user.addresses)
+    address   = addresses.find { |a| a["primary"] } || addresses.first
+    country   = address && address["country"]
+    region    = Shop::Regionalizable.country_to_region(country) if country.present?
+    region.presence || "US"
+  end
+
+  # True when affordable_for surfaced this item because the user wishlisted it.
+  def recommended_from_wishlist?
+    instance_variable_defined?(:@recommended_from_wishlist) && @recommended_from_wishlist
+  end
+
+  # The region/user price affordable_for filtered + should display (falls back to
+  # ticket_cost outside the recommendation flow).
+  def recommended_price
+    instance_variable_defined?(:@recommended_price) ? @recommended_price : ticket_cost
+  end
+
   MANUAL_FULFILLMENT_TYPES = [
     "ShopItem::HCBGrant",
     "ShopItem::HCBPreauthGrant",

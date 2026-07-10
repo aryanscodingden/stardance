@@ -97,6 +97,26 @@ class Project::MissionAttachmentTest < ActiveSupport::TestCase
     assert attachment.persisted?
   end
 
+  test "hardware mission rejects a software project" do
+    hardware_mission = create_mission
+    hardware_mission.update!(hardware: true)
+
+    attachment = @project.mission_attachments.create(mission: hardware_mission)
+
+    assert_not attachment.persisted?
+    assert_includes attachment.errors[:base].join, "hardware mission"
+  end
+
+  test "hardware mission accepts a hardware project" do
+    hardware_mission = create_mission
+    hardware_mission.update!(hardware: true)
+    @project.update!(hardware_stage: "design")
+
+    attachment = @project.mission_attachments.create(mission: hardware_mission)
+
+    assert attachment.persisted?
+  end
+
   test "cannot attach an unrelated mission to a shipped project" do
     @project.mission_attachments.create!(mission: @mission)
     ship_to_mission!(@project, @user, @mission)

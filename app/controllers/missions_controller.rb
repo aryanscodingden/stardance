@@ -3,7 +3,7 @@ class MissionsController < ApplicationController
   before_action :set_mission, only: [ :show, :guide, :gallery ]
   before_action -> { @active_nav_slug = "missions" }
 
-  discover_rail_widgets :upcoming_events
+  discover_rail_widgets :certificate, :upcoming_events
 
   def index
     authorize Mission
