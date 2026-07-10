@@ -198,10 +198,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_08_183407) do
     t.text "decision_justification"
     t.integer "deduction_minutes"
     t.integer "flags", default: 0, null: false
-    t.float "integrity_number"
-    t.float "integrity_selection_share"
-    t.text "integrity_text"
-    t.float "integrity_text_share"
+    t.jsonb "fraud_detection_data"
     t.datetime "reviewed_at"
     t.bigint "reviewer_id"
     t.bigint "ship_event_id", null: false

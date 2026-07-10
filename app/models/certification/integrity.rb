@@ -2,20 +2,17 @@
 #
 # Table name: certification_integrities
 #
-#  id                        :bigint           not null, primary key
-#  decision_justification    :text
-#  deduction_minutes         :integer
-#  flags                     :integer          default(0), not null
-#  integrity_number          :float
-#  integrity_selection_share :float
-#  integrity_text            :text
-#  integrity_text_share      :float
-#  reviewed_at               :datetime
-#  status                    :integer          default("auto_passed"), not null
-#  created_at                :datetime         not null
-#  updated_at                :datetime         not null
-#  reviewer_id               :bigint
-#  ship_event_id             :bigint           not null
+#  id                     :bigint           not null, primary key
+#  decision_justification :text
+#  deduction_minutes      :integer
+#  flags                  :integer          default(0), not null
+#  fraud_detection_data   :jsonb
+#  reviewed_at            :datetime
+#  status                 :integer          default("auto_passed"), not null
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#  reviewer_id            :bigint
+#  ship_event_id          :bigint           not null
 #
 # Indexes
 #
