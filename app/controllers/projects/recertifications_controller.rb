@@ -21,8 +21,7 @@ class Projects::RecertificationsController < ApplicationController
 
     redirect_to project_path(@project), notice: "Re-certification requested! Your project is back in the review queue."
   rescue AASM::InvalidTransition
-    alert = @project.ship_blocker_message || "Your project can't be re-submitted right now."
-    redirect_to project_path(@project), alert: alert
+    redirect_to project_path(@project), alert: "Your project can't be re-submitted right now."
   end
 
   private

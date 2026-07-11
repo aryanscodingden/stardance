@@ -261,7 +261,6 @@ class Project < ApplicationRecord
   validates :hardware_stage, inclusion: { in: HARDWARE_STAGES }, allow_nil: true
   validates :project_type, inclusion: { in: AVAILABLE_CATEGORIES }, allow_nil: true
   validate :hardware_stage_locked_after_funding_request
-  validate :required_shipping_fields_locked_while_pending_review
   validate :hardware_required_by_current_mission
 
   # Set by Certification::FundingRequest#apply_verdict_to_project! to let the
@@ -275,13 +274,6 @@ class Project < ApplicationRecord
     # owner-initiated stage change.
     return if advancing_via_funding_approval
     errors.add(:hardware_stage, "cannot be changed after a funding request has been submitted")
-  end
-
-  def required_shipping_fields_locked_while_pending_review
-    return unless ship_reviews.pending.exists?
-    return if shippable?
-
-    errors.add(:base, "Cannot save: #{ship_blocker_message&.downcase}. Fix this before your review completes.")
   end
 
   # A project on a hardware mission can't drop back to software while attached —
@@ -438,7 +430,7 @@ class Project < ApplicationRecord
     end
 
     event :resubmit_for_review do
-      transitions from: :needs_changes, to: :submitted, guard: :shippable?
+      transitions from: :needs_changes, to: :submitted
     end
   end
 
