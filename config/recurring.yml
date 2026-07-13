@@ -87,6 +87,12 @@ production:
     concurrency: 1
     description: "Recalculate duration_seconds for all projects"
 
+  devlog_cap_warning:
+    class: DevlogCapWarningJob
+    schedule: every hour at minute 40
+    concurrency: 1
+    description: "Notify project owners nearing the per-devlog payout cap on un-devlogged time"
+
   sync_pending_lookout_sessions:
     class: SyncPendingLookoutSessionsJob
     schedule: every 5 minutes

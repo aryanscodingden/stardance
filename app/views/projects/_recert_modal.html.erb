@@ -18,12 +18,13 @@
       <p class="recert-modal__subtitle">Reviewer feedback and walkthrough left for this project.</p>
     <% end %>
 
-    <% if recert_review&.verdict_video&.attached? %>
+    <% verdict_video_src = certification_verdict_video_src(recert_review) %>
+    <% if verdict_video_src %>
       <div class="recert-modal__video-wrap">
         <video class="recert-modal__video"
                controls
                preload="metadata"
-               src="<%= rails_blob_path(recert_review.verdict_video, disposition: :inline) %>">
+               src="<%= verdict_video_src %>">
         </video>
       </div>
     <% end %>

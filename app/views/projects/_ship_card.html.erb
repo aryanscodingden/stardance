@@ -5,7 +5,7 @@
   ship        = post.postable
   author      = post.user
   ship_text   = ship.body.to_s
-  total_hours = (project.duration_seconds / 3600.0).round
+  ship_hours  = ship.hours_at_ship.to_f.round
   ship_number      = local_assigns[:ship_number]
   recert_modal_id  = local_assigns[:recert_modal_id]
   pending_review   = ship.certification_status == "pending"
@@ -114,14 +114,14 @@
         variant: media_variant,
         lazy: lazy_media %>
 
-  <ul class="feed-post-card__body project-show__latest-ship-stats" aria-label="Project totals">
+  <ul class="feed-post-card__body project-show__latest-ship-stats" aria-label="Ship totals">
     <li class="profile-project-card__meta-item">
       <%= inline_svg_tag "icons/devlogs.svg", class: "profile-project-card__meta-icon" %>
-      <span><%= pluralize(project.devlogs_count, "devlog") %></span>
+      <span><%= pluralize(ship.window_devlogs_count, "devlog") %></span>
     </li>
     <li class="profile-project-card__meta-item profile-project-card__meta-item--time">
       <%= inline_svg_tag "icons/time.svg", class: "profile-project-card__meta-icon profile-project-card__meta-icon--time" %>
-      <span><%= total_hours %>h</span>
+      <span><%= ship_hours %>h<%= " build" if project.hardware? %></span>
     </li>
     <% mission = ship.mission_submission&.mission %>
     <% if mission %>

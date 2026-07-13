@@ -10,6 +10,9 @@ import { Controller } from "@hotwired/stimulus";
 const CLIENT_INFO = "Lookout Sdk (Stardance)/0.1.0 (web)";
 const MAX_HEIGHT = 1080;
 const TERMINAL = ["complete", "failed"];
+// Set once the builder has seen the "hardware moved to Outpost" notice from a
+// finished Lookout recording, so we don't re-pop it on every later session.
+const OUTPOST_NOTICE_KEY = "stardance:hardware-outpost-lookout-seen";
 
 export default class extends Controller {
   static targets = [
@@ -482,10 +485,32 @@ export default class extends Controller {
 
   // Hardware moved to Outpost — once the timelapse is done, let the builder know.
   // The notice is only rendered on the page for hardware projects with the flag
-  // on, so this is a no-op everywhere else.
+  // on, so this is a no-op everywhere else. We only nudge once from Lookout: after
+  // the builder has seen it here, a flag in localStorage keeps later recordings
+  // from re-popping the same notice. (The modal's other triggers — the "New
+  // hardware project" button, the server guards — are unaffected.)
   showHardwareOutpostNotice() {
     const dialog = document.getElementById("hardware-outpost-modal");
-    if (dialog && !dialog.open) dialog.showModal();
+    if (!dialog || dialog.open) return;
+    if (this.outpostNoticeSeen()) return;
+    this.markOutpostNoticeSeen();
+    dialog.showModal();
+  }
+
+  outpostNoticeSeen() {
+    try {
+      return localStorage.getItem(OUTPOST_NOTICE_KEY) === "1";
+    } catch (_) {
+      return false; // storage unavailable (private mode) — just show it
+    }
+  }
+
+  markOutpostNoticeSeen() {
+    try {
+      localStorage.setItem(OUTPOST_NOTICE_KEY, "1");
+    } catch (_) {
+      /* storage unavailable — nothing to persist */
+    }
   }
 
   close(event) {

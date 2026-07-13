@@ -649,6 +649,20 @@
           <% end %>
           <% end %>
         </nav>
+        <% if unposted_seconds >= Post::ShipEvent::DEVLOG_CAP_WARNING_SECONDS %>
+          <%
+            unposted_time = format_hours_minutes(unposted_seconds)
+            over_cap = unposted_seconds > Post::ShipEvent::MAX_PAYOUT_SECONDS_PER_DEVLOG
+          %>
+          <p class="<%= class_names("project-show__devlog-cap-warning", "project-show__devlog-cap-warning--over" => over_cap) %>">
+            <%= inline_svg_tag "icons/warning.svg", class: "project-show__devlog-cap-warning-icon", aria: { hidden: true } %>
+            <% if over_cap %>
+              <span>You have <strong><%= unposted_time %></strong> without a devlog- only <%= Post::ShipEvent::MAX_PAYOUT_HOURS_PER_DEVLOG %>h of it can count toward your ship payout. Post a devlog now so you don't lose more!</span>
+            <% else %>
+              <span>You have <strong><%= unposted_time %></strong> without a devlog. Only <%= Post::ShipEvent::MAX_PAYOUT_HOURS_PER_DEVLOG %>h per devlog counts toward your ship payout- post one soon!</span>
+            <% end %>
+          </p>
+        <% end %>
       <% else %>
         <nav class="project-show__actions" aria-label="Project actions">
           <% if Flipper.enabled?(:hardware_flow, current_user) && @project.hardware? && !Flipper.enabled?(:lookout, current_user) %>
@@ -769,7 +783,7 @@
             </p>
           <% elsif @project.hackatime_keys.present? %>
             <p class="project-show__onboarding-header-body">
-              Once you have 15 minutes of <%= time_kind %> time, come back and write your first devlog!
+              Once you have 15 minutes of <%= time_kind %> time, come back and write your first devlog! Keep posting devlogs as you build- only up to <%= Post::ShipEvent::MAX_PAYOUT_HOURS_PER_DEVLOG %> hours per devlog counts toward your payout when you ship.
             </p>
           <% elsif @all_hackatime_projects.present? %>
             <p class="project-show__onboarding-header-body">

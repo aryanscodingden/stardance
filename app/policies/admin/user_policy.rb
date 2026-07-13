@@ -73,6 +73,10 @@ class Admin::UserPolicy < ApplicationPolicy
     user&.admin? || user&.fraud_dept? || user&.fulfillment_person? || user&.shop_manager?
   end
 
+  def view_rejection_reason?
+    view_order_full_details? || user&.helper?
+  end
+
   def view_usd_cost?
     user&.admin? || user&.fulfillment_person? || user&.shop_manager?
   end

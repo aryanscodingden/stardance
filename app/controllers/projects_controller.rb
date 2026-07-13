@@ -134,21 +134,6 @@ class ProjectsController < ApplicationController
       []
     end
 
-    @show_project_tour = params[:welcome] == "1" && current_user.present? && @is_member &&
-                         current_user.projects.count == 1 && !session[:project_tour_seen]
-
-    session[:project_tour_seen] = true if @show_project_tour
-
-    # Drives the post-Hackatime-link onboarding overlay: the user linked
-    # Hackatime at the account level, this is their first/only project, but
-    # they haven't attached a Hackatime project to it yet. Stateful (no
-    # session flag) so it keeps prompting until the user links a project.
-    @show_first_hackatime_tour = current_user.present? && @is_member &&
-                                 @hackatime_linked &&
-                                 current_user.projects.count == 1 &&
-                                 @project.hackatime_keys.blank? &&
-                                 !@show_project_tour
-
     if current_user
       devlog_ids = @posts.select { |p| p.postable_type == "Post::Devlog" }.map(&:postable_id)
       @liked_devlog_ids = Like.where(user: current_user, likeable_type: "Post::Devlog", likeable_id: devlog_ids).pluck(:likeable_id).to_set

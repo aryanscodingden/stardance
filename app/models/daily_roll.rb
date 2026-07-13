@@ -162,4 +162,10 @@ class DailyRoll < ApplicationRecord
     number = rolled_on < LAUNCH_ON ? -1 : (rolled_on - LAUNCH_ON).to_i + 1
     "day #{number}"
   end
+
+  def self.topped_a_day(user)
+    where(user: user)
+      .where(rolled_on: (Date.new(2026, 7, 1)...(Date.current - 1)))
+      .any? { |roll| roll.rank == 1 }
+  end
 end

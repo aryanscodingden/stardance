@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_30_165531) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_08_183407) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -153,6 +153,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_30_165531) do
     t.index ["creator_id"], name: "index_blazer_queries_on_creator_id"
   end
 
+  create_table "certificates", force: :cascade do |t|
+    t.string "code", null: false
+    t.datetime "created_at", null: false
+    t.float "hours_at_issue", null: false
+    t.string "name", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["code"], name: "index_certificates_on_code", unique: true
+    t.index ["user_id"], name: "index_certificates_on_user_id", unique: true
+  end
+
   create_table "certification_devlog_reviews", force: :cascade do |t|
     t.integer "approved_minutes"
     t.datetime "created_at", null: false
@@ -193,15 +205,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_30_165531) do
     t.index ["user_id"], name: "index_certification_funding_requests_on_user_id"
   end
 
+  create_table "certification_integrities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "decision_justification"
+    t.integer "deduction_minutes"
+    t.integer "flags", default: 0, null: false
+    t.jsonb "fraud_detection_data"
+    t.datetime "reviewed_at"
+    t.bigint "reviewer_id"
+    t.bigint "ship_event_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["reviewer_id"], name: "index_certification_integrities_on_reviewer_id"
+    t.index ["ship_event_id"], name: "index_certification_integrities_on_ship_event_id", unique: true
+    t.index ["status"], name: "index_certification_integrities_on_status"
+  end
+
   create_table "certification_ship_reviews", force: :cascade do |t|
     t.datetime "claim_expires_at"
     t.datetime "claimed_at"
     t.datetime "created_at", null: false
     t.datetime "decided_at"
+    t.string "external_certification_id"
     t.text "feedback"
     t.text "internal_reason"
     t.integer "lock_version", default: 0, null: false
+    t.bigint "post_ship_event_id"
     t.bigint "project_id", null: false
+    t.string "proof_video_url"
     t.text "recert_reason"
     t.bigint "returned_by_id"
     t.bigint "reviewer_id"
@@ -209,6 +240,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_30_165531) do
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["decided_at"], name: "index_certification_ship_reviews_on_decided_at"
+    t.index ["external_certification_id"], name: "index_certification_ship_reviews_on_external_certification_id", unique: true
+    t.index ["post_ship_event_id"], name: "index_certification_ship_reviews_on_post_ship_event_id"
     t.index ["project_id"], name: "index_ship_reviews_unique_pending_project", unique: true, where: "(status = 0)"
     t.index ["reviewer_id"], name: "index_certification_ship_reviews_on_reviewer_id"
     t.index ["status", "claim_expires_at"], name: "idx_on_status_claim_expires_at_c7a5e87a52"
@@ -217,6 +250,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_30_165531) do
   create_table "certification_ysws_reviews", force: :cascade do |t|
     t.datetime "airtable_synced_at", precision: nil
     t.integer "approved_minutes"
+    t.datetime "claimed_at"
+    t.bigint "claimed_by_id"
     t.datetime "created_at", null: false
     t.datetime "demo_checked_at", precision: nil
     t.string "in_unified_db"
@@ -233,6 +268,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_30_165531) do
     t.text "summary_justification"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["claimed_by_id"], name: "index_certification_ysws_reviews_on_claimed_by_id"
     t.index ["post_ship_event_id"], name: "index_certification_ysws_reviews_on_post_ship_event_id"
     t.index ["project_id"], name: "index_certification_ysws_reviews_on_project_id"
     t.index ["reviewer_id"], name: "index_certification_ysws_reviews_on_reviewer_id"
@@ -1494,17 +1530,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_30_165531) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "certificates", "users"
   add_foreign_key "certification_devlog_reviews", "certification_ysws_reviews", column: "ysws_review_id"
   add_foreign_key "certification_devlog_reviews", "post_devlogs"
   add_foreign_key "certification_funding_requests", "projects"
   add_foreign_key "certification_funding_requests", "users"
   add_foreign_key "certification_funding_requests", "users", column: "reviewer_id"
+  add_foreign_key "certification_integrities", "post_ship_events", column: "ship_event_id"
+  add_foreign_key "certification_integrities", "users", column: "reviewer_id"
+  add_foreign_key "certification_ship_reviews", "post_ship_events", on_delete: :nullify
   add_foreign_key "certification_ship_reviews", "projects"
   add_foreign_key "certification_ship_reviews", "users", column: "reviewer_id"
   add_foreign_key "certification_ysws_reviews", "certification_ship_reviews", column: "ship_cert_id"
   add_foreign_key "certification_ysws_reviews", "post_ship_events"
   add_foreign_key "certification_ysws_reviews", "projects"
   add_foreign_key "certification_ysws_reviews", "users"
+  add_foreign_key "certification_ysws_reviews", "users", column: "claimed_by_id"
   add_foreign_key "certification_ysws_reviews", "users", column: "reviewer_id"
   add_foreign_key "certification_ysws_reviews", "users", column: "spotchecked_by_id"
   add_foreign_key "comments", "users"

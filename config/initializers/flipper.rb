@@ -43,6 +43,8 @@ Rails.application.config.after_initialize do
         lookout
         payout_recommendations
         hardware_to_outpost
+        disable_internal_sw_dash_reviews
+        sharable_purchase
       ].each { |flag| Flipper.add(flag) }
     end
   rescue StandardError => e

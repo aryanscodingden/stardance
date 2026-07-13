@@ -154,19 +154,18 @@
               <span class="aorder__row-value"><%= @order.fulfilled_by %></span>
             </div>
           <% end %>
-        <% else %><%# view_order_full_details? %>
-          <% if @order.rejection_reason.present? %>
-            <div class="aorder__row">
-              <span class="aorder__row-label">Rejection reason</span>
-              <span class="aorder__row-value" style="color:#f87171;"><%= @order.rejection_reason %></span>
-            </div>
-          <% end %>
-          <% if @order.internal_rejection_reason.present? %>
-            <div class="aorder__row">
-              <span class="aorder__row-label">Internal reason</span>
-              <span class="aorder__row-value" style="color:#f87171;"><%= @order.internal_rejection_reason %></span>
-            </div>
-          <% end %>
+        <% end %>
+        <% if @order.rejection_reason.present? && policy(current_user).view_rejection_reason? %>
+          <div class="aorder__row">
+            <span class="aorder__row-label">Rejection reason</span>
+            <span class="aorder__row-value" style="color:#f87171;"><%= @order.rejection_reason %></span>
+          </div>
+        <% end %>
+        <% if @order.internal_rejection_reason.present? && policy(current_user).view_order_full_details? %>
+          <div class="aorder__row">
+            <span class="aorder__row-label">Internal reason</span>
+            <span class="aorder__row-value" style="color:#f87171;"><%= @order.internal_rejection_reason %></span>
+          </div>
         <% end %>
       </div>
     </div>

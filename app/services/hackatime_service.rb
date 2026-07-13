@@ -22,6 +22,30 @@ class HackatimeService
       nil
     end
 
+    def lookup_user_id_by_email(email)
+      return nil if email.blank?
+
+      response = admin_connection.post("user/get_user_by_email") do |req|
+        req.headers["Authorization"] = "Bearer #{ENV["HACKATIME_ADMIN_KEY"]}"
+        req.body = { email: email }.to_json
+      end
+
+      if response.success?
+        JSON.parse(response.body)["user_id"]
+      elsif response.status == 404
+        nil # email not known to Hackatime
+      else
+        Rails.logger.error "HackatimeService get_user_by_email error: #{response.status}"
+        nil
+      end
+    rescue Faraday::TimeoutError, Faraday::ConnectionFailed => e
+      Rails.logger.error "HackatimeService get_user_by_email timeout: #{e.message}"
+      nil
+    rescue => e
+      Rails.logger.error "HackatimeService get_user_by_email exception: #{e.message}"
+      nil
+    end
+
     def fetch_stats(hackatime_uid, start_date: START_DATE, end_date: nil, access_token: nil)
       params = { features: "projects", start_date: start_date, test_param: true, no_ai_coding: false, _t: Time.now.to_i }
       params[:end_date] = end_date if end_date
@@ -220,6 +244,16 @@ class HackatimeService
         key = fetch_api_key(access_token)
         Rails.cache.write(cache_key, key, expires_in: 1.week) if key.present?
         key
+      end
+
+      # Admin endpoints live under a different path prefix than the public API.
+      def admin_connection
+        @admin_connection ||= Faraday.new(url: "#{BASE_URL}/api/admin/v1") do |conn|
+          conn.options.open_timeout = 10
+          conn.options.timeout = 15
+          conn.headers["Content-Type"] = "application/json"
+          conn.headers["User-Agent"] = Rails.application.config.user_agent
+        end
       end
 
       def connection

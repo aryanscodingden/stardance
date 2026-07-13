@@ -2,31 +2,37 @@
 #
 # Table name: certification_ship_reviews
 #
-#  id               :bigint           not null, primary key
-#  claim_expires_at :datetime
-#  claimed_at       :datetime
-#  decided_at       :datetime
-#  feedback         :text
-#  internal_reason  :text
-#  lock_version     :integer          default(0), not null
-#  recert_reason    :text
-#  stardust_earned  :float
-#  status           :integer          default("pending"), not null
-#  created_at       :datetime         not null
-#  updated_at       :datetime         not null
-#  project_id       :bigint           not null
-#  returned_by_id   :bigint
-#  reviewer_id      :bigint
+#  id                        :bigint           not null, primary key
+#  claim_expires_at          :datetime
+#  claimed_at                :datetime
+#  decided_at                :datetime
+#  feedback                  :text
+#  internal_reason           :text
+#  lock_version              :integer          default(0), not null
+#  proof_video_url           :string
+#  recert_reason             :text
+#  stardust_earned           :float
+#  status                    :integer          default("pending"), not null
+#  created_at                :datetime         not null
+#  updated_at                :datetime         not null
+#  external_certification_id :string
+#  post_ship_event_id        :bigint
+#  project_id                :bigint           not null
+#  returned_by_id            :bigint
+#  reviewer_id               :bigint
 #
 # Indexes
 #
-#  idx_on_status_claim_expires_at_c7a5e87a52        (status,claim_expires_at)
-#  index_certification_ship_reviews_on_decided_at   (decided_at)
-#  index_certification_ship_reviews_on_reviewer_id  (reviewer_id)
-#  index_ship_reviews_unique_pending_project        (project_id) UNIQUE WHERE (status = 0)
+#  idx_on_status_claim_expires_at_c7a5e87a52                      (status,claim_expires_at)
+#  index_certification_ship_reviews_on_decided_at                 (decided_at)
+#  index_certification_ship_reviews_on_external_certification_id  (external_certification_id) UNIQUE
+#  index_certification_ship_reviews_on_post_ship_event_id         (post_ship_event_id)
+#  index_certification_ship_reviews_on_reviewer_id                (reviewer_id)
+#  index_ship_reviews_unique_pending_project                      (project_id) UNIQUE WHERE (status = 0)
 #
 # Foreign Keys
 #
+#  fk_rails_...  (post_ship_event_id => post_ship_events.id) ON DELETE => nullify
 #  fk_rails_...  (project_id => projects.id)
 #  fk_rails_...  (reviewer_id => users.id)
 #
@@ -43,6 +49,7 @@ module Certification
                foreign_key: :project_id, optional: true
     belongs_to :reviewer, class_name: "User", optional: true
     belongs_to :returned_by, class_name: "User", optional: true
+    belongs_to :post_ship_event, class_name: "Post::ShipEvent", optional: true
 
     has_paper_trail
 
@@ -57,7 +64,11 @@ module Certification
     end
 
     def owner
-      @owner ||= project.memberships.owner.first&.user
+      @owner ||= project.memberships.owner.order(:created_at).first&.user
+    end
+
+    def verdict_ship_event
+      post_ship_event || project&.last_ship_event
     end
 
     enum :status, {
@@ -65,6 +76,40 @@ module Certification
       approved: 1,
       returned: 2
     }, default: :pending
+
+    EXTERNAL_DECISION_MAP = { "APPROVED" => :approved, "REJECTED" => :returned }.freeze
+    EXTERNAL_CERTIFICATION_ID_PATTERN = /\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\z/
+    PROOF_VIDEO_URL_MAX_LENGTH = 2_048
+    PROOF_VIDEO_URL_PATTERN = %r{\Ahttps?://\S+\z}
+
+    def assign_external_certification_id!(cert_id)
+      cert_id = cert_id.to_s
+      return :skipped if cert_id.blank?
+      return :skipped unless cert_id.match?(EXTERNAL_CERTIFICATION_ID_PATTERN)
+      return :skipped if external_certification_id.present?
+
+      update!(external_certification_id: cert_id)
+      :persisted
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
+      restore_attributes([ :external_certification_id ])
+      :skipped
+    end
+
+    def transfer_external_certification_id_to!(other)
+      return false if external_certification_id.blank?
+      return false if other.external_certification_id.present?
+
+      uuid = external_certification_id
+      transaction do
+        update!(external_certification_id: nil)
+        other.update!(external_certification_id: uuid)
+      end
+      true
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
+      reload
+      other.reload
+      false
+    end
 
     ACCEPTED_VIDEO_TYPES = %w[video/mp4 video/webm video/quicktime].freeze
 
@@ -94,6 +139,9 @@ module Certification
     ].freeze
 
     validates :feedback, length: { maximum: 10_000 }, allow_blank: true
+    validates :proof_video_url, length: { maximum: PROOF_VIDEO_URL_MAX_LENGTH },
+                                format: { with: PROOF_VIDEO_URL_PATTERN, message: "must be an http(s) URL" },
+                                allow_blank: true
     validates :verdict_video,
               content_type: { in: ACCEPTED_VIDEO_TYPES, spoofing_protection: true }
 
@@ -295,46 +343,34 @@ module Certification
       }
     end
 
-    # How many reviews this reviewer has decided today. Drives the momentum
-    # counter on the review page, so it's scoped to the user, not the queue.
-    def self.reviewed_today(user, now: Time.current)
-      where(reviewer_id: user.id)
+    def self.decided_today_count(reviewer_id, now: Time.current)
+      where(reviewer_id: reviewer_id)
         .where.not(status: :pending)
         .where(decided_at: now.beginning_of_day..)
         .count
     end
 
-    def self.rank_for_reviewer_with_count(reviewer_id, new_count, now: Time.current)
-      other_counts = where.not(reviewer_id: [ nil, reviewer_id ])
-                       .where.not(status: :pending)
-                       .where(decided_at: now.beginning_of_day..)
-                       .joins(:reviewer)
-                       .group(:reviewer_id, "users.display_name")
-                       .order(Arel.sql("COUNT(*) DESC"), Arel.sql("users.display_name ASC"))
-                       .count
-
-      reviewer_name = where(reviewer_id: reviewer_id)
-                       .joins(:reviewer)
-                       .where(decided_at: now.beginning_of_day..)
-                       .where.not(status: :pending)
-                       .pick("users.display_name") || ""
-
-      list = other_counts.map { |(rid, name), count| { id: rid, name: name, count: count } }
-      list << { id: reviewer_id, name: reviewer_name, count: new_count }
-
-      sorted = list.sort_by { |item| [ -item[:count], item[:name] || "" ] }
-
-      index = sorted.index { |item| item[:id] == reviewer_id }
-      index ? index + 1 : 1
+    def self.reviewed_today(user, now: Time.current)
+      decided_today_count(user.id, now: now)
     end
 
-    def self.multiplier_for_rank(rank)
-      case rank
-      when 1 then 1.75
-      when 2 then 1.5
-      when 3 then 1.25
-      else 1.0
-      end
+    MILESTONE_TIERS = [
+      { min: 40, multiplier: 2.0 },
+      { min: 20, multiplier: 1.75 },
+      { min: 10, multiplier: 1.5 },
+      { min: 5,  multiplier: 1.25 },
+      { min: 0,  multiplier: 1.0 }
+    ].freeze
+
+    def self.multiplier_for_milestone(total_count)
+      MILESTONE_TIERS.find { |t| total_count >= t[:min] }&.dig(:multiplier) || 1.0
+    end
+
+    def self.next_milestone(total_count)
+      thresholds = MILESTONE_TIERS.map { |t| t[:min] }.reject(&:zero?).sort
+      next_thresh = thresholds.find { |t| t > total_count }
+      return nil if next_thresh.nil?
+      { threshold: next_thresh, multiplier: multiplier_for_milestone(next_thresh), reviews_needed: next_thresh - total_count }
     end
 
     def self.median_value(sorted)
@@ -360,13 +396,8 @@ module Certification
     private
 
     def assign_stardust_earned
-      now = Time.current
-      my_count = Certification::Ship.where(reviewer_id: reviewer_id)
-                                    .where.not(status: :pending)
-                                    .where(decided_at: now.beginning_of_day..)
-                                    .count
-      rank = Certification::Ship.rank_for_reviewer_with_count(reviewer_id, my_count + 1, now: now)
-      multiplier = Certification::Ship.multiplier_for_rank(rank)
+      total_count = Certification::Ship.decided_today_count(reviewer_id) + 1
+      multiplier = Certification::Ship.multiplier_for_milestone(total_count)
       self.stardust_earned = REVIEW_BOUNTY * multiplier
     end
 
@@ -381,17 +412,23 @@ module Certification
     def apply_verdict_to_project!
       return if pending?
       project.with_lock do
-        project.start_review! if project.may_start_review?
+        ship_event = verdict_ship_event
+        latest = ship_event.nil? || ship_event == project.last_ship_event
+
         case status.to_sym
         when :approved
-          project.approve! if project.may_approve?
-          ship_event = project.last_ship_event
           ship_event&.update!(certification_status: "approved")
+          if latest
+            project.start_review! if project.may_start_review?
+            project.approve! if project.may_approve?
+          end
           create_ysws_review_for_ship(ship_event) if ship_event
         when :returned
-          project.return_for_changes! if project.may_return_for_changes?
-          ship_event = project.last_ship_event
           ship_event&.update!(certification_status: "returned")
+          if latest
+            project.start_review! if project.may_start_review?
+            project.return_for_changes! if project.may_return_for_changes?
+          end
         end
       end
     end
@@ -430,7 +467,11 @@ module Certification
         project_title: project.title,
         project_url: routes.project_url(project, **url_opts),
         feedback: feedback.to_s,
-        video_url: verdict_video.attached? ? routes.rails_blob_url(verdict_video, **url_opts) : nil
+        video_url: if verdict_video.attached?
+                     routes.rails_blob_url(verdict_video, **url_opts)
+                   else
+                     proof_video_url.presence
+                   end
       }
 
       case status.to_sym

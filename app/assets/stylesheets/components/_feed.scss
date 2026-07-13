@@ -1,3 +1,5 @@
+@use "../config/mixins" as *;
+
 .feed-tabs {
   display: flex;
   gap: var(--space-xs);
@@ -599,6 +601,19 @@
     &:hover {
       opacity: 0.75;
     }
+  }
+
+  // Warning mark next to the over-cap time preview; the tooltip explains the
+  // per-devlog payout cap. Same warn-badge look as .idv-badge.
+  &__cap-help {
+    @include warn-badge;
+
+    cursor: help;
+    flex-shrink: 0;
+  }
+
+  &__cap-help-icon {
+    @include warn-badge-icon;
   }
 
   &--dragover {

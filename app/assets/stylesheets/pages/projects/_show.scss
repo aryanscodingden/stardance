@@ -865,6 +865,47 @@ turbo-frame#project_hero {
   }
 }
 
+// Nudge shown under the action row when un-devlogged Hackatime time nears the
+// per-devlog payout cap (Post::ShipEvent::DEVLOG_CAP_WARNING_SECONDS).
+.project-show__devlog-cap-warning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: var(--space-xs) 0 0;
+  padding: 10px 14px;
+  border: 1px solid
+    color-mix(in srgb, var(--color-brand-yellow) 55%, transparent);
+  border-radius: 12px;
+  background: color-mix(
+    in srgb,
+    var(--color-brand-yellow) 14%,
+    var(--color-set-2-bg)
+  );
+  color: var(--color-brand-cream);
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+
+.project-show__devlog-cap-warning--over {
+  border-color: color-mix(in srgb, var(--color-brand-salmon) 55%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--color-brand-salmon) 14%,
+    var(--color-set-2-bg)
+  );
+}
+
+.project-show__devlog-cap-warning-icon {
+  flex-shrink: 0;
+  width: 1.25em;
+  height: 1.25em;
+  fill: var(--color-brand-yellow);
+}
+
+.project-show__devlog-cap-warning--over .project-show__devlog-cap-warning-icon {
+  fill: var(--color-brand-salmon);
+}
+
 // "Add 15min (test)" button. Pulled out of the actions row and pinned to the
 // bottom-right corner of the viewport so it stays out of the main flow.
 .project-show__test-time-form {
