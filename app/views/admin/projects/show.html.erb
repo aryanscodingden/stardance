@@ -90,7 +90,7 @@
                 <small class="admin-user-show__muted">(<%= link_to hp.user.display_name, admin_user_path(hp.user) %>)</small>
                 <% if (hackatime_uid = hp.user.identities.find { |i| i.provider == "hackatime" }&.uid) %>
                   <%= link_to "Joe ↗",
-                        "https://joe.fraud.hackclub.com/overview?u=#{hackatime_uid}&d=#{@project.created_at.strftime("%Y-%m-%d")}&projects=#{ERB::Util.url_encode(hp.name)}",
+                        "https://joe.fraud.hackclub.com/billy/overview?u=#{hackatime_uid}&d=#{@project.created_at.strftime("%Y-%m-%d")}&projects=#{ERB::Util.url_encode(hp.name)}",
                         target: "_blank", rel: "noopener noreferrer", class: "admin-fraud-link" %>
                 <% end %>
               </li>
