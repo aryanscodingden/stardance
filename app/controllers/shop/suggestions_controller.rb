@@ -4,11 +4,11 @@ class Shop::SuggestionsController < Shop::BaseController
   def index
     authorize ShopSuggestion
     @new_suggestions = ShopSuggestion.kept.pending.includes(:user, :shop_suggestion_votes).order(created_at: :desc).limit(6)
-    @suggestions = ShopSuggestion
-      .kept
-      .pending
-      .includes(:user, :shop_suggestion_votes)
-      .sort_by { |s| [ -s.vote_count, -s.id ] }
+    @suggestions = ShopSuggestion.kept.pending
+      .left_joins(:shop_suggestion_votes)
+      .select("shop_suggestions.*, COUNT(shop_suggestion_votes.id) AS vote_count")
+      .includes(:user)
+      .group("shop_suggestions.id").order(Arel.sql("vote_count DESC, shop_suggestions.id DESC"))
   end
 
   def history
