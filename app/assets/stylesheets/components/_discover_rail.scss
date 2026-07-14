@@ -189,6 +189,23 @@
   gap: 11px;
 }
 
+.discover-rail__heading-row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.discover-rail__heading-link {
+  color: var(--color-space-text-muted);
+  font-family: var(--font-family-text);
+  font-size: var(--font-size-xs);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-space-text);
+  }
+}
+
 .discover-rail__heading {
   color: var(--color-space-text);
   font-family: var(--font-family-text);
