@@ -107,6 +107,7 @@ class Project < ApplicationRecord
   has_many :reports, class_name: "Project::Report", dependent: :destroy
   has_many :ship_reviews, class_name: "Certification::Ship", dependent: :restrict_with_exception
   has_many :certification_funding_requests, class_name: "Certification::FundingRequest", dependent: :destroy
+  has_many :integrity_checks, through: :ship_events, source: :integrity_check
   has_many :skips, class_name: "Project::Skip", dependent: :destroy
   has_many :project_follows, dependent: :destroy
   has_many :followers, through: :project_follows, source: :user
@@ -390,6 +391,13 @@ class Project < ApplicationRecord
     )
   end
 
+  # Where the current devlog window opened: the previous devlog, or for the
+  # first devlog the earlier of project creation and season start.
+  def devlog_window_start(at)
+    previous_devlog = devlogs.where("post_devlogs.created_at < ?", at).order("post_devlogs.created_at desc").first
+    previous_devlog&.created_at || [ created_at, Date.parse(HackatimeService::START_DATE).beginning_of_day ].min
+  end
+
   aasm column: :ship_status do
     state :draft, initial: true
     state :submitted
@@ -418,7 +426,7 @@ class Project < ApplicationRecord
     end
 
     event :return_for_changes do
-      transitions from: :under_review, to: :needs_changes
+      transitions from: [ :under_review, :approved ], to: :needs_changes
     end
 
     event :resubmit_for_review do
@@ -711,17 +719,16 @@ class Project < ApplicationRecord
     response.code.to_i
   end
 
-  def devlog_window_start(at)
-    previous_devlog = devlogs.where("post_devlogs.created_at < ?", at).order("post_devlogs.created_at desc").first
-    previous_devlog&.created_at || [ created_at, Date.parse(HackatimeService::START_DATE).beginning_of_day ].min
-  end
-
   def previous_ship_event_has_payout?
     return true if last_ship_event.nil?
     return true if last_ship_event.payout.present?
+    # Only an approved ship that is still awaiting its payout should block the
+    # next ship. A ship that's pending, returned for changes, or rejected isn't
+    # a "previous ship awaiting payout" — it's the one currently being
+    # (re-)certified, so it must not block re-certification.
+    return true unless last_ship_event.certification_status == "approved"
     sub = last_ship_event.mission_submission
     return true if sub&.payout_path == "static_prize"
-    return true if sub&.rejected?
     false
   end
 

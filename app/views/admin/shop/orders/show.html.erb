@@ -20,7 +20,7 @@
 
   pipeline = [
     { label: "Placed",        sublabel: "Order received" },
-    { label: "Verification",  sublabel: "Identity check" },
+    { label: "Fraud Check",   sublabel: "Fraud Check" },
     { label: "Fulfillment",   sublabel: "Processing" },
     { label: "Done",          sublabel: s == "rejected" ? "Rejected" : s == "refunded" ? "Refunded" : "Fulfilled" }
   ]
@@ -67,7 +67,7 @@
         <span class="aorder__step-label"><%= step[:label] %></span>
         <span class="aorder__step-sublabel">
           <% if i == step_idx && s == "awaiting_verification_call" %>Verification Call
-          <% elsif i == step_idx && s == "awaiting_verification" %>Identity Check
+          <% elsif i == step_idx && s == "awaiting_verification" %>Fraud Check
           <% elsif i == step_idx && s == "on_hold" %><%= policy(@order).view_on_hold_state? ? "On Hold" : "Pending" %>
           <% else %><%= step[:sublabel] %>
           <% end %>
@@ -154,19 +154,18 @@
               <span class="aorder__row-value"><%= @order.fulfilled_by %></span>
             </div>
           <% end %>
-        <% else %><%# view_order_full_details? %>
-          <% if @order.rejection_reason.present? %>
-            <div class="aorder__row">
-              <span class="aorder__row-label">Rejection reason</span>
-              <span class="aorder__row-value" style="color:#f87171;"><%= @order.rejection_reason %></span>
-            </div>
-          <% end %>
-          <% if @order.internal_rejection_reason.present? %>
-            <div class="aorder__row">
-              <span class="aorder__row-label">Internal reason</span>
-              <span class="aorder__row-value" style="color:#f87171;"><%= @order.internal_rejection_reason %></span>
-            </div>
-          <% end %>
+        <% end %>
+        <% if @order.rejection_reason.present? && policy(current_user).view_rejection_reason? %>
+          <div class="aorder__row">
+            <span class="aorder__row-label">Rejection reason</span>
+            <span class="aorder__row-value" style="color:#f87171;"><%= @order.rejection_reason %></span>
+          </div>
+        <% end %>
+        <% if @order.internal_rejection_reason.present? && policy(current_user).view_order_full_details? %>
+          <div class="aorder__row">
+            <span class="aorder__row-label">Internal reason</span>
+            <span class="aorder__row-value" style="color:#f87171;"><%= @order.internal_rejection_reason %></span>
+          </div>
         <% end %>
       </div>
     </div>
@@ -255,6 +254,27 @@
             </div>
           </details>
         <% end %>
+        <% if @user_projects.present? %>
+          <% joe_hackatime = @order.user.identities.find { |i| i.provider == "hackatime" } %>
+          <details style="margin-top: var(--space-s);">
+            <summary style="cursor:pointer; font-size: var(--font-size-xs); color: var(--color-space-text-muted); font-family: var(--font-family-text);">▸ Projects (<%= @user_projects.size %>)</summary>
+            <div style="margin-top: var(--space-xs);">
+              <% @user_projects.each do |project| %>
+                <div class="aorder__history-item">
+                  <%= link_to truncate(project.title, length: 30), admin_project_path(project) %>
+                  <% if project.deleted? %>
+                    <span style="font-size:10px; color: var(--color-space-text-muted);">(deleted)</span>
+                  <% end %>
+                  <% if joe_hackatime %>
+                    <% project.hackatime_projects.select { |hp| hp.user_id == @order.user.id }.each do |hp| %>
+                      <%= link_to "Joe (#{hp.name})", "https://joe.fraud.hackclub.com/billy/overview?u=#{joe_hackatime.uid}&project=#{CGI.escape(hp.name)}", target: "_blank", class: "aorder__fraud-btn" %>
+                    <% end %>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </details>
+        <% end %>
       </div>
     </div>
 
@@ -310,7 +330,7 @@
             <% end %>
           </span>
         </div>
-        <% if policy(current_user).view_order_full_details? %>
+        <% if policy(current_user).view_usd_cost? %>
           <% regional_usd_offset = @order.region.present? ? (item.send("usd_offset_#{@order.region.downcase}") || item.send("usd_offset_xx") || 0) : 0 %>
           <div class="aorder__row">
             <span class="aorder__row-label">USD cost</span>

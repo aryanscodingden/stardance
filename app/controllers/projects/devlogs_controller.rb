@@ -230,9 +230,7 @@ class Projects::DevlogsController < ApplicationController
   end
 
   def format_preview_time(seconds)
-    hours = seconds / 3600
-    minutes = (seconds % 3600) / 60
-    "#{hours}h #{minutes}m"
+    helpers.format_hours_minutes(seconds)
   end
 
   def test_time_granted?

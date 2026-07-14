@@ -175,3 +175,9 @@
                 hidden: true %>
   </section>
 </main>
+
+<%# Hardware moved to Outpost — once this timelapse finishes, the capture
+    controller pops this notice (rendered only for hardware projects). %>
+<% if @project.hardware? && Flipper.enabled?(:hardware_to_outpost, current_user) %>
+  <%= render "projects/hardware_outpost_modal" %>
+<% end %>

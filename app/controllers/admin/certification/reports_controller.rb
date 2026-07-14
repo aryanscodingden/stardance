@@ -40,6 +40,12 @@ class Admin::Certification::ReportsController < Admin::Certification::Applicatio
           hash[version.item_id.to_i] = :auto
         end
       end
+
+      @report_groups = @reports
+        .group_by(&:project_id)
+        .values
+        .map { |reports| reports.sort_by(&:created_at) }
+        .sort_by { |reports| [ -reports.size, reports.first.created_at ] }
     end
 
     def show
@@ -54,12 +60,6 @@ class Admin::Certification::ReportsController < Admin::Certification::Applicatio
     def dismiss
       authorize @report
       update_status(:dismissed, "Report dismissed")
-    end
-
-    def process_demo_broken
-      authorize ::Project::Report
-      ProcessDemoBrokenReportsJob.perform_later
-      redirect_to admin_certification_reports_path, notice: "Demo broken reports processing job has been queued"
     end
 
     private

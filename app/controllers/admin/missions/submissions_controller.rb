@@ -120,7 +120,12 @@ module Admin
         end
         skip_ids = parse_skip_ids
 
-        candidate = Mission::Submission.next_eligible(current_user, mission: @mission, skip_ids: skip_ids)
+        missions_filter = if @mission
+          @mission
+        elsif !global_reviewer?
+          current_user.mission_memberships.select(:mission_id)
+        end
+        candidate = Mission::Submission.next_eligible(current_user, missions: missions_filter, skip_ids: skip_ids)
         unless candidate
           redirect_to admin_mission_submissions_path(mission_slug),
                       notice: "No more submissions to review." and return
@@ -182,10 +187,10 @@ module Admin
         mission.memberships.exists?(user_id: current_user.id)
       end
 
-      # Admins, helpers, and global mission reviewers can review any mission;
-      # everyone else is scoped to missions they're a member of.
+      # Admins and global mission reviewers can review any mission; everyone
+      # else (helpers included) is scoped to missions they're a member of.
       def global_reviewer?
-        current_user.admin? || current_user.has_role?(:helper) || current_user.has_role?(:mission_reviewer)
+        current_user.admin? || current_user.has_role?(:mission_reviewer)
       end
 
       def set_submission

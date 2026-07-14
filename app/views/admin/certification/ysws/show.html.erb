@@ -3,7 +3,7 @@
 <main class="certification-ysws" role="main" data-controller="certification--ysws--review-sidebar certification--ysws--fraud-report certification--ysws--media-viewer certification--ysws--complete-review certification--ysws--return-to-ship-cert" data-certification--ysws--fraud-report-review-id-value="<%= @review.id %>" data-certification--ysws--complete-review-review-id-value="<%= @review.id %>" data-certification--ysws--return-to-ship-cert-review-id-value="<%= @review.id %>">
   <!-- Header Section -->
   <div class="review-detail-header">
-    <%= link_to "← back", admin_certification_ysws_reviews_path, class: "btn-back", "aria-label": "Back to review queue" %>
+    <%= link_to "← back", admin_certification_ysws_reviews_path, class: "btn-secondary slim", "aria-label": "Back to review queue" %>
 
     <div class="header-content">
       <div class="header-left">
@@ -79,8 +79,8 @@
       <!-- Ship Cert Video Section -->
       <section class="review-card video-card">
         <h3>Ship Cert Video</h3>
-        <% if @review.ship_cert&.verdict_video&.attached? %>
-          <video class="video-card__player" src="<%= rails_storage_redirect_path(@review.ship_cert.verdict_video) %>"
+        <% if (ship_cert_video_src = certification_verdict_video_src(@review.ship_cert)) %>
+          <video class="video-card__player" src="<%= ship_cert_video_src %>"
                  controls playsinline preload="metadata" style="width:100%;border-radius:var(--profile-radius)"></video>
         <% else %>
           <div class="video-placeholder">
@@ -318,7 +318,7 @@
 
   <div style="height: 25px;"></div>
 
-  <% unless @review.in_unified_db? || @review.returned_at? %>
+  <% unless @review.in_unified_db? || @review.returned_at? || !@review.claimed_by?(current_user) %>
     <!-- Action Buttons Section (Full Width) -->
     <section class="review-card actions-card" data-certification--ysws--review-sidebar-target="actionsCard">
       <div class="checklist-warning">

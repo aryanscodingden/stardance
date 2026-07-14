@@ -33,6 +33,8 @@
 @use "components/guide_content";
 @use "components/guide_code";
 @use "components/currency_icon";
+@use "components/progress_bar";
+@use "components/certificate_widget";
 @use "components/mission_panel";
 @use "components/status_pill";
 @use "components/feed";
@@ -60,6 +62,7 @@
 @use "pages/projects/readme";
 @use "pages/projects/lookout_recorder";
 @use "pages/hardware_funding";
+@use "components/hardware_outpost_modal";
 @use "pages/votes";
 @use "pages/achievements/index" as achievements_index;
 @use "pages/shop/shop";
@@ -71,6 +74,7 @@
 @use "pages/shop/order";
 @use "pages/shop/my_orders";
 @use "pages/shop/suggestions";
+@use "pages/shop/sharable_purchase";
 @use "pages/shop/admin_order_show";
 @use "pages/user/show" as users_show;
 @use "pages/profile_placeholder";

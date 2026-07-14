@@ -299,16 +299,6 @@
     font-variant-numeric: tabular-nums;
   }
 
-  &__rank-mult {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--color-brand-yellow);
-    background: rgba(255, 229, 100, 0.12);
-    padding: 1px 6px;
-    border-radius: 999px;
-    font-variant-numeric: tabular-nums;
-  }
-
   // --- Filters -----------------------------------------------------------
   &__filters {
     display: flex;

@@ -5,4 +5,9 @@ class Home::DiscoverRailsController < ApplicationController
     authorize :home, :index?
     render layout: false
   end
+
+  def certificate
+    authorize :home, :index?
+    render layout: false
+  end
 end

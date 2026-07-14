@@ -84,6 +84,13 @@ module ApplicationHelper
     hours.positive? ? format("%d:%02d:%02d", hours, mins, secs) : format("%d:%02d", mins, secs)
   end
 
+  # ie: 9h 0m. Hour/minute wall format shared by the devlog time preview,
+  # the un-devlogged time banner, and the devlog-cap notification.
+  def format_hours_minutes(seconds)
+    seconds = seconds.to_i
+    "#{seconds / 3600}h #{(seconds % 3600) / 60}m"
+  end
+
   def format_seconds(seconds, include_days: false)
     # ie: 2h 3m 4s
     # ie. 37h 15m (if include_days is false)
@@ -129,6 +136,13 @@ module ApplicationHelper
     nil
   end
 
+  def certification_verdict_video_src(cert)
+    return if cert.nil?
+    return url_for(cert.verdict_video) if cert.verdict_video.attached?
+
+    safe_external_url(cert.proof_video_url)
+  end
+
   def achievement_icon(icon_name, earned: true, **options)
     asset_path = find_achievement_asset(icon_name)
 
@@ -164,16 +178,6 @@ module ApplicationHelper
       end
     end
   end
-
-  def attachment_available?(attachment)
-    blob = attachment&.blob
-    return false unless blob
-
-    blob.service.exist?(blob.key)
-  rescue ActiveStorage::FileNotFoundError, ActiveStorage::IntegrityError, Errno::ENOENT
-    false
-  end
-
 
   def cache_stats
     hits = Thread.current[:cache_hits] || 0

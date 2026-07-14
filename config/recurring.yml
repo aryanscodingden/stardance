@@ -87,6 +87,12 @@ production:
     concurrency: 1
     description: "Recalculate duration_seconds for all projects"
 
+  devlog_cap_warning:
+    class: DevlogCapWarningJob
+    schedule: every hour at minute 40
+    concurrency: 1
+    description: "Notify project owners nearing the per-devlog payout cap on un-devlogged time"
+
   sync_pending_lookout_sessions:
     class: SyncPendingLookoutSessionsJob
     schedule: every 5 minutes
@@ -134,6 +140,12 @@ production:
     schedule: every Friday at 12pm Europe/London
     concurrency: 1
     description: "Calculate weekly fulfillment payouts (3 tickets per fulfilled order)"
+
+  fraud_calculate_payouts:
+    class: Fraud::CalculatePayoutsJob
+    schedule: "0 23 L * * America/New_York"
+    concurrency: 1
+    description: "Calculate monthly fraud squad payouts on the last day of the month at 11pm EST (bracket-based, max 1000 tickets)"
 
   support_vibecheck_est:
     class: SupportVibecheckJob

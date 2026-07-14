@@ -134,9 +134,6 @@
                 <li class="ship-queue__rank">
                   <span class="ship-queue__rank-pos"><%= i + 1 %></span>
                   <span class="ship-queue__rank-name"><%= row[:name] %></span>
-                  <% if period == "daily" && i < 3 %>
-                    <span class="ship-queue__rank-mult"><%= ::Certification::Ship.multiplier_for_rank(i + 1) %>x</span>
-                  <% end %>
                   <span class="ship-queue__rank-count"><%= row[:count] %></span>
                 </li>
               <% end %>

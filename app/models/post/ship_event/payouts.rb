@@ -342,7 +342,7 @@ module Post::ShipEvent::Payouts
       return 0 unless post&.project && post.created_at
 
       devlogs_in_ship_window.pluck("post_devlogs.duration_seconds").sum do |duration_seconds|
-        [ duration_seconds.to_i, Post::ShipEvent::MAX_PAYOUT_HOURS_PER_DEVLOG.hours.to_i ].min
+        [ duration_seconds.to_i, Post::ShipEvent::MAX_PAYOUT_SECONDS_PER_DEVLOG ].min
       end
     end
 

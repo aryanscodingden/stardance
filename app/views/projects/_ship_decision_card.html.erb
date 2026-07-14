@@ -57,11 +57,11 @@
     </section>
   <% end %>
 
-  <% if decision.verdict_video.attached? %>
+  <% if (verdict_video_src = certification_verdict_video_src(decision)) %>
     <section class="feed-post-card__body ship-decision-card__video-section" aria-label="Shipwright walkthrough video">
       <p class="ship-decision-card__video-label">Shipwright walkthrough</p>
       <div class="ship-decision-card__video-frame">
-        <%= video_tag url_for(decision.verdict_video),
+        <%= video_tag verdict_video_src,
                       controls: true,
                       playsinline: true,
                       preload: "metadata",
