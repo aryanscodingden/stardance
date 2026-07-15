@@ -33,16 +33,6 @@ class Mission::Prize < ApplicationRecord
   belongs_to :shop_item
 
   validates :position, presence: true, numericality: { only_integer: true }
-  validate :shop_item_must_be_prize_only
 
   scope :ordered, -> { order(:position, :id) }
-
-  private
-
-  def shop_item_must_be_prize_only
-    return if shop_item.nil?
-    return if shop_item.mission_prize_only?
-
-    errors.add(:shop_item, "must have mission_prize_only set to true")
-  end
 end

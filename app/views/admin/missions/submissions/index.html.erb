@@ -1,0 +1,228 @@
+<% content_for :title, "Review: #{@mission&.name || "All missions"}" %>
+
+<%
+  net_flow = @stats[:decisions_today] - @stats[:new_today]
+  over_target = @stats[:pending] - @stats[:queue_target]
+  status_filter = params[:status].presence || "pending"
+  queue_slug = @mission&.slug || "all"
+%>
+
+<div class="app-layout app-layout--wide"
+     data-controller="missions--queue"
+     data-missions--queue-period-value="daily">
+  <div class="app-layout__main app-layout__main--wide mission-queue">
+    <%= link_to "← all missions", admin_mission_reviews_path, class: "mission-queue__back" %>
+
+    <%# Mission briefing — keeps the reviewer focused on what they're reviewing %>
+    <section class="mission-queue__briefing">
+      <div class="mission-queue__briefing-head">
+        <% if @mission&.icon&.attached? %>
+          <%= image_tag @mission.icon, alt: "", class: "mission-queue__briefing-icon" %>
+        <% end %>
+        <div>
+          <h1 class="mission-queue__briefing-title"><%= @mission&.name || "All missions" %></h1>
+          <% if @mission %>
+            <div class="mission-queue__briefing-chips">
+              <% if @mission.difficulty.present? %>
+                <span class="mission-queue__chip"><%= @mission.difficulty.titleize %></span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+        <%= link_to "Start reviewing", next_admin_mission_submissions_path(queue_slug),
+              class: "action-btn action-btn--large action-btn--primary" %>
+      </div>
+
+      <% if @mission&.submission_guide.present? %>
+        <div class="mission-queue__briefing-rubric">
+          <h2 class="mission-queue__briefing-rubric-title">Submission requirements</h2>
+          <ol class="mission-queue__briefing-criteria">
+            <% @mission.submission_criteria.each do |criterion| %>
+              <li><%= criterion %></li>
+            <% end %>
+          </ol>
+        </div>
+      <% end %>
+    </section>
+
+    <%# Dashboard stats %>
+    <section class="mission-queue__overview">
+      <div class="mission-queue__stats">
+        <div class="mission-queue__progress">
+          <p class="mission-queue__label">Today's progress</p>
+          <div class="mission-queue__progress-headline">
+            <span class="mission-queue__net <%= net_flow >= 0 ? 'is-positive' : 'is-negative' %>">
+              <%= net_flow >= 0 ? "+" : "" %><%= net_flow %>
+            </span>
+            <span class="mission-queue__progress-note">
+              <%= net_flow >= 0 ? "ahead" : "behind" %> &middot;
+              reviewed <%= @stats[:decisions_today] %>, received <%= @stats[:new_today] %> new
+            </span>
+          </div>
+        </div>
+
+        <div class="mission-queue__metrics">
+          <div class="mission-queue__metric">
+            <span class="mission-queue__label">In queue</span>
+            <span class="mission-queue__metric-value <%= over_target > 0 ? 'is-negative' : 'is-positive' %>">
+              <%= @stats[:pending] %>
+            </span>
+            <span class="mission-queue__metric-hint">
+              <%= over_target > 0 ? "#{over_target} over target" : "at target" %>
+            </span>
+          </div>
+
+          <div class="mission-queue__metric">
+            <span class="mission-queue__label">Oldest waiting</span>
+            <% if @stats[:oldest_pending] %>
+              <span class="mission-queue__metric-value is-negative">
+                <%= time_ago_in_words(@stats[:oldest_pending].queue_entered_at) %>
+              </span>
+              <span class="mission-queue__metric-hint">in the queue</span>
+            <% else %>
+              <span class="mission-queue__metric-value">—</span>
+              <span class="mission-queue__metric-hint">queue clear</span>
+            <% end %>
+          </div>
+
+          <div class="mission-queue__metric">
+            <span class="mission-queue__label">Approval rate</span>
+            <span class="mission-queue__metric-value">
+              <%= @stats[:approval_rate] ? "#{@stats[:approval_rate]}%" : "—" %>
+            </span>
+            <span class="mission-queue__metric-hint">all time</span>
+          </div>
+
+          <div class="mission-queue__metric">
+            <span class="mission-queue__label">Reviewed this week</span>
+            <span class="mission-queue__metric-value <%= @stats[:decisions_this_week] >= @stats[:new_this_week] ? 'is-positive' : 'is-negative' %>">
+              <%= @stats[:decisions_this_week] %>
+            </span>
+            <span class="mission-queue__metric-hint"><%= @stats[:new_this_week] %> came in</span>
+          </div>
+
+          <div class="mission-queue__metric">
+            <span class="mission-queue__label">Waiting too long</span>
+            <span class="mission-queue__metric-value <%= @stats[:overdue_pending] > 0 ? 'is-negative' : 'is-positive' %>">
+              <%= @stats[:overdue_pending] %>
+            </span>
+            <span class="mission-queue__metric-hint">past the <%= @stats[:sla_days] %>-day target</span>
+          </div>
+        </div>
+
+        <div class="mission-queue__alltime">
+          <span class="mission-queue__label">All time</span>
+          <span class="mission-queue__tally is-positive"><%= @stats[:approved] %> approved</span>
+          <span class="mission-queue__tally is-negative"><%= @stats[:rejected] %> rejected</span>
+          <span class="mission-queue__tally"><%= @stats[:decided] %> reviewed</span>
+        </div>
+      </div>
+
+      <div class="mission-queue__leaderboard">
+        <div class="mission-queue__leaderboard-head">
+          <h2>Leaderboard</h2>
+          <div class="mission-queue__tabs" role="tablist">
+            <% %w[daily weekly alltime].each do |period| %>
+              <button type="button"
+                      class="mission-queue__tab <%= 'is-active' if period == 'daily' %>"
+                      data-missions--queue-target="tab"
+                      data-period="<%= period %>"
+                      data-action="missions--queue#switch">
+                <%= period == "alltime" ? "All time" : period.capitalize %>
+              </button>
+            <% end %>
+          </div>
+        </div>
+
+        <% %w[daily weekly alltime].each do |period| %>
+          <ol class="mission-queue__ranks <%= 'is-hidden' unless period == 'daily' %>"
+              data-missions--queue-target="panel"
+              data-period="<%= period %>">
+            <% rows = @leaderboards[period.to_sym] %>
+            <% if rows.empty? %>
+              <li class="mission-queue__ranks-empty">No reviews yet.</li>
+            <% else %>
+              <% rows.each_with_index do |row, i| %>
+                <li class="mission-queue__rank">
+                  <span class="mission-queue__rank-pos"><%= i + 1 %></span>
+                  <span class="mission-queue__rank-name"><%= row[:name] %></span>
+                  <span class="mission-queue__rank-count"><%= row[:count] %></span>
+                </li>
+              <% end %>
+            <% end %>
+          </ol>
+        <% end %>
+      </div>
+    </section>
+
+    <%# Filters %>
+    <%= form_with url: admin_mission_submissions_path(queue_slug), method: :get,
+          data: { missions__queue_target: "filters" }, class: "mission-queue__filters" do %>
+      <div class="mission-queue__filter">
+        <label for="filter-status">Status</label>
+        <%= select_tag :status,
+              options_for_select([["Pending", "pending"], ["Approved", "approved"], ["Rejected", "rejected"], ["All", "all"]], status_filter),
+              id: "filter-status", class: "mission-queue__select",
+              data: { action: "change->missions--queue#submit" } %>
+      </div>
+      <div class="mission-queue__filter mission-queue__filter--search">
+        <label for="filter-search">Search</label>
+        <%= text_field_tag :search, params[:search], id: "filter-search",
+              placeholder: "project title", class: "mission-queue__input", autocomplete: "off" %>
+      </div>
+      <div class="mission-queue__filter-actions">
+        <button type="submit" class="action-btn action-btn--small action-btn--secondary">Apply</button>
+        <%= link_to "Reset", admin_mission_submissions_path(queue_slug), class: "mission-queue__reset" %>
+      </div>
+    <% end %>
+
+    <%# Table %>
+    <% if @submissions.empty? %>
+      <div class="mission-queue__empty">
+        <p>No submissions match these filters.</p>
+      </div>
+    <% else %>
+      <table class="mission-queue__table">
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Builder</th>
+            <th>Path</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @submissions.each do |s| %>
+            <% post = s.ship_event&.post %>
+            <tr>
+              <td class="mission-queue__cell-project">
+                <div class="mission-queue__project-head">
+                  <%= link_to(post&.project&.title || "—",
+                        admin_mission_submission_path(queue_slug, s),
+                        class: "mission-queue__project-title") %>
+                </div>
+                <div class="mission-queue__project-meta">
+                  <span><%= time_ago_in_words(s.queue_entered_at) %> old</span>
+                  <% if s.pending? %>
+                    <span class="mission-queue__dot" aria-hidden="true">·</span>
+                    <%= render "admin/missions/submissions/claim_flag", submission: s %>
+                  <% end %>
+                </div>
+              </td>
+              <td><%= post&.user&.display_name || "—" %></td>
+              <td><%= s.payout_path.titleize %></td>
+              <td>
+                <span class="status-pill status-pill--<%= s.status %>"><%= s.status.titleize %></span>
+              </td>
+              <td>
+                <%= link_to "Open", admin_mission_submission_path(queue_slug, s),
+                      class: "action-btn action-btn--small action-btn--secondary" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>

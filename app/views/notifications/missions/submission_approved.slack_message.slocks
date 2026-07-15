@@ -2,6 +2,6 @@ header ":sparkles: Your mission submission was approved!"
 
 section "*<#{mission_url}|#{mission_name}>* — your submission for *<#{project_url}|#{project_title}>* has been approved.", markdown: true
 
-actions [
-  button("View submission", "view_submission", url: submission_url)
-]
+buttons = [button("View project", "view_project", url: project_url)]
+buttons << button("Claim prize", "claim_prize", url: redeem_url) if redeem_url.present?
+actions buttons

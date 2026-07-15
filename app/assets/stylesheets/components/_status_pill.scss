@@ -43,4 +43,14 @@
     background: rgba(74, 222, 128, 0.18);
     color: #4ade80;
   }
+
+  &--reviewed {
+    background: rgba(74, 222, 128, 0.18);
+    color: #4ade80;
+  }
+
+  &--dismissed {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--color-space-text-muted, rgba(255, 255, 255, 0.6));
+  }
 }

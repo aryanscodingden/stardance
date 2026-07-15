@@ -3,9 +3,10 @@
 require "cgi"
 
 class Gorse::Client
-  def initialize(config: Gorse.config, connection: nil)
+  def initialize(config: Gorse.config, connection: nil, timeout_seconds: nil)
     @config = config
     @connection = connection
+    @timeout_seconds = timeout_seconds || config.timeout_seconds
   end
 
   def enabled?
@@ -54,7 +55,7 @@ class Gorse::Client
     end
 
     def request(method, path, payload)
-      if enabled?
+      if enabled? && !@failed
         response = connection.public_send(method, path) do |request|
           if method == :get
             request.params.update(payload.compact)
@@ -68,6 +69,7 @@ class Gorse::Client
         nil
       end
     rescue Faraday::Error, JSON::ParserError => e
+      @failed = true
       Rails.logger.warn("[Gorse] #{method.to_s.upcase} #{path} failed: #{e.class}: #{e.message}")
       nil
     end
@@ -77,8 +79,8 @@ class Gorse::Client
         faraday.request :json
         faraday.response :json
         faraday.response :raise_error
-        faraday.options.timeout = config.timeout_seconds
-        faraday.options.open_timeout = config.timeout_seconds
+        faraday.options.timeout = @timeout_seconds
+        faraday.options.open_timeout = @timeout_seconds
         faraday.headers["X-API-Key"] = config.api_key if config.api_key.present?
         faraday.adapter Faraday.default_adapter
       end

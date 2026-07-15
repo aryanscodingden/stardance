@@ -31,9 +31,11 @@ module Battlemage
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks middleware])
 
-    # Autoload secrets submodule models if present
-    secrets_models = Rails.root.join("secrets", "app", "models")
-    config.autoload_paths << secrets_models if secrets_models.exist?
+    # Autoload secrets submodule models and jobs if present
+    %w[models jobs].each do |dir|
+      secrets_path = Rails.root.join("secrets", "app", dir)
+      config.autoload_paths << secrets_path if secrets_path.exist?
+    end
 
     # Add secrets assets to asset pipeline
     secrets_images = Rails.root.join("secrets", "assets", "images")
@@ -69,13 +71,15 @@ module Battlemage
 
     # what do we want? sessions! when do we want em? now!
     config.session_store :cookie_store,
-                         key: "_stardance_session_v2",
+                         key: "_stardance_session_v3",
                          expire_after: 2.months,
                          secure: Rails.env.production?,
-                         httponly: true
+                         httponly: true,
+                         domain: Rails.env.production? ? ".stardance.hackclub.com" : :all
 
     config.exceptions_app = self.routes
 
+    config.middleware.insert_after ActionDispatch::RemoteIp, Rack::Attack
     config.middleware.insert_before ActionDispatch::Static, ServeAvif
     config.middleware.insert_before ActionDispatch::Static, NoCacheErrors
   end

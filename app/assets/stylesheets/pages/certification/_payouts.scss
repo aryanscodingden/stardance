@@ -34,6 +34,24 @@
     }
   }
 
+  &__eyebrow,
+  &__subtitle {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  &__eyebrow {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__subtitle {
+    margin-top: var(--space-xxs);
+    font-size: 0.95rem;
+  }
+
   &__tabs {
     display: flex;
     gap: var(--space-xxs);
@@ -70,6 +88,55 @@
     border: 1px solid var(--card-border);
     border-radius: 12px;
     overflow-x: auto;
+  }
+
+  &__filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--space-s);
+    margin-bottom: var(--space-m);
+    padding: var(--space-m);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    background: var(--card-bg);
+  }
+
+  &__filter-field {
+    display: grid;
+    gap: var(--space-xxs);
+
+    label {
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    input,
+    select {
+      min-height: 2.5rem;
+      padding: var(--space-xs) var(--space-s);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      background: var(--color-space-bg);
+      color: var(--color-space-text);
+      font: inherit;
+    }
+  }
+
+  &__sort-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xxs);
+    color: inherit;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--accent);
+    }
   }
 
   &__table {
@@ -150,6 +217,11 @@
     border: 1px solid var(--card-border);
     border-radius: 12px;
     padding: var(--space-l);
+
+    h2 {
+      margin: 0 0 var(--space-m);
+      font-size: 1.1rem;
+    }
   }
 
   &__detail-row {
@@ -171,11 +243,27 @@
     color: var(--muted);
   }
 
-  &__actions-card {
-    h2 {
-      margin: 0 0 var(--space-m);
-      font-size: 1.1rem;
+  &__link-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-xs);
+  }
+
+  &__votes {
+    margin-top: var(--space-l);
+  }
+
+  &__reason {
+    min-width: 320px;
+
+    p {
+      margin: 0;
     }
+  }
+
+  &__pagination {
+    margin-top: var(--space-m);
   }
 
   &__pay-form {

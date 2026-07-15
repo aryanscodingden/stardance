@@ -1,5 +1,8 @@
 <div class="shop-item-form">
   <%= form_with model: shop_item.becomes(ShopItem), url: (shop_item.persisted? ? admin_shop_item_path(shop_item) : admin_shop_items_path), method: (shop_item.persisted? ? :patch : :post), local: true do |f| %>
+    <% if defined?(@suggestion_id) && @suggestion_id.present? %>
+      <%= hidden_field_tag :suggestion_id, @suggestion_id %>
+    <% end %>
     <% if shop_item.errors.any? %>
       <div class="shop-item-form__errors">
         <h4><%= pluralize(shop_item.errors.count, "error") %> prohibited this shop item from being saved:</h4>
@@ -35,12 +38,27 @@
               <%= f.hidden_field :type, value: shop_item.type %>
               <code><%= shop_item.type %></code>
             <% else %>
+              <% type_base_path = new_admin_shop_item_path(
+                   suggestion_id: @suggestion_id.presence,
+                   prefill_name: shop_item.name.presence,
+                   prefill_description: shop_item.description.presence,
+                   prefill_usd_cost: shop_item.usd_cost.presence
+                 ).split("?").first %>
+              <% type_extra_params = {
+                   suggestion_id: @suggestion_id.presence,
+                   prefill_name: shop_item.name.presence,
+                   prefill_description: shop_item.description.presence,
+                   prefill_usd_cost: shop_item.usd_cost.presence
+                 }.compact %>
               <%= select_tag :type,
                     options_for_select(@shop_item_types.map { |t| [t.demodulize.titleize, t] }),
                     include_blank: "Select a type…",
                     class: "form-control",
-                    data: { path: new_admin_shop_item_path },
-                    onchange: "if(this.value) window.location = this.dataset.path + '?type=' + encodeURIComponent(this.value)" %>
+                    data: {
+                      path: type_base_path,
+                      extra: type_extra_params.to_query
+                    },
+                    onchange: "if(this.value){ var qs = 'type=' + encodeURIComponent(this.value); var extra = this.dataset.extra; if(extra) qs += '&' + extra; window.location = this.dataset.path + '?' + qs; }" %>
             <% end %>
           </div>
 
@@ -227,7 +245,7 @@
           <div class="shop-item-form__field" style="margin-top: 1rem;">
             <%= f.label :requires_achievement, "Requires Achievements", class: "shop-item-form__label" %>
             <div class="shop-item-form__checkbox-list">
-              <%= f.collection_check_boxes :requires_achievement, Achievement.all.select { |a| !a.hidden? }, ->(a) { a.slug.to_s }, ->(a) { "#{a.name} (#{a.slug})" } do |b| %>
+              <%= f.collection_check_boxes :requires_achievement, Achievement.all, ->(a) { a.slug.to_s }, ->(a) { "#{a.name} (#{a.slug})" } do |b| %>
                 <label class="shop-item-form__checkbox">
                   <%= b.check_box %>
                   <span><%= b.text %></span>
@@ -459,8 +477,8 @@
         <br><strong>Priority:</strong> Regional pricing takes precedence over XX pricing when both are enabled
       </div>
 
-      <div class="shop-item-form__table-wrap">
-        <table class="table-data">
+      <div>
+        <table class="space-table">
           <thead>
           <tr>
             <th>Region</th>
@@ -807,10 +825,6 @@
         font-size: 0.875rem;
     }
 
-    .shop-item-form__table-wrap {
-        overflow-x: auto;
-    }
-
     .shop-item-form__region-flag {
         font-size: 1.25rem;
         margin-right: 0.5rem;
@@ -1106,8 +1120,8 @@
             '</div>' +
             '<details style="margin-top:0.75rem;">' +
                 '<summary style="cursor:pointer;font-size:0.875rem;font-weight:500;margin-bottom:0.5rem;">Regional Pricing</summary>' +
-                '<div class="shop-item-form__table-wrap" style="margin-top:0.5rem;">' +
-                    '<table class="table-data" style="font-size:0.8rem;">' +
+                '<div style="margin-top:0.5rem;">' +
+                    '<table class="space-table" style="font-size:0.8rem;">' +
                         '<thead><tr><th>Region</th><th>Enabled</th><th>Δ USD Offset</th></tr></thead>' +
                         '<tbody>' + regionRows + '</tbody>' +
                     '</table>' +

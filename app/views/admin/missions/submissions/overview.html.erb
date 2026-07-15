@@ -1,0 +1,46 @@
+<% content_for :title, "Mission review" %>
+
+<div class="app-layout">
+  <div class="app-layout__main">
+    <div class="mission-overview">
+      <header class="mission-overview__header">
+        <h1>Mission review</h1>
+        <p class="mission-overview__subtitle">Pick a mission to review submissions for.</p>
+      </header>
+
+      <% if @mission_stats.any? %>
+        <ul class="mission-overview__grid">
+          <% @mission_stats.each do |stat| %>
+            <% m = stat[:mission] %>
+            <li class="mission-overview__card">
+              <div class="mission-overview__card-icon">
+                <% if m.icon.attached? %>
+                  <%= image_tag m.icon, alt: "", class: "mission-overview__card-icon-img" %>
+                <% else %>
+                  <%= inline_svg_tag "icons/star_outline.svg", class: "mission-overview__card-icon-svg" %>
+                <% end %>
+              </div>
+              <div class="mission-overview__card-body">
+                <h2 class="mission-overview__card-title"><%= m.name %></h2>
+                <div class="mission-overview__card-stats">
+                  <span class="mission-overview__card-pending <%= stat[:pending] > 0 ? 'has-pending' : '' %>">
+                    <%= stat[:pending] %> pending
+                  </span>
+                  <% if stat[:oldest] %>
+                    <span class="mission-overview__card-oldest">
+                      oldest: <%= time_ago_in_words(stat[:oldest]) %>
+                    </span>
+                  <% end %>
+                </div>
+              </div>
+              <%= link_to "Review", admin_mission_submissions_path(m.slug),
+                    class: "action-btn action-btn--small action-btn--primary" %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="mission-overview__empty">No missions available for review.</p>
+      <% end %>
+    </div>
+  </div>
+</div>

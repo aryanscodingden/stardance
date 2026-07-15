@@ -4,10 +4,13 @@
 #
 #  id                           :bigint           not null, primary key
 #  age_attestation              :string
+#  approx_balance               :integer          default(0), not null
+#  approx_total_earned          :integer          default(0), not null
 #  banned                       :boolean          default(FALSE), not null
 #  banned_at                    :datetime
 #  banned_reason                :text
 #  bio                          :text
+#  current_streak               :integer          default(0), not null
 #  display_name                 :string
 #  email                        :string
 #  enriched_ref                 :string
@@ -29,14 +32,18 @@
 #  manual_ysws_override         :boolean
 #  mission_review_notifications :boolean          default(TRUE), not null
 #  onboarded_at                 :datetime
+#  outpost_discount_stardust    :integer          default(0), not null
+#  outpost_email_sent_at        :datetime
 #  ref                          :string
 #  regions                      :string           default([]), is an Array
 #  session_token                :string
 #  shop_region                  :enum
 #  shop_tutorial_completed_at   :datetime
 #  shop_tutorial_started_at     :datetime
+#  streak_synced_at             :datetime
 #  synced_at                    :datetime
 #  things_dismissed             :string           default([]), not null, is an Array
+#  timezone                     :string
 #  user_agent                   :string
 #  user_ref                     :string
 #  verification_checked_at      :datetime
@@ -50,7 +57,10 @@
 #
 # Indexes
 #
+#  index_users_on_approx_balance             (approx_balance)
+#  index_users_on_approx_total_earned        (approx_total_earned)
 #  index_users_on_email                      (email)
+#  index_users_on_guest_email                (guest_email)
 #  index_users_on_lower_display_name_unique  (lower((display_name)::text)) UNIQUE WHERE ((display_name IS NOT NULL) AND ((display_name)::text <> ''::text))
 #  index_users_on_lower_email_unique         (lower((email)::text)) UNIQUE WHERE ((email IS NOT NULL) AND ((email)::text <> ''::text))
 #  index_users_on_onboarded_at               (onboarded_at)

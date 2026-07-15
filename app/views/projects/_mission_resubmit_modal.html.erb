@@ -1,0 +1,42 @@
+<dialog id="mission-resubmit-modal-<%= project.id %>"
+        class="recert-modal"
+        data-controller="modal"
+        aria-labelledby="mission-resubmit-modal-<%= project.id %>-title">
+  <div class="recert-modal__panel">
+    <button type="button"
+            class="recert-modal__close"
+            onclick="document.getElementById(<%= "mission-resubmit-modal-#{project.id}".to_json %>).close()"
+            aria-label="Close">
+      &times;
+    </button>
+
+    <h3 id="mission-resubmit-modal-<%= project.id %>-title" class="recert-modal__title">Mission submission returned</h3>
+    <% if is_member || current_user&.admin? %>
+      <p class="recert-modal__subtitle">Your reviewer left feedback below. Address it and then request re-review.</p>
+    <% else %>
+      <p class="recert-modal__subtitle">Reviewer feedback left for this submission.</p>
+    <% end %>
+
+    <% if submission.rejection_message.present? %>
+      <div class="recert-modal__feedback">
+        <h4 class="recert-modal__feedback-label">Reviewer feedback</h4>
+        <p class="recert-modal__feedback-body"><%= submission.rejection_message %></p>
+      </div>
+    <% end %>
+
+    <div class="recert-modal__actions">
+      <button type="button"
+              class="recert-modal__btn recert-modal__btn--secondary"
+              onclick="document.getElementById(<%= "mission-resubmit-modal-#{project.id}".to_json %>).close()">
+        Close
+      </button>
+      <% if is_member || current_user&.admin? %>
+        <%= button_to "Request re-review",
+              project_mission_resubmission_path(project),
+              method: :post,
+              class: "recert-modal__btn recert-modal__btn--primary",
+              form: { data: { turbo_confirm: "Have you addressed the feedback? This will re-enter the mission review queue." } } %>
+      <% end %>
+    </div>
+  </div>
+</dialog>

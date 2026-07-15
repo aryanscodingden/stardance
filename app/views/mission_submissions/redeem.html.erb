@@ -4,8 +4,7 @@
   <div class="app-layout__main">
     <header class="submission-redeem__header">
       <p class="submission-redeem__breadcrumb">
-        <%= link_to "Submissions", mission_submissions_path %> /
-        <%= link_to "Submission ##{@submission.id}", mission_submission_path(@submission) %>
+        <%= link_to @submission.mission.name, mission_path(@submission.mission.slug) %>
       </p>
       <h1>Pick a prize</h1>
       <p>Approved submission for <strong><%= @submission.mission.name %></strong>. Pick which prize you'd like to redeem.</p>

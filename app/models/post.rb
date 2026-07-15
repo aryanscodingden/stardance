@@ -5,6 +5,7 @@
 #  id            :bigint           not null, primary key
 #  postable_type :string
 #  reposts_count :integer          default(0), not null
+#  views_count   :integer          default(0), not null
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  postable_id   :bigint
@@ -24,6 +25,7 @@
 #
 class Post < ApplicationRecord
     include Gorse::SyncablePost
+    include FunnelResyncTrigger
 
     has_paper_trail
 
@@ -37,10 +39,12 @@ class Post < ApplicationRecord
 
     delegated_type :postable, types: Postable.types
 
+    has_many :post_views, dependent: :delete_all
+
     validates :postable_id, presence: true, if: :postable_type?
     validates :project, presence: true, unless: :repost?
 
-    after_commit :invalidate_project_time_cache, on: [ :create, :destroy ]
+    after_create { postable.capture_hours_at_ship if postable_type == "Post::ShipEvent" }
     after_commit :increment_devlogs_count, on: :create
     after_commit :decrement_devlogs_count, on: :destroy
     after_commit :update_project_duration_seconds, on: [ :create, :destroy ]
@@ -68,6 +72,17 @@ class Post < ApplicationRecord
                  foreign_key: :postable_id,
                  optional: true
     end
+
+    # Approved ship events the user personally authored (distinct from
+    # membership-based User#approved_ship_events, which counts co-members'
+    # ships). Restricted to live projects because Post has no soft-delete of its
+    # own, so without the subquery a soft-deleted (e.g. fraud-removed)
+    # project's ships would still count.
+    scope :approved_ship_events_by, ->(user) {
+      of_ship_events(join: true)
+        .where(user_id: user.id, post_ship_events: { certification_status: "approved" })
+        .where(project_id: Project.select(:id))
+    }
 
     # Restrict to posts whose author has finished identity verification.
     # System posts (user_id IS NULL) are always allowed through — they aren't
@@ -97,6 +112,16 @@ class Post < ApplicationRecord
       postable_type == "Post::Repost"
     end
 
+    # Only a first devlog or ship advances the funnel (see FunnelResyncTrigger);
+    # comments, reposts, fire events, etc. don't.
+    def funnel_milestone? = %w[Post::Devlog Post::ShipEvent].include?(postable_type)
+
+    # Reposts surface the original post's content, so a view of the repost
+    # also counts as a unique view of the original.
+    def view_credited_posts
+      [ self, repost? ? postable&.original_post : nil ].compact
+    end
+
     def visible_repost_original_for?(viewer)
       if repost?
         original_post = postable&.original_post
@@ -110,22 +135,7 @@ class Post < ApplicationRecord
       end
     end
 
-    # For multiple types, use .with to create a CTE with UNION ALL:
-    #   Post.with(
-    #     available_posts: [
-    #       Post.of_devlogs(join: true).where(post_devlogs: { tutorial: false }),
-    #       Post.of_ship_events(join: true),
-    #       Post.of_fire_events(join: true)
-    #     ]
-    #   ).from("available_posts AS posts")
-
     private
-
-    def invalidate_project_time_cache
-      return unless postable_type == "Post::Devlog"
-
-      Rails.cache.delete("project/#{project_id}/time_seconds")
-    end
 
     def increment_devlogs_count
       return unless postable_type == "Post::Devlog"

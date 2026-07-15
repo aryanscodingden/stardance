@@ -18,11 +18,13 @@
 @use "components/input-group";
 @use "components/sidebar";
 @use "components/discover_rail";
+@use "components/streak_widget";
 @use "components/ship_intro_module";
 @use "components/ui-heading";
 @use "components/dropdown";
 @use "components/shop-item-card";
 @use "components/admin-banner";
+@use "components/space_table";
 @use "components/top_banner";
 @use "components/tooltip";
 @use "components/like_button";
@@ -31,9 +33,12 @@
 @use "components/guide_content";
 @use "components/guide_code";
 @use "components/currency_icon";
+@use "components/progress_bar";
+@use "components/certificate_widget";
 @use "components/mission_panel";
 @use "components/status_pill";
 @use "components/feed";
+@use "components/mentions";
 @use "components/star_border";
 @use "components/star_image_input";
 @use "components/onboarding";
@@ -43,8 +48,11 @@
 
 @use "components/streamer_mode";
 @use "components/idv_setup_card";
+@use "components/streak_badge";
 @use "components/settings-form";
 @use "components/slack_doodle";
+@use "components/sticker_promo";
+@use "components/sticker_promo_widget";
 
 // Pages
 @use "pages/onboarding" as onboarding_pages;
@@ -52,6 +60,9 @@
 @use "pages/project_setup";
 @use "pages/projects/show";
 @use "pages/projects/readme";
+@use "pages/projects/lookout_recorder";
+@use "pages/hardware_funding";
+@use "components/hardware_outpost_modal";
 @use "pages/votes";
 @use "pages/achievements/index" as achievements_index;
 @use "pages/shop/shop";
@@ -62,6 +73,8 @@
 @use "pages/shop/checkout";
 @use "pages/shop/order";
 @use "pages/shop/my_orders";
+@use "pages/shop/suggestions";
+@use "pages/shop/sharable_purchase";
 @use "pages/shop/admin_order_show";
 @use "pages/user/show" as users_show;
 @use "pages/profile_placeholder";
@@ -71,10 +84,19 @@
 @use "pages/missions/index" as missions_index;
 @use "pages/missions/show" as missions_show;
 @use "pages/missions/guide" as missions_guide;
-@use "pages/mission_submissions/index" as mission_submissions_index;
-@use "pages/mission_submissions/show" as mission_submissions_show;
+@use "pages/mission_submissions/redeem" as mission_submissions_redeem;
 @use "pages/admin/missions_edit" as admin_missions_edit;
+@use "pages/admin/support";
+@use "pages/admin/mission_submissions" as admin_mission_submissions;
 @use "pages/certification/ships/index" as certification_ships_index;
 @use "pages/certification/ships/show" as certification_ships_show;
+@use "pages/certification/ships/monitor" as certification_ships_monitor;
+@use "pages/certification/hardware_review" as certification_hardware_review;
+@use "pages/certification/recording_gallery" as certification_recording_gallery;
 @use "pages/certification/mystats" as certification_mystats;
 @use "pages/certification/payouts" as certification_payouts;
+@use "pages/raffle";
+@use "pages/notifications" as notifications_page;
+@use "pages/notification_settings" as notification_settings_page;
+@use "pages/rng";
+@use "landing/landing_footer";

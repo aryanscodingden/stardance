@@ -4,24 +4,29 @@
 #
 # Table name: votes
 #
-#  id                 :bigint           not null, primary key
-#  originality_score  :integer
-#  reason             :text
-#  storytelling_score :integer
-#  technical_score    :integer
-#  usability_score    :integer
-#  created_at         :datetime         not null
-#  updated_at         :datetime         not null
-#  project_id         :bigint           not null
-#  ship_event_id      :bigint           not null
-#  user_id            :bigint           not null
+#  id                            :bigint           not null, primary key
+#  demo_opened                   :boolean          default(FALSE), not null
+#  discarded                     :boolean          default(FALSE), not null
+#  originality_score             :integer
+#  reason                        :text
+#  repo_opened                   :boolean          default(FALSE), not null
+#  storytelling_score            :integer
+#  technical_score               :integer
+#  time_taken_to_vote_in_seconds :integer
+#  usability_score               :integer
+#  created_at                    :datetime         not null
+#  updated_at                    :datetime         not null
+#  project_id                    :bigint           not null
+#  ship_event_id                 :bigint           not null
+#  user_id                       :bigint           not null
 #
 # Indexes
 #
-#  index_votes_on_project_id                 (project_id)
-#  index_votes_on_ship_event_id              (ship_event_id)
-#  index_votes_on_user_id                    (user_id)
-#  index_votes_on_user_id_and_ship_event_id  (user_id,ship_event_id) UNIQUE
+#  index_votes_on_discarded_and_ship_event_id  (discarded,ship_event_id)
+#  index_votes_on_project_id                   (project_id)
+#  index_votes_on_ship_event_id                (ship_event_id)
+#  index_votes_on_user_id                      (user_id)
+#  index_votes_on_user_id_and_ship_event_id    (user_id,ship_event_id) UNIQUE
 #
 # Foreign Keys
 #

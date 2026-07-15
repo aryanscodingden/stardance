@@ -24,6 +24,7 @@
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
 #  assigned_to_user_id                :bigint
+#  fraud_payout_line_id               :bigint
 #  fraud_related_project_id           :bigint
 #  fulfillment_payout_line_id         :bigint
 #  parent_order_id                    :bigint
@@ -62,6 +63,7 @@ class ShopOrder < ApplicationRecord
 
   include AASM
   include Ledgerable
+  include FunnelResyncTrigger
 
   belongs_to :user
   belongs_to :shop_item
@@ -84,6 +86,7 @@ class ShopOrder < ApplicationRecord
 
   validates :quantity, presence: true, numericality: { only_integer: true, greater_than: 0 }, on: :create
   validates :frozen_address, presence: true, on: :create
+  validate :check_item_enabled, on: :create
   validate :check_one_per_person_ever_limit, on: :create
   validate :check_max_quantity_limit, on: :create
   validate :check_user_balance, on: :create
@@ -109,7 +112,6 @@ class ShopOrder < ApplicationRecord
   before_create :freeze_item_price
   before_create :set_region_from_address
   after_commit :notify_user_of_status_change, if: :saved_change_to_aasm_state?
-  # after_save :notify_assigned_user, if: :saved_change_to_assigned_to_user_id?
 
   scope :worth_counting, -> { where.not(aasm_state: %w[rejected refunded]) }
   scope :real, -> { without_item_type("ShopItem::FreeStickers") }
@@ -300,6 +302,81 @@ class ShopOrder < ApplicationRecord
     high_value? && reviews.count < 2
   end
 
+  # States that still need a fraud/shop-manager verdict, mirroring the
+  # Certification::Ship review queue for the fraud dashboard overview.
+  REVIEW_QUEUE_STATES = %w[pending awaiting_verification awaiting_verification_call on_hold].freeze
+
+  # Health target for the review queue, same shape as Certification::Ship::QUEUE_TARGET.
+  QUEUE_TARGET = 25
+
+  # "Waiting too long" threshold for the fraud dashboard overview.
+  LONG_WAIT_DAYS = 14
+
+  # An order is "decided" once it leaves the queue for good: approved for
+  # fulfillment (queued or, for digital items, fulfilled outright) or
+  # rejected. Rejection can happen after approval (e.g. fraud caught late),
+  # so rejected_at wins the tie when both are present.
+  DECIDED_AT_SQL = "COALESCE(rejected_at, awaiting_periodical_fulfillment_at, fulfilled_at)"
+
+  # Reviewer state transitions that count as a decision when tallying who
+  # cleared the queue, read off the ShopOrder audit trail.
+  DECISION_TARGET_STATES = %w[rejected awaiting_periodical_fulfillment fulfilled].freeze
+
+  # Snapshot of fraud review queue health, shown on the fraud dashboard.
+  def self.dashboard_stats(now: Time.current)
+    today = now.beginning_of_day
+    week = now.beginning_of_week
+
+    queue = where(aasm_state: REVIEW_QUEUE_STATES)
+    decided = where("#{DECIDED_AT_SQL} IS NOT NULL")
+    decided_count = decided.count
+    rejected_count = where.not(rejected_at: nil).count
+    approved_count = decided_count - rejected_count
+
+    {
+      pending: queue.count,
+      approved: approved_count,
+      rejected: rejected_count,
+      decided: decided_count,
+      approval_rate: decided_count.zero? ? nil : (approved_count * 100.0 / decided_count).round(1),
+      decisions_today: decided.where("#{DECIDED_AT_SQL} >= ?", today).count,
+      new_today: where(created_at: today..).count,
+      decisions_this_week: decided.where("#{DECIDED_AT_SQL} >= ?", week).count,
+      new_this_week: where(created_at: week..).count,
+      oldest_pending: queue.order(created_at: :asc).first,
+      queue_target: QUEUE_TARGET,
+      long_wait_days: LONG_WAIT_DAYS,
+      overdue_pending: queue.where("created_at < ?", now - LONG_WAIT_DAYS.days).count
+    }
+  end
+
+  # Reviewers ranked by decisions made over a window, sourced from the audit
+  # trail since (unlike Certification::Ship) ShopOrder doesn't carry its own
+  # reviewer_id column. Returns rows of { name:, count: } for :daily, :weekly,
+  # or :alltime.
+  def self.leaderboard(period, now: Time.current, limit: 10)
+    scope = PaperTrail::Version
+              .where(item_type: "ShopOrder")
+              .where.not(whodunnit: nil)
+              .where("object_changes -> 'aasm_state' ->> 1 IN (?)", DECISION_TARGET_STATES)
+
+    case period.to_sym
+    when :daily  then scope = scope.where(created_at: now.beginning_of_day..)
+    when :weekly then scope = scope.where(created_at: now.beginning_of_week..)
+    end
+
+    counts = scope.group(:whodunnit)
+                  .order(Arel.sql("COUNT(*) DESC"))
+                  .limit(limit)
+                  .count
+
+    users = User.where(id: counts.keys.map(&:to_i)).index_by(&:id)
+
+    counts.map do |whodunnit, count|
+      { name: users[whodunnit.to_i]&.display_name || "User ##{whodunnit}", count: count }
+    end
+  end
+
   def approve!
     shop_item.fulfill!(self) if shop_item.respond_to?(:fulfill!)
   end
@@ -311,25 +388,14 @@ class ShopOrder < ApplicationRecord
   def get_agh_contents = shop_item.get_agh_contents(self)
 
   def notify_user_of_status_change
-    return unless user.slack_id.present?
-
     # Don't notify the user when an order is placed on hold — they shouldn't know
     return if aasm_state == "on_hold"
 
-    template = case aasm_state
-    when "rejected" then "notifications/shop_orders/rejected"
-    when "awaiting_verification" then "notifications/shop_orders/awaiting_verification"
-    when "awaiting_verification_call" then "notifications/shop_orders/awaiting_verification_call"
-    when "awaiting_periodical_fulfillment" then "notifications/shop_orders/awaiting_fulfillment"
-    when "fulfilled" then "notifications/shop_orders/fulfilled"
-    else "notifications/shop_orders/default"
-    end
-
-    SendSlackDmJob.perform_later(
-      user.slack_id,
-      nil,
-      blocks_path: template,
-      locals: { order: self }
+    Notifications::ShopOrders::StatusChanged.notify(
+      recipient: user,
+      record: self,
+      params: { "state" => aasm_state },
+      priority: Notifications::ShopOrders::StatusChanged.priority_for(aasm_state)
     )
   end
 
@@ -339,9 +405,24 @@ class ShopOrder < ApplicationRecord
     return unless shop_item
     return if frozen_item_price.present?
 
-    # Use price_for_region which applies sale discounts and regional pricing
+    # Redeeming an approved mission prize is free regardless of the item's
+    # normal price: freezing 0 skips the balance check, the negative payout,
+    # and any refund-on-reject (all gated on frozen_item_price > 0), so a
+    # regular shop item given as a static prize never touches the ledger.
+    if redeeming_mission_submission.present?
+      self.frozen_item_price = 0
+      return
+    end
+
+    # Use price_for_user so per-user pricing (e.g. the Outpost Ticket discount)
+    # is enforced at purchase, not just displayed. Falls back to the regional
+    # price for ordinary items.
     order_region = region.presence || Shop::Regionalizable.country_to_region(frozen_address&.dig("country"))
-    self.frozen_item_price = shop_item.price_for_region(order_region || "XX")
+    self.frozen_item_price = shop_item.price_for_user(user, order_region || "XX")
+  end
+
+  def check_item_enabled
+    errors.add(:base, "This item is not available for purchase.") unless shop_item.enabled?
   end
 
   def check_one_per_person_ever_limit
@@ -391,7 +472,7 @@ class ShopOrder < ApplicationRecord
   end
 
   USPS_SUSPENDED_COUNTRIES = %w[
-    AM AE BH DJ DZ ER IL IQ IR KW LY MG OM PK QA SC SY TZ
+    AF BY CU ER HT IR SC SD YE
   ].freeze
 
   USPS_SUSPENSION_EXEMPT_TYPES = %w[
@@ -544,21 +625,5 @@ class ShopOrder < ApplicationRecord
     return unless USPS_SUSPENDED_COUNTRIES.include?(address_country.upcase)
 
     place_on_hold! if may_place_on_hold?
-  end
-
-  def notify_assigned_user
-    return unless assigned_to_user_id.present?
-
-    user = assigned_to_user
-    return unless user&.slack_id.present?
-
-    Rails.logger.info "[ShopOrder] Sending assignment notification to #{user.display_name} (#{user.slack_id})"
-
-    SendSlackDmJob.perform_later(
-      user.slack_id,
-      nil,
-      blocks_path: "notifications/shop_orders/assigned",
-      locals: { order: self, admin_url: Rails.application.routes.url_helpers.admin_shop_order_url(self, host: "stardance.hackclub.com", protocol: "https") }
-    )
   end
 end

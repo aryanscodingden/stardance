@@ -1,0 +1,55 @@
+<%= form_with url: admin_mission_submission_path(mission.slug, submission),
+              method: :patch, local: true, class: "mission-review__form" do |f| %>
+
+  <fieldset class="mission-review__verdict">
+    <legend>Verdict</legend>
+    <label class="mission-review__verdict-option">
+      <%= radio_button_tag "mission_submission[status]", "approved", false, required: true %>
+      Approve
+    </label>
+    <label class="mission-review__verdict-option">
+      <%= radio_button_tag "mission_submission[status]", "rejected", false %>
+      Reject
+    </label>
+  </fieldset>
+
+  <label class="mission-review__feedback-label">
+    Feedback for the builder
+    <%= text_area_tag "mission_submission[feedback]", "",
+          rows: 4, maxlength: 10_000,
+          class: "mission-review__feedback",
+          placeholder: "Required for rejections. Optional for approvals." %>
+  </label>
+
+  <% grants = [] %>
+  <% if submission.payout_path == "static_prize" && mission.fixed_stardust_payout&.positive? %>
+    <% grants << "#{mission.fixed_stardust_payout} stardust" %>
+  <% end %>
+  <% mission.prizes.includes(:shop_item).each do |prize| %>
+    <% grants << "the \"#{prize.shop_item.name}\" shop item" if prize.shop_item %>
+  <% end %>
+  <% grants << "the \"#{mission.achievement_slug.titleize}\" achievement" if mission.achievement_slug.present? %>
+  <% unlocks = mission.shop_unlocks.includes(:shop_item).map { |u| u.shop_item&.name }.compact %>
+  <% if grants.any? || unlocks.any? %>
+    <% if grants.any? %>
+      <p class="mission-review__payout-note">
+        Approving will grant <%= grants.to_sentence %> to the builder.
+      </p>
+    <% end %>
+    <% if unlocks.any? %>
+      <p class="mission-review__payout-note">
+        Approving will also unlock <%= unlocks.map { |n| "\"#{n}\"" }.to_sentence %> in the shop.
+      </p>
+    <% end %>
+  <% end %>
+
+  <div class="mission-review__form-actions">
+    <%= submit_tag "Submit verdict", class: "action-btn action-btn--large action-btn--primary" %>
+    <%= link_to "Skip and get next",
+          next_admin_mission_submissions_path(mission.slug, skip: submission.id),
+          class: "action-btn action-btn--small action-btn--secondary" %>
+    <%= link_to "Back to queue",
+          admin_mission_submissions_path(mission.slug),
+          class: "mission-review__back-link" %>
+  </div>
+<% end %>

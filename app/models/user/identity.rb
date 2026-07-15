@@ -26,6 +26,8 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class User::Identity < ApplicationRecord
+  include FunnelResyncTrigger
+
   belongs_to :user
   has_encrypted :access_token, :refresh_token
   blind_index :access_token, :refresh_token, slow: true
@@ -43,4 +45,6 @@ class User::Identity < ApplicationRecord
   validates :provider, uniqueness: { scope: :user_id }
 
   after_create_commit -> { user&.try_sync_hackatime_data! }, if: -> { provider == "hackatime" }
+  after_create_commit -> { Raffle::Referrals::Credit.run_safely(user) }, if: -> { provider == "hack_club" }
+  after_destroy_commit -> { Rails.cache.delete("hackatime_api_key:#{uid}") }, if: -> { provider == "hackatime" }
 end

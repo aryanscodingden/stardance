@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
+import { Turbo } from "@hotwired/turbo-rails";
 
 export default class extends Controller {
   static values = { itemId: String, wishlisted: Boolean };
@@ -19,10 +20,15 @@ export default class extends Controller {
       method,
       headers: {
         "X-CSRF-Token": csrfToken,
-        Accept: "application/json",
+        Accept: "text/vnd.turbo-stream.html",
       },
-    }).then((r) => {
-      if (!r.ok) this.wishlistedValue = wasWishlisted;
+    }).then(async (r) => {
+      if (r.ok) {
+        const html = await r.text();
+        Turbo.renderStreamMessage(html);
+      } else {
+        this.wishlistedValue = wasWishlisted;
+      }
     });
   }
 

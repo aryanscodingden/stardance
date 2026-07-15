@@ -30,7 +30,8 @@ RUN apt-get update -qq && \
     git \
     libopenblas0 \
     liblapack3 \
-    ffmpeg && \
+    ffmpeg \
+    nodejs && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 # Set production environment
@@ -54,21 +55,23 @@ RUN apt-get update -qq && \
     liblapack-dev && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Install Node.js, npm, and Yarn for jsbundling (esbuild)
+# Install Node.js and enable Corepack for Yarn Berry
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y nodejs npm && \
-    npm install -g yarn && \
+    npm install -g corepack && \
+    corepack enable && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install application gems
 COPY Gemfile Gemfile.lock ./
+COPY engines/raffle/raffle.gemspec ./engines/raffle/
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
 
 # Install JavaScript dependencies for jsbundling-rails
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile && yarn cache clean
+COPY package.json yarn.lock .yarnrc.yml ./
+RUN yarn install --immutable
 
 # Copy application code
 COPY . .
@@ -84,6 +87,10 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 # Final stage for app image
 FROM base
+
+# for dearest max--  this adds the git SHA because its missing during ghcr builds!
+ARG GIT_COMMIT_SHA
+ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA}
 
 # Copy built artifacts: gems, application
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"

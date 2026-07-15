@@ -320,6 +320,10 @@
   &__summary {
     margin-top: 2em;
 
+    &--hidden {
+      display: none;
+    }
+
     .shop-order__summary-heading {
       font-family: var(--font-family-subtitle);
       font-size: 1.3rem;

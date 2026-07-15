@@ -1,0 +1,32 @@
+<%# Launches a Lookout screen-recording session straight from the project page.
+    Sessions forward their time to Hackatime, so recording is locked until the
+    user links their Hackatime account.
+    Locals: project (required); disabled_message (optional — when present the
+    button is shown disabled with that tooltip instead of being actionable);
+    button_text / variant (optional — override the default label and variant). %>
+<% button_text = local_assigns.fetch(:button_text, "Record a timelapse") %>
+<% variant = local_assigns.fetch(:variant, :secondary) %>
+<% if local_assigns[:disabled_message].present? %>
+  <%= render ActionButtonComponent.new(
+        text: button_text,
+        variant: variant,
+        type: :button,
+        disabled: :soft,
+        data: {
+          controller: "tooltip",
+          tooltip_message_value: disabled_message,
+          tooltip_position_value: "top"
+        }
+      ) %>
+<% else %>
+  <%= render ActionButtonComponent.new(
+        text: button_text,
+        variant: variant,
+        type: :button,
+        data: {
+          controller: "lookout-recorder",
+          "lookout-recorder-create-url-value": project_lookout_sessions_path(project),
+          action: "lookout-recorder#record"
+        }
+      ) %>
+<% end %>

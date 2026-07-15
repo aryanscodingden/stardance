@@ -60,7 +60,7 @@
           <ul class="admin-mission__list">
             <% @submissions.each do |s| %>
               <li>
-                <%= link_to "##{s.id} (#{s.status})", mission_submission_path(s), class: "admin-mission__link" %>
+                <%= link_to "##{s.id} (#{s.status})", admin_mission_submission_path(s.mission.slug, s), class: "admin-mission__link" %>
                 — <%= s.ship_event&.post&.user&.display_name %>
                 <span class="admin-mission__muted"><%= time_ago_in_words(s.created_at) %> ago</span>
               </li>

@@ -28,7 +28,6 @@ class Project::Report < ApplicationRecord
 
     belongs_to :reporter, class_name: "User"
     belongs_to :project
-    has_many :review_tokens, class_name: "Report::ReviewToken", foreign_key: :report_id, dependent: :destroy
     after_commit :notify_slack_channel, on: :create
 
     REASONS = [
@@ -54,16 +53,20 @@ class Project::Report < ApplicationRecord
         message: "cannot report own project"
       }, unless: -> { Rails.env.development? || reason == "fraud" }
 
+    REASON_LABELS = {
+      "low_effort" => "Low-effort project",
+      "undeclared_ai" => "Uses AI but it's undeclared",
+      "demo_broken" => "Demo does not work",
+      "other" => "Other"
+    }.freeze
+
+    def reason_label
+      REASON_LABELS.fetch(reason, reason.humanize)
+    end
+
     private
 
     def notify_slack_channel
       SendSlackDmJob.perform_later("C0A1YJ9PDAS", "New report received", blocks_path: "notifications/reports/slack_message", locals: { report: self })
-      if reason == "demo_broken"
-        # Create one-time tokens for quick actions
-        review_token = review_tokens.create!(action: "review")
-        dismiss_token = review_tokens.create!(action: "dismiss")
-
-        SendSlackDmJob.perform_later("C0ADFNQ2MEF", "Demo broken report needs review", blocks_path: "notifications/reports/demo_broken_slack_message", locals: { report: self, review_token_string: review_token.token, dismiss_token_string: dismiss_token.token })
-      end
     end
 end

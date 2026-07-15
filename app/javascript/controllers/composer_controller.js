@@ -12,6 +12,7 @@ export default class extends Controller {
     "textarea",
     "submit",
     "attachWrap",
+    "recordBtn",
   ];
   static values = {
     maxFiles: { type: Number, default: 4 },
@@ -192,7 +193,14 @@ export default class extends Controller {
 
   selectProject(event) {
     event.preventDefault();
-    const { postUrl, previewUrl, editUrl, hackatimeLinked } = event.params;
+    const {
+      postUrl,
+      previewUrl,
+      editUrl,
+      hackatimeLinked,
+      recordable,
+      recordUrl,
+    } = event.params;
     const linked = !!hackatimeLinked;
     const chip = event.currentTarget;
 
@@ -228,6 +236,16 @@ export default class extends Controller {
     if (this.hasWarnTarget) {
       this.warnTarget.hidden = linked;
       if (editUrl) this.warnTarget.href = editUrl;
+    }
+
+    // The Record button (home composer only) shows for recordable projects
+    // (hardware, or any project once the :lookout flag is on); point it at the
+    // newly-selected project's create-session endpoint.
+    if (this.hasRecordBtnTarget) {
+      this.recordBtnTarget.hidden = !recordable;
+      if (recordUrl) {
+        this.recordBtnTarget.dataset.lookoutRecorderCreateUrlValue = recordUrl;
+      }
     }
 
     if (this.#composerOpen) this.#loadPreviewTime();

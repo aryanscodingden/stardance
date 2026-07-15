@@ -2,16 +2,15 @@ class Mission::SubmissionPolicy < ApplicationPolicy
   class Scope < ApplicationPolicy::Scope
     def resolve
       return scope.none if user.blank?
-      return scope.all if user.admin? || user.has_role?(:helper) || user.has_role?(:mission_reviewer)
+      return scope.all if user.admin? || user.has_role?(:mission_reviewer)
 
       scope.where(mission_id: user.mission_memberships.select(:mission_id))
     end
   end
 
   def index?
-    return true if user.blank? # show empty list / login prompt
-    user.admin? || user.has_role?(:helper) ||
-      user.has_role?(:mission_reviewer) ||
+    return false unless user.present?
+    user.admin? || user.has_role?(:mission_reviewer) ||
       user.mission_memberships.exists?
   end
 
@@ -35,6 +34,8 @@ class Mission::SubmissionPolicy < ApplicationPolicy
   alias_method :approve?, :review?
   alias_method :reject?, :review?
   alias_method :undo?, :review?
+  alias_method :update?, :review?
+  alias_method :claim?, :review?
 
   def redeem?
     return false unless user.present?

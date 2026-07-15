@@ -5,7 +5,7 @@ section "*<#{mission_url}|#{mission_name}>* has a new submission ready for revie
 section "Project: *<#{project_url}|#{project_title}>* by #{builder_name}\nPath: *#{payout_path}*", markdown: true
 
 actions [
-  button("Review submission", "review_submission", url: submission_url)
+  button("Review submission", "review_submission", url: admin_submission_url)
 ]
 
 context [

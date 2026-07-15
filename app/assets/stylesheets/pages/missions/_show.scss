@@ -20,6 +20,28 @@
   display: block;
 }
 
+.mission-home__locked {
+  margin: var(--space-m) 0;
+  padding: var(--space-m) var(--space-l);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-brand-salmon) 10%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--color-brand-salmon) 30%, transparent);
+}
+
+.mission-home__locked-message {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-brand-salmon);
+}
+
+.mission-home__locked-link {
+  color: var(--color-brand-cream);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .mission-home__crumb {
   display: flex;
   align-items: center;
@@ -150,6 +172,12 @@
     background: rgba(255, 141, 157, 0.16);
     border-color: rgba(255, 141, 157, 0.5);
     color: var(--color-brand-salmon);
+  }
+
+  &--hardware {
+    background: rgba(149, 219, 255, 0.16);
+    border-color: rgba(149, 219, 255, 0.5);
+    color: var(--color-brand-blue);
   }
 
   &--time {
@@ -412,6 +440,9 @@
   &--mint {
     --prize-color: #81ffff;
   }
+  &--salmon {
+    --prize-color: #ff8d9d;
+  }
 }
 
 .mission-home__prize-tile {
@@ -437,10 +468,135 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+
+  &.currency-icon,
+  &--contain {
+    object-fit: contain;
+    padding: 10px;
+  }
 }
 
 .mission-home__prize-glyph {
   fill: var(--prize-color, #ffe564);
+}
+
+.mission-home__rating-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.mission-home__rating-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+}
+
+.mission-home__rating-icon--excluded {
+  .mission-home__rating-img {
+    opacity: 0.5;
+  }
+
+  // Red diagonal slash marking that this mission's project is not rated.
+  &::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    top: 50%;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--color-red-400);
+    transform: translateY(-50%) rotate(-45deg);
+  }
+}
+
+.mission-home__prize-info-link {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--color-brand-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-brand-off-white);
+  }
+}
+
+.rating-info-modal {
+  border: none;
+  padding: 0;
+  background: transparent;
+  max-width: min(460px, 92vw);
+  width: 100%;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  margin: 0;
+  color: var(--color-space-text);
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+  }
+
+  &__panel {
+    position: relative;
+    background: var(--color-space-bg-2, #0d0b2e);
+    border: 1px solid var(--color-space-border);
+    border-radius: var(--border-radius);
+    padding: var(--space-l);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  &__close {
+    position: absolute;
+    top: var(--space-s);
+    right: var(--space-s);
+    border: none;
+    background: none;
+    color: var(--color-space-text-muted);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-space-text);
+    }
+  }
+
+  &__title {
+    margin: 0;
+    padding-right: var(--space-l);
+    font-family: "Playfair Display", serif;
+    font-style: italic;
+    font-size: var(--font-size-xxl);
+    font-weight: 700;
+    color: var(--color-brand-salmon);
+  }
+
+  &__text {
+    margin: 0;
+    font-size: var(--font-size-base);
+    line-height: 1.5;
+
+    strong {
+      color: var(--color-brand-yellow);
+    }
+  }
 }
 
 .mission-home__prize-body {
@@ -453,6 +609,17 @@
   color: var(--color-fg);
   font-weight: 700;
   font-size: 15px;
+
+  a {
+    color: var(--color-brand-cream);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-brand-off-white);
+    }
+  }
 }
 
 .mission-home__prize-blurb {
@@ -492,9 +659,6 @@
 }
 
 .mission-home__gallery-grid {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: var(--space-m);
@@ -525,6 +689,58 @@
     background: rgba(255, 229, 100, 0.16);
     color: var(--color-brand-cream);
     border: 1px solid var(--color-brand-yellow);
+  }
+}
+
+.mission-home__gallery-grid turbo-frame {
+  display: contents;
+}
+
+.mission-home__gallery-show-more-wrapper {
+  grid-column: 1 / -1;
+}
+
+.mission-home__gallery-show-more {
+  position: relative;
+  display: block;
+  margin: var(--space-m) auto 0;
+  text-align: center;
+  text-decoration: none;
+  padding: 10px 28px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: var(--color-brand-cream);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  turbo-frame[aria-busy="true"] & {
+    color: transparent;
+    pointer-events: none;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      margin: -10px 0 0 -10px;
+      border-radius: 50%;
+      border: 2px solid var(--color-brand-lilac-soft);
+      border-top-color: var(--color-brand-mint);
+      animation: app-loading-spin 700ms linear infinite;
+    }
   }
 }
 
@@ -662,5 +878,16 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attach-mission-modal__badge {
+  border: 1px solid var(--color-brand-mint);
+  border-radius: 999px;
+  color: var(--color-brand-mint);
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: 2px 10px;
   white-space: nowrap;
 }

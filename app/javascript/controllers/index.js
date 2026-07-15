@@ -10,8 +10,65 @@ application.register("achievement-highlight", AchievementHighlightController);
 import AddressSelectController from "./address_select_controller";
 application.register("address-select", AddressSelectController);
 
+import AdminLedgerChartController from "./admin_ledger_chart_controller";
+application.register("admin-ledger-chart", AdminLedgerChartController);
+
 import BioEditorController from "./bio_editor_controller";
 application.register("bio-editor", BioEditorController);
+
+import BulkSelectController from "./bulk_select_controller";
+application.register("bulk-select", BulkSelectController);
+
+import CardLinkController from "./card_link_controller";
+application.register("card-link", CardLinkController);
+
+import CertificateCodeController from "./certificate_code_controller";
+application.register("certificate-code", CertificateCodeController);
+
+import Certification__FeedbackTemplatesController from "./certification/feedback_templates_controller";
+application.register(
+  "certification--feedback-templates",
+  Certification__FeedbackTemplatesController,
+);
+
+import Certification__QueueController from "./certification/queue_controller";
+application.register("certification--queue", Certification__QueueController);
+
+import Certification__ScreenshotCheckController from "./certification/screenshot_check_controller";
+application.register(
+  "certification--screenshot-check",
+  Certification__ScreenshotCheckController,
+);
+
+import Certification__Ships__FraudReportController from "./certification/ships/fraud_report_controller";
+application.register(
+  "certification--ships--fraud-report",
+  Certification__Ships__FraudReportController,
+);
+
+import Certification__Ships__MonitorChartController from "./certification/ships/monitor_chart_controller";
+application.register(
+  "certification--ships--monitor-chart",
+  Certification__Ships__MonitorChartController,
+);
+
+import Certification__VerdictPreviewController from "./certification/verdict_preview_controller";
+application.register(
+  "certification--verdict-preview",
+  Certification__VerdictPreviewController,
+);
+
+import Certification__VideoDropController from "./certification/video_drop_controller";
+application.register(
+  "certification--video-drop",
+  Certification__VideoDropController,
+);
+
+import Certification__Ysws__CompleteReviewController from "./certification/ysws/complete_review_controller";
+application.register(
+  "certification--ysws--complete-review",
+  Certification__Ysws__CompleteReviewController,
+);
 
 import Certification__Ysws__DevlogReviewController from "./certification/ysws/devlog_review_controller";
 application.register(
@@ -23,15 +80,6 @@ import Certification__Ysws__DevlogTimeChartController from "./certification/ysws
 application.register(
   "certification--ysws--devlog-time-chart",
   Certification__Ysws__DevlogTimeChartController,
-);
-
-import Certification__QueueController from "./certification/queue_controller";
-application.register("certification--queue", Certification__QueueController);
-
-import Certification__VideoDropController from "./certification/video_drop_controller";
-application.register(
-  "certification--video-drop",
-  Certification__VideoDropController,
 );
 
 import Certification__Ysws__FraudReportController from "./certification/ysws/fraud_report_controller";
@@ -52,20 +100,38 @@ application.register(
   Certification__Ysws__MediaViewerController,
 );
 
+import Certification__Ysws__ReturnToShipCertController from "./certification/ysws/return_to_ship_cert_controller";
+application.register(
+  "certification--ysws--return-to-ship-cert",
+  Certification__Ysws__ReturnToShipCertController,
+);
+
 import Certification__Ysws__ReviewSidebarController from "./certification/ysws/review_sidebar_controller";
 application.register(
   "certification--ysws--review-sidebar",
   Certification__Ysws__ReviewSidebarController,
 );
 
-import CommentModalController from "./comment_modal_controller";
-application.register("comment-modal", CommentModalController);
+import Certification__Ysws__ReviewerChartController from "./certification/ysws/reviewer_chart_controller";
+application.register(
+  "certification--ysws--reviewer-chart",
+  Certification__Ysws__ReviewerChartController,
+);
 
 import CommandPaletteController from "./command_palette_controller";
 application.register("command-palette", CommandPaletteController);
 
+import CommentModalController from "./comment_modal_controller";
+application.register("comment-modal", CommentModalController);
+
 import ComposerController from "./composer_controller";
 application.register("composer", ComposerController);
+
+import ConfirmController from "./confirm_controller";
+application.register("confirm", ConfirmController);
+
+import CopyController from "./copy_controller";
+application.register("copy", CopyController);
 
 import CountUpController from "./count_up_controller";
 application.register("count-up", CountUpController);
@@ -73,11 +139,17 @@ application.register("count-up", CountUpController);
 import CountdownClockController from "./countdown_clock_controller";
 application.register("countdown-clock", CountdownClockController);
 
+import CountdownController from "./countdown_controller";
+application.register("countdown", CountdownController);
+
 import CurveDrawController from "./curve_draw_controller";
 application.register("curve-draw", CurveDrawController);
 
 import CustomsWarningController from "./customs_warning_controller";
 application.register("customs-warning", CustomsWarningController);
+
+import DailyRollController from "./daily_roll_controller";
+application.register("daily-roll", DailyRollController);
 
 import DecisionTreeController from "./decision_tree_controller";
 application.register("decision-tree", DecisionTreeController);
@@ -94,17 +166,23 @@ application.register("dismissable", DismissableController);
 import EmojiPickerController from "./emoji_picker_controller";
 application.register("emoji-picker", EmojiPickerController);
 
+import EventTimeController from "./event_time_controller";
+application.register("event-time", EventTimeController);
+
 import FallingStarController from "./falling_star_controller";
 application.register("falling-star", FallingStarController);
+
+import FaqAccordionController from "./faq_accordion_controller";
+application.register("faq-accordion", FaqAccordionController);
 
 import FeedEngagementController from "./feed_engagement_controller";
 application.register("feed-engagement", FeedEngagementController);
 
-import HorizontalScrollController from "./horizontal_scroll_controller";
-application.register("horizontal-scroll", HorizontalScrollController);
+import FeedKeyboardController from "./feed_keyboard_controller";
+application.register("feed-keyboard", FeedKeyboardController);
 
-import FaqAccordionController from "./faq_accordion_controller";
-application.register("faq-accordion", FaqAccordionController);
+import FeedTabsController from "./feed_tabs_controller";
+application.register("feed-tabs", FeedTabsController);
 
 import FileUploadController from "./file_upload_controller";
 application.register("file-upload", FileUploadController);
@@ -127,11 +205,26 @@ application.register("hcb-chart", HcbChartController);
 import HeroWarpController from "./hero_warp_controller";
 application.register("hero-warp", HeroWarpController);
 
+import HorizontalScrollController from "./horizontal_scroll_controller";
+application.register("horizontal-scroll", HorizontalScrollController);
+
+import ImageDropzoneController from "./image_dropzone_controller";
+application.register("image-dropzone", ImageDropzoneController);
+
 import JsonHighlightController from "./json_highlight_controller";
 application.register("json-highlight", JsonHighlightController);
 
+import LookoutCaptureController from "./lookout_capture_controller";
+application.register("lookout-capture", LookoutCaptureController);
+
+import LookoutRecorderController from "./lookout_recorder_controller";
+application.register("lookout-recorder", LookoutRecorderController);
+
 import MarkdownPreviewController from "./markdown_preview_controller";
 application.register("markdown-preview", MarkdownPreviewController);
+
+import MentionAutocompleteController from "./mention_autocomplete_controller";
+application.register("mention-autocomplete", MentionAutocompleteController);
 
 import MissionGuideLanguageController from "./mission_guide_language_controller";
 application.register("mission-guide-language", MissionGuideLanguageController);
@@ -139,8 +232,26 @@ application.register("mission-guide-language", MissionGuideLanguageController);
 import MissionGuideProgressController from "./mission_guide_progress_controller";
 application.register("mission-guide-progress", MissionGuideProgressController);
 
+import MissionGuideVariablesController from "./mission_guide_variables_controller";
+application.register(
+  "mission-guide-variables",
+  MissionGuideVariablesController,
+);
+
+import Missions__QueueController from "./missions/queue_controller";
+application.register("missions--queue", Missions__QueueController);
+
 import ModalController from "./modal_controller";
 application.register("modal", ModalController);
+
+import NotificationActorsController from "./notification_actors_controller";
+application.register("notification-actors", NotificationActorsController);
+
+import NotificationsBadgeController from "./notifications_badge_controller";
+application.register("notifications-badge", NotificationsBadgeController);
+
+import NotificationsInboxController from "./notifications_inbox_controller";
+application.register("notifications-inbox", NotificationsInboxController);
 
 import OnboardingExperienceSliderController from "./onboarding_experience_slider_controller";
 application.register(
@@ -160,17 +271,23 @@ application.register("order-form", OrderFormController);
 import ParallaxController from "./parallax_controller";
 application.register("parallax", ParallaxController);
 
-import PrizeFloatController from "./prize_float_controller";
-application.register("prize-float", PrizeFloatController);
+import PayoutReviewController from "./payout_review_controller";
+application.register("payout-review", PayoutReviewController);
 
 import PostMenuController from "./post_menu_controller";
 application.register("post-menu", PostMenuController);
+
+import PrizeFloatController from "./prize_float_controller";
+application.register("prize-float", PrizeFloatController);
 
 import ProfileEditController from "./profile_edit_controller";
 application.register("profile-edit", ProfileEditController);
 
 import ProfileModalController from "./profile_modal_controller";
 application.register("profile-modal", ProfileModalController);
+
+import ProjectBuilderController from "./project_builder_controller";
+application.register("project-builder", ProjectBuilderController);
 
 import ProjectCreationController from "./project_creation_controller";
 application.register("project-creation", ProjectCreationController);
@@ -184,8 +301,14 @@ application.register("project-thumbs-loop", ProjectThumbsLoopController);
 import ProjectThumbsScrollController from "./project_thumbs_scroll_controller";
 application.register("project-thumbs-scroll", ProjectThumbsScrollController);
 
+import ProjectTypeController from "./project_type_controller";
+application.register("project-type", ProjectTypeController);
+
 import ReadmeImageController from "./readme_image_controller";
 application.register("readme-image", ReadmeImageController);
+
+import RerollPollController from "./reroll_poll_controller";
+application.register("reroll-poll", RerollPollController);
 
 import RevealOnScrollController from "./reveal_on_scroll_controller";
 application.register("reveal-on-scroll", RevealOnScrollController);
@@ -202,11 +325,11 @@ application.register("scroll-restore", ScrollRestoreController);
 import SearchableSelectController from "./searchable_select_controller";
 application.register("searchable-select", SearchableSelectController);
 
+import SharePurchaseController from "./share_purchase_controller";
+application.register("share-purchase", SharePurchaseController);
+
 import ShopController from "./shop_controller";
 application.register("shop", ShopController);
-
-import SlackDoodleController from "./slack_doodle_controller";
-application.register("slack-doodle", SlackDoodleController);
 
 import ShopWishlistController from "./shop_wishlist_controller";
 application.register("shop-wishlist", ShopWishlistController);
@@ -214,11 +337,23 @@ application.register("shop-wishlist", ShopWishlistController);
 import SidebarActiveController from "./sidebar_active_controller";
 application.register("sidebar-active", SidebarActiveController);
 
+import SlackDoodleController from "./slack_doodle_controller";
+application.register("slack-doodle", SlackDoodleController);
+
 import SortableController from "./sortable_controller";
 application.register("sortable", SortableController);
 
 import StarImageInputController from "./star_image_input_controller";
 application.register("star-image-input", StarImageInputController);
+
+import StickerCountdownController from "./sticker_countdown_controller";
+application.register("sticker-countdown", StickerCountdownController);
+
+import StickerPromoController from "./sticker_promo_controller";
+application.register("sticker-promo", StickerPromoController);
+
+import StreakController from "./streak_controller";
+application.register("streak", StreakController);
 
 import SubmitOnMetaEnterController from "./submit_on_meta_enter_controller";
 application.register("submit-on-meta-enter", SubmitOnMetaEnterController);
@@ -240,6 +375,12 @@ application.register("username-availability", UsernameAvailabilityController);
 
 import VimeoPlayerController from "./vimeo_player_controller";
 application.register("vimeo-player", VimeoPlayerController);
+
+import VoteScorecardController from "./vote_scorecard_controller";
+application.register("vote-scorecard", VoteScorecardController);
+
+import VoteTelemetryController from "./vote_telemetry_controller";
+application.register("vote-telemetry", VoteTelemetryController);
 
 import WelcomeTourController from "./welcome_tour_controller";
 application.register("welcome-tour", WelcomeTourController);

@@ -1,6 +1,30 @@
 module ApplicationHelper
   def in_beta? = request.host.include?("beta")
 
+  # Memoized per request: the feed renders dozens of post cards and Flipper
+  # memoization is disabled app-wide, so a per-card check would hit
+  # flipper_gates once per card.
+  def show_post_views?
+    return @show_post_views if defined?(@show_post_views)
+    @show_post_views = Flipper.enabled?(:week_2_release, current_user)
+  end
+
+  def main_app_base_url
+    host = request.host.sub(/\Araffle\./, "")
+    port = request.port
+    scheme = request.scheme
+    port_suffix = [ 80, 443 ].include?(port) ? "" : ":#{port}"
+    "#{scheme}://#{host}#{port_suffix}"
+  end
+
+  def raffle_base_url
+    host = request.host.sub(/\Araffle\./, "")
+    port = request.port
+    scheme = request.scheme
+    port_suffix = [ 80, 443 ].include?(port) ? "" : ":#{port}"
+    "#{scheme}://raffle.#{host}#{port_suffix}"
+  end
+
   def stardust_icon(extra_class: nil)
     image_tag "icons/stardust.png", alt: "Stardust", class: [ "currency-icon", extra_class ].compact.join(" ")
   end
@@ -52,6 +76,21 @@ module ApplicationHelper
     format("%d:%02d", hours, mins)
   end
 
+  # Whole-seconds duration as a media clock: H:MM:SS past an hour, else M:SS.
+  # Used by the Lapse/Lookout recording galleries on the hardware funding review.
+  def format_clock(seconds)
+    hours, rem = seconds.to_i.divmod(3600)
+    mins, secs = rem.divmod(60)
+    hours.positive? ? format("%d:%02d:%02d", hours, mins, secs) : format("%d:%02d", mins, secs)
+  end
+
+  # ie: 9h 0m. Hour/minute wall format shared by the devlog time preview,
+  # the un-devlogged time banner, and the devlog-cap notification.
+  def format_hours_minutes(seconds)
+    seconds = seconds.to_i
+    "#{seconds / 3600}h #{(seconds % 3600) / 60}m"
+  end
+
   def format_seconds(seconds, include_days: false)
     # ie: 2h 3m 4s
     # ie. 37h 15m (if include_days is false)
@@ -97,6 +136,13 @@ module ApplicationHelper
     nil
   end
 
+  def certification_verdict_video_src(cert)
+    return if cert.nil?
+    return url_for(cert.verdict_video) if cert.verdict_video.attached?
+
+    safe_external_url(cert.proof_video_url)
+  end
+
   def achievement_icon(icon_name, earned: true, **options)
     asset_path = find_achievement_asset(icon_name)
 
@@ -133,7 +179,6 @@ module ApplicationHelper
     end
   end
 
-
   def cache_stats
     hits = Thread.current[:cache_hits] || 0
     misses = Thread.current[:cache_misses] || 0
@@ -146,8 +191,13 @@ module ApplicationHelper
   end
 
   def active_users_stats
-    counts = ActiveUserTracker.counts
-    "#{counts[:signed_in]} signed in, #{counts[:anonymous]} visitors"
+    Rails.cache.fetch("active_users_stats", expires_in: 30.seconds) do
+      counts = ActiveUserTracker.counts
+      "#{counts[:signed_in]} signed in, #{counts[:anonymous]} visitors"
+    end
+  rescue RedisClient::ReadTimeoutError, Redis::TimeoutError, Redis::CannotConnectError => e
+    Rails.logger.warn("ActiveUserTracker: #{e.class} - #{e.message}")
+    "unavailable"
   end
 
   private

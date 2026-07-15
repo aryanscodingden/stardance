@@ -15,6 +15,8 @@
 <% sale_price = item.price_for_region(region) %>
 <% item_achievement_infos = item.required_achievement_objects %>
 <% item_achievement_locked = item.achievement_locked_for?(current_user) %>
+<% item_mission_locked = item.mission_locked_for?(current_user) %>
+<% item_unlocking_missions = item_mission_locked ? item.unlocking_missions.pluck(:name) : [] %>
 <% is_tutorial_pick = tutorial_item_ids.include?(item.id) %>
 <% show_spotlight = local_assigns.fetch(:spotlight, is_tutorial_pick && mode == :tutorial) %>
 <% pick_needs_verify = is_tutorial_pick && current_user && !current_user.identity_submitted? %>
@@ -48,5 +50,7 @@
   locked_by_achievement: item_achievement_locked,
   required_achievement_names: item_achievement_infos.map(&:name),
   required_achievement_hints: item_achievement_infos.map(&:description),
+  mission_locked: item_mission_locked,
+  unlocking_mission_names: item_unlocking_missions,
   wishlisted: wishlisted_item_ids.include?(item.id)
 ) %>

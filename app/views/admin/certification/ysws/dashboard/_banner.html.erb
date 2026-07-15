@@ -1,0 +1,39 @@
+<section class="ysws-dashboard" aria-label="Reviewer stats">
+  <div class="ysws-dashboard__panel ysws-dashboard__panel--leaderboard">
+    <h2 class="ysws-dashboard__heading">Reviewer leaderboard</h2>
+
+    <% if leaderboard.any? %>
+      <table class="ysws-dashboard__table">
+        <thead>
+          <tr>
+            <th class="ysws-dashboard__col-rank">#</th>
+            <th>Reviewer</th>
+            <th class="ysws-dashboard__col-num">Devlogs reviewed</th>
+            <th class="ysws-dashboard__col-num">Stardust ✦</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% leaderboard.each_with_index do |row, index| %>
+            <tr>
+              <td class="ysws-dashboard__col-rank"><%= index + 1 %></td>
+              <td><%= link_to row[:name].presence || "Unknown", admin_user_path(row[:reviewer_id]) %></td>
+              <td class="ysws-dashboard__col-num"><%= row[:devlogs] %></td>
+              <td class="ysws-dashboard__col-num"><%= row[:stardust] %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="ysws-dashboard__empty">No reviewed devlogs yet.</p>
+    <% end %>
+  </div>
+
+  <div class="ysws-dashboard__panel ysws-dashboard__panel--chart">
+    <h2 class="ysws-dashboard__heading">Devlogs reviewed per day</h2>
+    <div class="ysws-dashboard__chart"
+      data-controller="certification--ysws--reviewer-chart"
+      data-certification--ysws--reviewer-chart-chart-value="<%= chart_data %>">
+      <canvas data-certification--ysws--reviewer-chart-target="canvas"></canvas>
+    </div>
+  </div>
+</section>

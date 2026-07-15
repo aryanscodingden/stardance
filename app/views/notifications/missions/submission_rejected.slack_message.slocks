@@ -5,5 +5,5 @@ section "*<#{mission_url}|#{mission_name}>* — your submission for *<#{project_
 section "*Reason:* #{rejection_message}", markdown: true
 
 actions [
-  button("View submission", "view_submission", url: submission_url)
+  button("View project", "view_project", url: project_url)
 ]

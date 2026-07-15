@@ -1,0 +1,12 @@
+<% if submission.reviewed_by_id.present? && !submission.claim_expired? %>
+  <span class="mission-queue__claim mission-queue__claim--locked">
+    <span class="mission-queue__claim-icon" aria-hidden="true">&#128274;</span>
+    Locked
+    <span class="mission-queue__claim-who"><%= submission.reviewed_by&.display_name %></span>
+    <span class="mission-queue__countdown"
+          data-missions--queue-target="countdown"
+          data-expires-at="<%= submission.claim_expires_at.iso8601 %>"></span>
+  </span>
+<% else %>
+  <span class="mission-queue__claim mission-queue__claim--open">Open</span>
+<% end %>
