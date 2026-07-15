@@ -3,8 +3,11 @@
 # Table name: mission_submissions
 #
 #  id                               :bigint           not null, primary key
+#  claim_expires_at                 :datetime
+#  claimed_at                       :datetime
 #  deleted_at                       :datetime
 #  payout_path                      :string           not null
+#  pending_at                       :datetime
 #  rejection_message                :text
 #  reviewed_at                      :datetime
 #  status                           :string           not null
@@ -19,6 +22,7 @@
 #
 # Indexes
 #
+#  idx_mission_submissions_on_status_claim_expires     (status,claim_expires_at)
 #  index_mission_submissions_active_per_ship_event     (ship_event_id) UNIQUE WHERE (deleted_at IS NULL)
 #  index_mission_submissions_on_chosen_prize_id        (chosen_prize_id)
 #  index_mission_submissions_on_deleted_at             (deleted_at)
@@ -28,6 +32,7 @@
 #  index_mission_submissions_on_ship_event_id          (ship_event_id)
 #  index_mission_submissions_on_shop_order_id          (shop_order_id)
 #  index_mission_submissions_on_status_and_created_at  (status,created_at)
+#  index_mission_submissions_on_status_and_pending_at  (status,pending_at)
 #  index_mission_submissions_with_shop_order           (shop_order_id) WHERE (shop_order_id IS NOT NULL)
 #
 # Foreign Keys
@@ -44,6 +49,7 @@ class Mission::Submission < ApplicationRecord
   include SoftDeletable
   include Ledgerable
   include AASM
+  include MissionReviewable
 
   has_paper_trail
 
@@ -60,7 +66,9 @@ class Mission::Submission < ApplicationRecord
 
   aasm column: :status, no_direct_assignment: true do
     state :awaiting_certification, initial: true
-    state :pending
+    # Queue age counts from the last review, so entering the queue (ship cert
+    # approved, or a decision undone/resubmitted) restamps pending_at.
+    state :pending, before_enter: :stamp_pending_at
     state :approved
     state :rejected
 
@@ -88,21 +96,33 @@ class Mission::Submission < ApplicationRecord
     end
   end
 
+  # "Shipped" in the loose sense: any submission still in flight or approved.
+  # Contrast with `approved` for sites that need full completion.
+  scope :not_rejected, -> { where.not(status: "rejected") }
+  # Still working its way through certification/review.
+  scope :in_review, -> { where.not(status: %w[approved rejected]) }
+
   scope :reviewable,  -> { pending }
   scope :unredeemed,  -> { approved.where(shop_order_id: nil) }
   scope :stale_pending, ->(days: 7) {
-    pending.where("created_at < ?", days.days.ago)
+    pending.where("pending_at < ?", days.days.ago)
   }
 
-  # Per-mission + global reviewers, minus teammates (no self-review).
+  # When the submission last entered the review queue; created_at covers rows
+  # that predate pending_at (or never reached the queue).
+  def queue_entered_at
+    pending_at || created_at
+  end
+
+  # Per-mission reviewers/owners, minus teammates (no self-review). Global
+  # mission_reviewers manage every mission but are deliberately left out here —
+  # they opt into the queue rather than being paged for each submission.
   def reviewer_recipients
     teammate_ids = ship_event&.post&.project&.users&.pluck(:id) || []
 
     per_mission_ids = mission.memberships.pluck(:user_id)
-    global_ids = User.where("? = ANY (granted_roles)", "mission_reviewer").pluck(:id)
 
-    User.where(id: (per_mission_ids + global_ids).uniq - teammate_ids)
-        .where(mission_review_notifications: true)
+    User.where(id: per_mission_ids.uniq - teammate_ids)
         .where.not(slack_id: [ nil, "" ])
   end
 
@@ -120,20 +140,22 @@ class Mission::Submission < ApplicationRecord
       project_url: project ? routes.project_url(project, **url_opts) : routes.root_url(**url_opts),
       builder_name: builder&.display_name || "the builder",
       payout_path: payout_path.titleize,
-      submission_url: routes.mission_submission_url(self, **url_opts),
+      admin_submission_url: routes.admin_mission_submission_url(mission.slug, self, **url_opts),
+      redeem_url: mission.prizes_count > 0 ? routes.redeem_mission_submission_url(self, **url_opts) : nil,
       rejection_message: rejection_message.to_s
     }
   end
 
   private
 
+  def stamp_pending_at
+    self.pending_at = Time.current
+  end
+
   def notify_reviewers
+    builder = ship_event&.post&.user
     reviewer_recipients.find_each do |reviewer|
-      SendSlackDmJob.perform_later(
-        reviewer.slack_id,
-        blocks_path: "notifications/missions/submission_pending_for_reviewer.slack_message",
-        locals: notification_locals
-      )
+      Notifications::Missions::SubmissionPendingForReviewer.notify(recipient: reviewer, actor: builder, record: self)
     end
   rescue StandardError => e
     Rails.logger.warn("Mission::Submission notify_reviewers (#{id}): #{e.message}")

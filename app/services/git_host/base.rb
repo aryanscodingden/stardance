@@ -30,6 +30,10 @@ module GitHost
       raise NotImplementedError
     end
 
+    def fetch_filenames
+      raise NotImplementedError
+    end
+
     def provider_name
       raise NotImplementedError
     end

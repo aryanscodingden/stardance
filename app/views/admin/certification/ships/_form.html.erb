@@ -2,10 +2,28 @@
     The button inside the verdict form references it via the HTML `form` attribute. %>
 <%= form_with url: admin_certification_ship_claim_path(ship), method: :delete,
       id: "unclaim-form-#{ship.id}" do %>
+  <%# Rendered on the combined hardware page so unclaiming returns there. %>
+  <% if local_assigns[:redirect_to_hardware] %>
+    <%= hidden_field_tag :redirect_to_hardware, ship.project_id %>
+  <% end %>
 <% end %>
 
-<%= form_with model: ship, url: admin_certification_ship_path(ship), method: :patch, class: "review-form" do |f| %>
-<% if ship.claim_expires_at.present? %>
+<div data-controller="certification--verdict-preview"
+     data-action="submit->certification--verdict-preview#intercept">
+
+<%= form_with model: ship, url: admin_certification_ship_path(ship), method: :patch, class: "review-form",
+      data: { controller: "certification--video-drop certification--feedback-templates",
+              action: "submit->certification--video-drop#guardSubmit",
+              "certification--video-drop-over-class": "video-drop--over",
+              "certification--video-drop-uploading-class": "video-drop--uploading",
+              "certification--video-drop-done-class": "video-drop--done",
+              "certification--video-drop-error-class": "video-drop--error",
+              "certification--video-drop-direct-upload-url-value": rails_direct_uploads_url } do |f| %>
+<% if local_assigns[:redirect_to_hardware] %>
+  <%# Sends the verdict back to the combined hardware review page. %>
+  <%= hidden_field_tag :redirect_to_hardware, ship.project_id %>
+<% end %>
+<% if can_review && ship.claim_expires_at.present? %>
   <div class="review-form__claim-banner">
     <span>Claim active</span>
     <span class="review-form__countdown"
@@ -37,16 +55,37 @@
 
   <div class="review-form__field">
     <%= f.label :feedback, "Feedback for the user (visible to the project owner)" %>
-    <%= f.text_area :feedback, rows: 6, maxlength: 10_000 %>
+    <div class="review-form__template-bar">
+      <select class="review-form__templates" aria-label="Insert a feedback template"
+              data-certification--feedback-templates-target="picker"
+              data-action="certification--feedback-templates#insert">
+        <option value="" selected>Insert a template&hellip;</option>
+        <optgroup label="Standard">
+          <% Certification::Ship::FEEDBACK_TEMPLATES.each do |template| %>
+            <option data-body="<%= template[:body] %>"><%= template[:label] %></option>
+          <% end %>
+        </optgroup>
+        <%# Filled client-side from localStorage by the feedback-templates controller. %>
+        <optgroup label="Your templates" data-certification--feedback-templates-target="personalGroup"></optgroup>
+      </select>
+      <button type="button" class="review-form__template-action"
+              data-action="certification--feedback-templates#save">
+        Save feedback as template
+      </button>
+      <button type="button" class="review-form__template-action review-form__template-action--danger"
+              data-certification--feedback-templates-target="deleteButton"
+              data-action="certification--feedback-templates#delete" hidden>
+        Delete template
+      </button>
+    </div>
+    <%= f.text_area :feedback, rows: 6, maxlength: 10_000,
+          data: { "certification--feedback-templates-target": "feedback" } %>
   </div>
 
   <div class="review-form__field">
-    <%= f.label :verdict_video, "Walkthrough video (mp4, webm, or mov, max 250 MB)" %>
+    <%= f.label :verdict_video, "Walkthrough video (mp4, webm, or mov)" %>
     <div class="video-drop"
-         data-controller="certification--video-drop"
-         data-certification--video-drop-over-class="video-drop--over"
-         data-certification--video-drop-accepted-class="video-drop--accepted"
-         data-certification--video-drop-error-class="video-drop--error"
+         data-certification--video-drop-target="zone"
          data-action="dragover->certification--video-drop#over
                       dragleave->certification--video-drop#leave
                       drop->certification--video-drop#drop">
@@ -67,6 +106,11 @@
           Choose a different video
         </button>
       </div>
+      <div class="video-drop__progress" role="progressbar" aria-label="Video upload"
+           aria-valuemin="0" aria-valuemax="100"
+           data-certification--video-drop-target="progressWrapper" hidden>
+        <div class="video-drop__progress-bar" data-certification--video-drop-target="progressBar"></div>
+      </div>
       <p class="video-drop__status" role="status" aria-live="polite"
          data-certification--video-drop-target="status"></p>
     </div>
@@ -78,13 +122,46 @@
   </div>
 
   <div class="review-form__actions">
-    <%= f.submit "Submit verdict", class: "action-btn action-btn--large action-btn--primary" %>
-    <%= link_to "Skip and get next", next_admin_certification_ships_path(skip: ship.id),
-          class: "action-btn action-btn--small action-btn--secondary" %>
-    <button type="submit" form="unclaim-form-<%= ship.id %>"
-            class="action-btn action-btn--small action-btn--destructive">
-      Unclaim review
-    </button>
-    <%= link_to "Back to queue", admin_certification_ships_path, class: "review-form__back" %>
+    <%= f.submit "Submit verdict", class: "action-btn action-btn--large action-btn--primary",
+          data: { "certification--video-drop-target": "submitBtn" } %>
+    <% if local_assigns[:redirect_to_hardware] %>
+      <%= link_to "Skip and get next", next_admin_certification_hardware_reviews_path(skip: "ship:#{ship.id}"),
+            class: "action-btn action-btn--small action-btn--secondary" %>
+    <% else %>
+      <%= link_to "Skip and get next", next_admin_certification_ships_path(skip: ship.id),
+            class: "action-btn action-btn--small action-btn--secondary" %>
+    <% end %>
   </div>
 <% end %>
+
+<%# Reuses the shared .modal shell + `modal` controller (backdrop, esc,
+    scroll-lock); the verdict-preview controller only builds the preview and
+    re-submits on confirm. %>
+<dialog class="modal verdict-preview" data-controller="modal"
+        data-certification--verdict-preview-target="modal"
+        aria-labelledby="verdict-preview-title">
+  <h3 id="verdict-preview-title" class="modal__title">
+    Confirm verdict
+    <span class="status-pill" data-certification--verdict-preview-target="verdict"></span>
+  </h3>
+  <p class="modal__description">Take one last look before this is sent to the user.</p>
+
+  <div class="modal__field" data-certification--verdict-preview-target="feedbackBlock">
+    <label>Feedback</label>
+    <p class="modal__description verdict-preview__feedback" data-certification--verdict-preview-target="feedback"></p>
+  </div>
+  <p class="modal__description" data-certification--verdict-preview-target="noFeedback">No feedback written.</p>
+
+  <div class="modal__actions">
+    <button type="button" class="action-btn action-btn--secondary"
+            data-action="click->modal#close">
+      Go back
+    </button>
+    <button type="button" class="action-btn action-btn--primary" autofocus
+            data-action="click->certification--verdict-preview#confirm">
+      Confirm &amp; submit
+    </button>
+  </div>
+</dialog>
+
+</div>

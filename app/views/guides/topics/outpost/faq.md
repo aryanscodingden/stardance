@@ -2,9 +2,11 @@
 
 Join [#outpost](https://hackclub.enterprise.slack.com/archives/C0B04RP43TQ) if you have anything not answered!
 
-### I don't need funding & just want to build my project directly / I have parts from a previous program
+### Can I use a JOURNAL.md file?
 
-Log your project through [Lapse](https://lapse.hackclub.com). If you're having trouble with lapse, you can journal your project using a JOURNAL.md file. Support for adding it to the platform will be available later!
+Yes! In your Git repository, add a [JOURNAL.md file](https://codex.hackclub.com/shipping/journaling/). If journaling is desired in place of timelapsing, all you need to do is document and explain your changes, along with the time per session. Once you need a build grant, fill out the submission form! Your journals will be reviewed. Your project may be rejected for insufficient journaling.
+
+As of now, this flow is entirely off-platform. Projects may be submitted using the standalone [Outpost submission form](https://forms.hackclub.com/outpost-design)!
 
 ### There's a lot of channels! Which one do I use?
 
@@ -23,10 +25,10 @@ Nope! Those are general admission tickets. You will be able to attend the main e
 
 Yes, if you can no longer attend those events!
 
-## I have existing hardware and don't need funding!
-
-Awesome! You can collect points by submitting your build [here]
-
 ### Can I pay visa fees with the travel stipend?
 
 Yes, after qualifying!
+
+### When can I get a visa letter?
+
+You can get a visa letter after qualifying! If you need one sooner, please message @CAN on the slack.

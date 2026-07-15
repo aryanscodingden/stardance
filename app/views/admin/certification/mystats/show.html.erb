@@ -39,6 +39,25 @@
             <span class="reviewer-stats__stats-label">Rate:</span>
             <span class="reviewer-stats__stats-value"><%= @approval_rate %>%</span>
           </div>
+
+          <div class="reviewer-stats__stats-row">
+            <span class="reviewer-stats__stats-label">Today's Multiplier:</span>
+            <span class="reviewer-stats__stats-value reviewer-stats__stats-value--highlight">
+              <%= @current_multiplier %>x
+            </span>
+          </div>
+
+          <div class="reviewer-stats__multiplier-info">
+            <% if @next_milestone %>
+              <%= @next_milestone[:reviews_needed] %> more today to <strong><%= @next_milestone[:multiplier] %>x</strong> (at <%= @next_milestone[:threshold] %> reviews)
+            <% else %>
+              Max multiplier reached!
+            <% end %>
+          </div>
+
+          <div class="reviewer-stats__multiplier-info">
+            Daily milestones: 5=1.25x · 10=1.5x · 20=1.75x · 40=2x
+          </div>
         </div>
       </div>
 
@@ -48,7 +67,7 @@
         </h2>
 
         <div class="reviewer-stats__balance-container">
-          <div class="reviewer-stats__balance-big"><%= @unclaimed %></div>
+          <div class="reviewer-stats__balance-big"><%= number_with_precision(@unclaimed, precision: 2, strip_insignificant_zeros: true) %></div>
           <div class="reviewer-stats__balance-text">balance</div>
         </div>
 
@@ -74,18 +93,18 @@
                 </header>
 
                 <p class="reviewer-stats__modal-desc">
-                  You have <strong><%= @unclaimed %> ✦</strong> stardust available. How much stardust would you like to request?
+                  You have <strong><%= number_with_precision(@unclaimed, precision: 2, strip_insignificant_zeros: true) %> ✦</strong> stardust available. How much stardust would you like to request?
                 </p>
 
                 <div class="reviewer-stats__modal-field">
                   <%= label_tag :amount, "Amount to Request" %>
-                  <%= number_field_tag :amount, @unclaimed,
+                  <%= number_field_tag :amount, @unclaimed.to_i,
                         min: minimum_payout,
-                        max: @unclaimed,
+                        max: @unclaimed.to_i,
                         required: true,
                         autocomplete: "off",
                         class: "reviewer-stats__modal-input" %>
-                  <span class="reviewer-stats__modal-hint">Minimum <%= minimum_payout %> ✦, Maximum <%= @unclaimed %> ✦</span>
+                  <span class="reviewer-stats__modal-hint">Minimum <%= minimum_payout %> ✦, Maximum <%= @unclaimed.to_i %> ✦</span>
                 </div>
 
                 <div class="reviewer-stats__modal-actions">
@@ -132,7 +151,7 @@
                     </span>
                   </td>
                   <td class="reviewer-stats__cell-earned <%= 'reviewer-stats__cell-earned--negative' if item[:type] == :payout %>">
-                    <%= item[:type] == :review ? "+" : "-" %><%= item[:amount] %> ✦
+                    <%= item[:type] == :review ? "+" : "-" %><%= number_with_precision(item[:amount], precision: 2, strip_insignificant_zeros: true) %> ✦
                   </td>
                   <td class="reviewer-stats__cell-date">
                     <%= item[:date]&.strftime('%b %d, %Y') || '—' %>

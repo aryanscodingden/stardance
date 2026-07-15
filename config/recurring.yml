@@ -87,23 +87,29 @@ production:
     concurrency: 1
     description: "Recalculate duration_seconds for all projects"
 
+  devlog_cap_warning:
+    class: DevlogCapWarningJob
+    schedule: every hour at minute 40
+    concurrency: 1
+    description: "Notify project owners nearing the per-devlog payout cap on un-devlogged time"
+
+  sync_pending_lookout_sessions:
+    class: SyncPendingLookoutSessionsJob
+    schedule: every 5 minutes
+    concurrency: 1
+    description: "Re-poll recent non-terminal Lookout sessions so recordings finalize even if the recorder tab was closed"
+
   sync_pyramid_enriched_refs:
     class: SyncPyramidEnrichedRefsJob
     schedule: every hour
     concurrency: 1
     description: "Get valid referral codes from Pyramid Scheme and update records"
 
-  process_demo_broken_reports:
-    class: ProcessDemoBrokenReportsJob
-    schedule: every 30 minutes
-    concurrency: 1
-    description: "Process demo_broken reports: auto-review and re-certify projects with 5+ pending, notify Slack for 15+ total"
-
-  rsvp_daily_summary:
-    class: RsvpDailySummaryJob
+  activity_daily_summary:
+    class: ActivityDailySummaryJob
     schedule: every day at 10am America/New_York
     concurrency: 1
-    description: "Send daily RSVP summary to Slack with signups, ref breakdown, and game stats"
+    description: "Send daily activity summary to Slack with signups, active users, interactions, and virality"
 
   fraud_daily_summary:
     class: FraudDailySummaryJob
@@ -129,6 +135,12 @@ production:
     concurrency: 1
     description: "Calculate weekly fulfillment payouts (3 tickets per fulfilled order)"
 
+  fraud_calculate_payouts:
+    class: Fraud::CalculatePayoutsJob
+    schedule: "0 23 L * * America/New_York"
+    concurrency: 1
+    description: "Calculate monthly fraud squad payouts on the last day of the month at 11pm EST (bracket-based, max 1000 tickets)"
+
   support_vibecheck_est:
     class: SupportVibecheckJob
     schedule: every day at 12pm America/New_York
@@ -152,6 +164,18 @@ production:
     schedule: every day at 5am UTC
     concurrency: 1
     description: "Recalculate approx_balance and approx_total_earned from ledger entries"
+
+  certification_ysws_airtable_resync:
+    class: Certification::YswsAirtableResyncJob
+    schedule: every day at 4pm America/New_York
+    concurrency: 1
+    description: "Enqueue airtable sync for reviews where sync initially failed"
+
+  streak_daily_sync:
+    class: StreakDailySyncJob
+    schedule: every day at 3am UTC
+    concurrency: 1
+    description: "Sync streak activities from Hackatime for all active users"
 
   ahoy_backfill_project_created_ahoy_events:
     class: AhoyBackfillProjectCreatedJob

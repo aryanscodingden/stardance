@@ -1,0 +1,90 @@
+// Lapse timelapse + Lookout recording gallery on the hardware funding review (admin/certification/
+// funding_requests#show). Sits in the details column inside a .ship-review__panel
+// surface (shared with the ship-review layout), so only the gallery internals
+// need styling here.
+
+.recording-gallery {
+  &__empty {
+    margin: 0;
+    color: var(--color-space-text-muted, rgba(255, 255, 255, 0.7));
+    font-size: 0.95rem;
+  }
+
+  &__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-m);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  &__media {
+    position: relative;
+    aspect-ratio: 9 / 16;
+    overflow: hidden;
+    border-radius: 12px;
+    background: var(--color-space-card, rgba(255, 255, 255, 0.04));
+    border: 1px solid var(--color-space-border, rgba(255, 255, 255, 0.1));
+  }
+
+  // Which tool captured the clip (Lapse / Lookout), overlaid on the thumbnail
+  // so a reviewer can tell the source at a glance in the merged gallery.
+  &__source {
+    position: absolute;
+    top: var(--space-xs);
+    left: var(--space-xs);
+    z-index: 1;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    background: rgba(8, 6, 30, 0.78);
+    color: var(--color-brand-mint);
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  &__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+  }
+
+  &__processing {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: var(--space-s);
+    color: var(--color-space-text-muted, rgba(255, 255, 255, 0.7));
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  &__name {
+    color: var(--color-space-text);
+    font-size: 0.95rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__sub {
+    color: var(--color-space-text-muted, rgba(255, 255, 255, 0.7));
+    font-size: 0.8rem;
+  }
+}

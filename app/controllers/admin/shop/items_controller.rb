@@ -10,8 +10,8 @@ class Admin::Shop::ItemsController < Admin::ApplicationController
 
     def new
       authorize ShopItem, :new?
-      @shop_item = if params[:type].present? && available_shop_item_types.include?(params[:type])
-        available_shop_item_types.find { |t| t == params[:type] }.constantize.new
+      @shop_item = if params[:type].present? && ShopItem::SELECTABLE_TYPES.include?(params[:type])
+        ShopItem::SELECTABLE_TYPES.find { |t| t == params[:type] }.constantize.new
       else
         ShopItem.new
       end
@@ -21,6 +21,10 @@ class Admin::Shop::ItemsController < Admin::ApplicationController
       else
         Shop::Regionalizable::REGION_CODES.each { |c| @shop_item.public_send("enabled_#{c.downcase}=", true) }
       end
+      @shop_item.name        = params[:prefill_name]        if params[:prefill_name].present?
+      @shop_item.description = params[:prefill_description] if params[:prefill_description].present?
+      @shop_item.usd_cost    = params[:prefill_usd_cost]    if params[:prefill_usd_cost].present?
+      @suggestion_id = params[:suggestion_id]
     end
 
     def create
@@ -34,9 +38,14 @@ class Admin::Shop::ItemsController < Admin::ApplicationController
       end
 
       if @shop_item.save
+        if params[:suggestion_id].present?
+          suggestion = ShopSuggestion.find_by(id: params[:suggestion_id])
+          suggestion&.update!(shop_item: @shop_item)
+          suggestion&.accept!
+        end
         redirect_to admin_shop_item_path(@shop_item), notice: shop_manager? ? "Draft item created." : "Shop item created successfully."
       else
-        @shop_item_types = available_shop_item_types
+        @shop_item_types = ShopItem::SELECTABLE_TYPES
         render :new, status: :unprocessable_entity
       end
     end
@@ -67,7 +76,7 @@ class Admin::Shop::ItemsController < Admin::ApplicationController
 
         redirect_to admin_shop_item_path(@shop_item), notice: "Shop item updated successfully."
       else
-        @shop_item_types = available_shop_item_types
+        @shop_item_types = ShopItem::SELECTABLE_TYPES
         render :edit, status: :unprocessable_entity
       end
     end
@@ -134,29 +143,12 @@ class Admin::Shop::ItemsController < Admin::ApplicationController
     end
 
     def set_shop_item_types
-      @shop_item_types = available_shop_item_types
+      @shop_item_types = ShopItem::SELECTABLE_TYPES
     end
 
     def set_fulfillment_users
       @fulfillment_users = User.where("'fulfillment_person' = ANY(granted_roles)").order(:display_name)
       @shop_categories = ShopCategory.order(:position, :title)
-    end
-
-    def available_shop_item_types
-      [
-        "ShopItem::Accessory",
-        "ShopItem::HCBGrant",
-        "ShopItem::HCBPreauthGrant",
-        "ShopItem::HQMailItem",
-        "ShopItem::LetterMail",
-        "ShopItem::ThirdPartyPhysical",
-        "ShopItem::ThirdPartyDigital",
-        "ShopItem::WarehouseItem",
-        "ShopItem::SpecialFulfillmentItem",
-        "ShopItem::HackClubberItem",
-        "ShopItem::FreeStickers",
-        "ShopItem::SillyItemType"
-      ]
     end
 
     def shop_item_params

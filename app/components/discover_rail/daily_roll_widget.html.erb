@@ -1,0 +1,48 @@
+<section class="rail-widget daily-roll-widget <%= "daily-roll-widget--waiting" if just_rolled? %>"
+         id="daily-roll-widget"
+         aria-label="rng"
+         data-controller="daily-roll"
+         data-daily-roll-just-rolled-value="<%= just_rolled? %>"
+         data-daily-roll-value-value="<%= roll&.total %>">
+  <h3 class="rail-widget__title">rng</h3>
+
+  <% if rolled? %>
+    <div class="daily-roll-widget__result daily-roll-widget__result--<%= roll.tone %>">
+      <span class="daily-roll-widget__number" data-daily-roll-target="number"><%= just_rolled? ? "✦" : formatted_value %></span>
+      <span class="daily-roll-widget__burst" data-daily-roll-target="burst" aria-hidden="true"></span>
+    </div>
+    <p class="daily-roll-widget__flavor"><%= roll.flavor %></p>
+  <% else %>
+    <p class="rail-widget__body">You get one (or two) random numbers a day. Biggest number wins a <strong>ticket to NASA's Kennedy Space Center</strong>. Reroll to make your number bigger!</p>
+    <%# Turbo Drive is off app-wide (application.js), so the form must opt in
+        or the roll falls back to a full-page reload and the reveal animation
+        never runs. %>
+    <%= button_to daily_roll_path,
+                  class: "action-btn action-btn--primary action-btn--small daily-roll-widget__button",
+                  form: { data: { turbo: true } },
+                  data: { turbo_submits_with: "rolling…" } do %>
+      <span class="daily-roll-widget__button-star" aria-hidden="true">✦</span> roll
+    <% end %>
+  <% end %>
+
+  <% if rolled? %>
+    <div class="daily-roll-widget__actions">
+      <button type="button" class="action-btn action-btn--primary action-btn--small"
+              data-controller="tooltip copy"
+              data-tooltip-message-value="Click to copy"
+              data-copy-text-value="<%= helpers.roll_share_text(roll) %>"
+              data-action="click->copy#copy">copy to share</button>
+
+      <% if helpers.reroll_enabled?(user) %>
+        <%= render "daily_rolls/reroll_control", user: user, roll: roll, block: "daily-roll-widget", size: :small %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <%= link_to "View full leaderboard →", rng_path, class: "rail-widget__link", data: { turbo_frame: "_top" } %>
+
+  <% if rolled? && Rails.env.development? %>
+    <%= button_to "clear roll (dev)", clear_daily_roll_path, method: :delete,
+                  class: "daily-roll-widget__dev-clear" %>
+  <% end %>
+</section>

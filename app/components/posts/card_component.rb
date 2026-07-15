@@ -4,9 +4,9 @@ module Posts
   class CardComponent < ViewComponent::Base
     delegate :inline_svg_tag, to: :helpers
 
-    attr_reader :post, :current_user, :theme, :compact, :show_likes, :show_comments, :show_reposts, :show_actions, :source, :position, :page, :feed_request_id
+    attr_reader :post, :current_user, :theme, :compact, :show_likes, :show_comments, :show_reposts, :show_actions, :source, :position, :page, :feed_request_id, :track_engagement, :current_user_reposted_post_ids, :show_views, :media_variant, :lazy_media
 
-    def initialize(post:, current_user: nil, theme: :feed, compact: false, show_likes: true, show_comments: true, show_reposts: true, show_actions: true, source: nil, position: nil, page: nil, feed_request_id: nil)
+    def initialize(post:, current_user: nil, theme: :feed, compact: false, show_likes: true, show_comments: true, show_reposts: true, show_actions: true, source: nil, position: nil, page: nil, feed_request_id: nil, track_engagement: true, current_user_reposted_post_ids: nil, show_views: nil, media_variant: :large, lazy_media: false)
       @post = post
       @current_user = current_user
       @theme = theme
@@ -19,6 +19,11 @@ module Posts
       @position = position
       @page = page
       @feed_request_id = feed_request_id
+      @track_engagement = track_engagement
+      @current_user_reposted_post_ids = current_user_reposted_post_ids
+      @show_views = show_views
+      @media_variant = media_variant
+      @lazy_media = lazy_media
     end
 
     def render?
@@ -41,17 +46,39 @@ module Posts
       repost? && !plain_repost?
     end
 
+    def fire_event?
+      display_post&.postable_type == "Post::FireEvent"
+    end
+
     def card_classes
       class_names(
         "feed-post-card",
-        "feed-post-card--linked": card_link_url.present?,
+        "feed-post-card--linked": card_link_url.present? && request.path != card_link_url,
         "feed-post-card--compact": compact,
         "feed-post-card--quote-repost": quote_repost?,
+        "feed-post-card--fire": fire_event?,
         "feed-post-card--#{theme}": theme.present?
       )
     end
 
+    def card_data
+      url = card_link_url
+      data = engagement_data
+      return data if url.blank?
+
+      controllers = [ data[:controller], "card-link" ].compact.join(" ")
+      actions = [ data[:action], "click->card-link#navigate auxclick->card-link#navigate" ].compact.join(" ")
+
+      data.merge(
+        controller: controllers,
+        card_link_url_value: url,
+        action: actions
+      )
+    end
+
     def engagement_data
+      return {} unless track_engagement
+
       {
         controller: "feed-engagement",
         feed_engagement_item_type_value: "post",
@@ -119,6 +146,21 @@ module Posts
       show_comments || show_reposts || show_likes || show_actions
     end
 
+    def show_views?
+      return show_views unless show_views.nil?
+
+      helpers.show_post_views?
+    end
+
+    def views_count
+      display_post&.views_count.to_i
+    end
+
+    def comments_url
+      base = card_link_url
+      "#{base}#comments" if base.present?
+    end
+
     def comments_count_id
       if interaction_postable.present?
         "comments_count_#{interaction_postable.class.name.underscore.tr('/', '_')}_#{interaction_postable.id}"
@@ -154,11 +196,10 @@ module Posts
     end
 
     def reposted_by_current_user?
-      if current_user.present? && repostable?
-        Post::Repost.exists?(original_post: repost_target, user: current_user)
-      else
-        false
-      end
+      return false unless current_user.present? && repostable?
+      return current_user_reposted_post_ids.include?(repost_target.id) if current_user_reposted_post_ids
+
+      Post::Repost.exists?(original_post: repost_target, user: current_user)
     end
 
     def quote_dialog_id
@@ -211,8 +252,8 @@ module Posts
         post_menu_url_value: post_url,
         post_menu_post_id_value: display_post&.id,
         post_menu_project_id_value: project&.id,
-        post_menu_source_value: source,
-        post_menu_feed_request_id_value: feed_request_id
+        post_menu_source_value: track_engagement ? source : nil,
+        post_menu_feed_request_id_value: track_engagement ? feed_request_id : nil
       }.compact
     end
 

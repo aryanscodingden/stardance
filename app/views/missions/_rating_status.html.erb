@@ -1,0 +1,48 @@
+<% rated = mission.submissions_enter_rating? %>
+<% modal_id = "rating-info-modal-#{mission.id}" %>
+<% rewards = [] %>
+<% unless rated %>
+  <% rewards << "#{mission.fixed_stardust_payout} stardust" if mission.fixed_stardust_payout&.positive? %>
+  <% rewards += mission.prizes.includes(:shop_item).filter_map { |prize| prize.shop_item&.name } %>
+<% end %>
+<li class="mission-home__prize mission-home__prize--<%= rated ? "mint" : "salmon" %>">
+  <div class="mission-home__prize-tile">
+    <span class="mission-home__rating-icon <%= "mission-home__rating-icon--excluded" unless rated %>">
+      <%= image_tag "icons/box.png", alt: "", class: "mission-home__rating-img" %>
+    </span>
+  </div>
+  <div class="mission-home__prize-body">
+    <% if rated %>
+      <p class="mission-home__prize-title">Goes into rating</p>
+      <p class="mission-home__prize-blurb">Your project is rated by the community to earn stardust.</p>
+    <% else %>
+      <p class="mission-home__prize-title">Not rated</p>
+      <p class="mission-home__prize-blurb">
+        Projects shipped to this mission will not be rated and will instead get a fixed payout.
+        <button type="button" class="mission-home__prize-info-link"
+                onclick="document.getElementById(<%= modal_id.to_json %>).showModal()">See more info →</button>
+      </p>
+    <% end %>
+  </div>
+
+  <% unless rated %>
+    <dialog id="<%= modal_id %>" class="rating-info-modal" data-controller="modal"
+            aria-labelledby="<%= modal_id %>-title">
+      <div class="rating-info-modal__panel">
+        <button type="button" class="rating-info-modal__close"
+                onclick="document.getElementById(<%= modal_id.to_json %>).close()"
+                aria-label="Close">&times;</button>
+        <h3 id="<%= modal_id %>-title" class="rating-info-modal__title">Fixed payout</h3>
+        <p class="rating-info-modal__text">
+          Rather than being rated, projects shipped to this fixed-payout mission will get:
+          <strong><%= rewards.to_sentence %></strong> instead.
+        </p>
+        <p class="rating-info-modal__text">
+          Once you've shipped once to the mission, future ships will be rated normally, so if you
+          want to work on a project for this mission beyond the base requirements, ship once when
+          you've completed the base requirements and then work on adding new features and reship.
+        </p>
+      </div>
+    </dialog>
+  <% end %>
+</li>

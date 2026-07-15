@@ -60,4 +60,4 @@ Once you're done with your project, you're ready to submit!
 
 If you just finished a _design_ and are looking for funding, fill out [this form](https://forms.hackclub.com/outpost-design)
 
-If you went straight for a build and want to submit for Stardust, hang tight! Support for shipping hardware on the platform is currently in development and coming soon.
+If you have a build, hang tight!

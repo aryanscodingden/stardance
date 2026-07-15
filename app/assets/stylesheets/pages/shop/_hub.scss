@@ -197,33 +197,6 @@
     flex-shrink: 0;
   }
 
-  &__suggest {
-    align-items: center;
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    display: inline-flex;
-    gap: 0.5rem;
-    padding: 0;
-  }
-
-  &__suggest-img {
-    height: 64px;
-    transform: rotate(6deg);
-    width: auto;
-  }
-
-  &__suggest-pill {
-    background: var(--color-brand-highlight);
-    border: 1.5px solid var(--color-brand-highlight);
-    border-radius: 999px;
-    color: var(--color-space-bg);
-    font-family: "Exo 2", sans-serif;
-    font-size: 0.95rem;
-    font-weight: 700;
-    padding: 0.55rem 1.2rem;
-  }
-
   &__main {
     grid-area: main;
     min-width: 0;

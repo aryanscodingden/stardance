@@ -1,29 +1,19 @@
 <% content_for :title, "YSWS Review ##{@review.id}" %>
-<% content_for :stylesheets do %>
-  <%= stylesheet_link_tag "admin", "data-turbo-track": "reload" %>
-<% end %>
 
-<main class="certification-ysws" role="main" data-controller="certification--ysws--review-sidebar certification--ysws--fraud-report certification--ysws--media-viewer certification--ysws--complete-review" data-certification--ysws--fraud-report-review-id-value="<%= @review.id %>" data-certification--ysws--complete-review-review-id-value="<%= @review.id %>">
+<main class="certification-ysws" role="main" data-controller="certification--ysws--review-sidebar certification--ysws--fraud-report certification--ysws--media-viewer certification--ysws--complete-review certification--ysws--return-to-ship-cert" data-certification--ysws--fraud-report-review-id-value="<%= @review.id %>" data-certification--ysws--complete-review-review-id-value="<%= @review.id %>" data-certification--ysws--return-to-ship-cert-review-id-value="<%= @review.id %>">
   <!-- Header Section -->
   <div class="review-detail-header">
-    <%= link_to "← back", admin_certification_ysws_reviews_path, class: "btn-back", "aria-label": "Back to review queue" %>
+    <%= link_to "← back", admin_certification_ysws_reviews_path, class: "btn-secondary slim", "aria-label": "Back to review queue" %>
 
     <div class="header-content">
       <div class="header-left">
-        <h1>YSWS Review</h1>
-        <div style="display: flex; align-items: center; gap: var(--space-m);">
+        <div class="ysws-title-row">
+          <h1>YSWS Review</h1>
+          <%= render "projects/fire_controls", project: @review.project %>
+        </div>
+        <div class="header-title-row">
           <h2 class="project-name"><%= @review.project.title %></h2>
-          <% if @review.airtable_synced_at.present? %>
-            <% if @review.approved_minutes.to_i > 0 %>
-              <span class="status-approved">approved</span>
-            <% else %>
-              <span class="status-rejected">rejected</span>
-            <% end %>
-          <% elsif @review.reviewed_at.present? %>
-            <span class="status-awaiting-sync">awaiting sync</span>
-          <% else %>
-            <span class="status-pending">pending</span>
-          <% end %>
+          <%= review_status_badge(@review) %>
         </div>
         <% unless @review.ship_cert_id %>
           <p class="ship-event-note">This is a standalone ship event (reship)</p>
@@ -89,8 +79,8 @@
       <!-- Ship Cert Video Section -->
       <section class="review-card video-card">
         <h3>Ship Cert Video</h3>
-        <% if @review.ship_cert&.verdict_video&.attached? %>
-          <video class="video-card__player" src="<%= url_for(@review.ship_cert.verdict_video) %>"
+        <% if (ship_cert_video_src = certification_verdict_video_src(@review.ship_cert)) %>
+          <video class="video-card__player" src="<%= ship_cert_video_src %>"
                  controls playsinline preload="metadata" style="width:100%;border-radius:var(--profile-radius)"></video>
         <% else %>
           <div class="video-placeholder">
@@ -98,6 +88,16 @@
           </div>
         <% end %>
       </section>
+
+      <% if @review.project.update_description.present? %>
+        <!-- Update Description Card -->
+        <section class="review-card update-description-card">
+          <h3>Project Update Description</h3>
+          <div class="update-description-content">
+            <pre><%= @review.project.update_description %></pre>
+          </div>
+        </section>
+      <% end %>
 
       <!-- Time Stats Section -->
       <section class="review-card stats-card">
@@ -130,9 +130,9 @@
         </div>
         <div class="time-chart">
           <div class="chart-title">Time Distribution Across Devlogs</div>
-          <% if @review.devlog_reviews.any? %>
+          <% if @all_devlog_reviews.any? %>
             <%
-              chart_data = @review.devlog_reviews.each_with_index.map do |devlog_review, index|
+              chart_data = @all_devlog_reviews.each_with_index.map do |devlog_review, index|
                 {
                   label: "Devlog #{index + 1}",
                   minutes: devlog_review.original_minutes || 0
@@ -160,7 +160,7 @@
             <li>Looks like over 30% ai - even if it is declared</li>
             <li>Looks like it isn't shipped (shipwrights messed up)</li>
             <li>last project edit was before the event launch</li>
-            <li>project was worked on before event, and not marked as Project Update: in description (return to shipwrights)</li>
+            <li>project was worked on before event, and not marked as Project Update (return to shipwrights)</li>
           </ul>
         </div>
       </section>
@@ -174,14 +174,14 @@
           <div class="detail-item">
             <span class="detail-key">Project:</span>
             <span class="detail-value">
-              <%= link_to @review.project.title, admin_project_path(@review.project), class: "link-primary" %>
+              <%= link_to @review.project.title, project_path(@review.project), class: "link-primary" %>
             </span>
           </div>
 
           <div class="detail-item">
             <span class="detail-key">Submitter:</span>
             <span class="detail-value" style="display: flex; align-items: center; gap: var(--space-xs); flex-wrap: wrap;">
-              <span><%= @review.user.display_name || @review.user.email || "Unknown User" %></span>
+              <span><%= @review.user.display_name || "Unknown User" %></span>
               <span class="fraud-links" style="display: inline-flex; gap: var(--space-xxs);">
                 <a href="https://billy.3kh0.net/?u=<%= @review.user.slack_id %>" class="fraud-link" target="_blank">Billy</a>
                 <a href="https://joe.fraud.hackclub.com/profile/<%= @review.user.slack_id %>" class="fraud-link" target="_blank">Joe</a>
@@ -192,11 +192,7 @@
           <div class="detail-item">
             <span class="detail-key">Type:</span>
             <span class="detail-value">
-              <% if @review.project&.project_categories&.present? %>
-                <%= @review.project.project_categories.join(", ") %>
-              <% else %>
-                unknown
-              <% end %>
+              <%= @review.project&.project_type.presence || "unknown" %>
             </span>
           </div>
 
@@ -230,7 +226,7 @@
             <div class="detail-item">
               <span class="detail-key">YSWS Reviewer:</span>
               <span class="detail-value">
-                <%= link_to (@review.reviewer.display_name || @review.reviewer.email || "Unknown"), admin_user_path(@review.reviewer), class: "link-primary" %>
+                <%= link_to (@review.reviewer.display_name || "Unknown"), admin_user_path(@review.reviewer), class: "link-primary" %>
               </span>
             </div>
           <% end %>
@@ -283,157 +279,35 @@
   <!-- Devlogs Section (Full Width) -->
   <section class="review-card devlogs-card">
     <div class="devlogs-header">
-      <h3>Devlogs (<%= @review.devlog_reviews.count %>)</h3>
+      <h3>Devlogs (<%= @all_devlog_reviews.size %>)</h3>
     </div>
 
-    <% if @review.devlog_reviews.any? %>
+    <% if @all_devlog_reviews.any? %>
       <div class="devlogs-list">
-        <% @review.devlog_reviews.each_with_index do |devlog_review, index| %>
-          <div class="devlog-item"
-               data-controller="certification--ysws--devlog-review"
-               data-certification--ysws--devlog-review-id-value="<%= devlog_review.id %>"
-               data-certification--ysws--devlog-review-original-minutes-value="<%= devlog_review.original_minutes || 0 %>"
-               data-certification--ysws--devlog-review-status-value="<%= devlog_review.status %>"
-               <%= 'data-certification--ysws--review-sidebar-target="trigger"'.html_safe if index == 0 %>>
-            <div class="devlog-main">
-              <div class="devlog-header-row">
-                <span class="devlog-id">Devlog #<%= devlog_review.post_devlog.id %></span>
-                <% if devlog_review.approved? %>
-                  <span class="devlog-status status-approved">Approved</span>
-                <% elsif devlog_review.rejected? %>
-                  <span class="devlog-status status-rejected">Rejected</span>
-                <% end %>
-              </div>
-
-              <% if devlog_review.post_devlog.body.present? %>
-                <p class="devlog-desc"><%= devlog_review.post_devlog.body %></p>
-              <% else %>
-                <p class="devlog-desc empty-body-warning">body was empty, contact @AVD, this shouldn't happen</p>
-              <% end %>
-
-              <div class="devlog-media-section">
-                <div class="media-label">Devlog Media (<%= devlog_review.post_devlog.attachments.size %>)</div>
-                <% if devlog_review.post_devlog.attachments.any? %>
-                  <div class="media-grid">
-                    <% devlog_review.post_devlog.attachments.each do |attachment| %>
-                      <% if attachment.video? %>
-                        <a href="<%= url_for(attachment) %>" class="media-item video-item" data-action="click->certification--ysws--media-viewer#open">
-                          <video class="media-thumbnail" muted>
-                            <source src="<%= url_for(attachment) %>" type="<%= attachment.content_type %>">
-                          </video>
-                          <div class="media-type-badge">Video</div>
-                        </a>
-                      <% else %>
-                        <a href="<%= url_for(attachment) %>" class="media-item image-item" data-action="click->certification--ysws--media-viewer#open">
-                          <%= image_tag attachment.variant(:thumb), class: "media-thumbnail", alt: "Devlog attachment" %>
-                        </a>
-                      <% end %>
-                    <% end %>
-                  </div>
-                <% else %>
-                  <div class="media-placeholder">
-                    <div class="placeholder-text">No media attached</div>
-                  </div>
-                <% end %>
-              </div>
-
-              <div class="devlog-time">
-                Original Time:
-                <span class="time-value"><%= ((devlog_review.original_minutes || 0) / 60.0).round(1) %> hrs</span>
-                <em>(<%= devlog_review.original_minutes || 0 %> minutes)</em>
-              </div>
-
-              <div class="devlog-git-section">
-                <%
-                  dl_commits = @devlog_commits[devlog_review.post_devlog_id] || []
-                  first_commit, last_commit = dl_commits.minmax_by { |c| c[:authored_at] || Time.at(0) }
-                  compare_url = if first_commit && last_commit && first_commit != last_commit
-                    first_sha = first_commit[:sha]
-                    last_sha  = last_commit[:sha]
-                    repo_base = @review.project.repo_url.to_s.chomp("/")
-                    if @repo_info&.dig(:platform) == "github"
-                      "#{repo_base}/compare/#{first_sha}...#{last_sha}"
-                    elsif @repo_info&.dig(:platform)&.include?("gitlab")
-                      "#{repo_base}/-/compare/#{first_sha}...#{last_sha}"
-                    end
-                  end
-                %>
-                <div class="git-label">
-                  <% if compare_url %>
-                    <%= link_to "Git Activity", compare_url, target: "_blank", rel: "noopener noreferrer" %>
-                  <% else %>
-                    Git Activity
-                  <% end %>
-                </div>
-                <%= Certification::CommitGraphBuilder.new(dl_commits).svg %>
-              </div>
+        <% @prior_reviews.each do |prior_review| %>
+          <% next if prior_review.devlog_reviews.empty? %>
+          <div class="devlog-review-group devlog-review-group--frozen">
+            <div class="devlog-review-group__header">
+              <%= link_to "Review ##{prior_review.id}", admin_certification_ysws_review_path(prior_review), class: "link-primary" %>
+              <%= review_status_badge(prior_review) %>
+              <span class="devlog-review-group__meta">shipped <%= prior_review.created_at.to_date %> · read-only</span>
             </div>
-
-            <!-- Review Decision Panel -->
-            <div class="devlog-review-panel"
-                 data-certification--ysws--devlog-review-target="panel">
-              <div class="panel-title">Review Decision</div>
-
-              <div class="panel-section">
-                <div class="panel-label">Status:</div>
-                <div class="status-buttons">
-                  <button class="status-btn btn-approve"
-                          data-certification--ysws--devlog-review-target="approveButton"
-                          data-action="click->certification--ysws--devlog-review#approve">
-                    ✓ Approve
-                  </button>
-                  <button class="status-btn btn-reject"
-                          data-certification--ysws--devlog-review-target="rejectButton"
-                          data-action="click->certification--ysws--devlog-review#reject">
-                    ✗ Reject
-                  </button>
-                </div>
-              </div>
-
-              <div class="panel-section">
-                <div class="panel-label">Approved Minutes:</div>
-                <div class="minutes-input-group">
-                  <input type="number"
-                         value="<%= devlog_review.approved_minutes || devlog_review.original_minutes || 0 %>"
-                         class="minutes-input"
-                         data-certification--ysws--devlog-review-target="minutesInput"
-                         data-action="input->certification--ysws--devlog-review#updateMinutes"
-                         min="0"
-                         autocomplete="off">
-                  <span class="minutes-label">minutes</span>
-                  <span class="hours-display" data-certification--ysws--devlog-review-target="hoursDisplay">
-                    (<%= ((devlog_review.approved_minutes || devlog_review.original_minutes || 0) / 60.0).round(1) %>h)
-                  </span>
-                </div>
-                <div class="quick-adjust-buttons">
-                  <button class="adjust-btn"
-                          data-action="click->certification--ysws--devlog-review#quickAdjust"
-                          data-adjust-action="50%">50%</button>
-                  <button class="adjust-btn"
-                          data-action="click->certification--ysws--devlog-review#quickAdjust"
-                          data-adjust-action="25%">25%</button>
-                  <button class="adjust-btn"
-                          data-action="click->certification--ysws--devlog-review#quickAdjust"
-                          data-adjust-action="-30">-30min</button>
-                  <button class="adjust-btn"
-                          data-action="click->certification--ysws--devlog-review#quickAdjust"
-                          data-adjust-action="-60">-1hr</button>
-                  <button class="adjust-btn"
-                          data-action="click->certification--ysws--devlog-review#quickAdjust"
-                          data-adjust-action="reset">Reset</button>
-                </div>
-              </div>
-
-              <div class="panel-section">
-                <div class="panel-label">Internal Notes:</div>
-                <textarea class="notes-textarea"
-                          placeholder="notes..."
-                          data-certification--ysws--devlog-review-target="notesTextarea"
-                          data-action="input->certification--ysws--devlog-review#updateNotes"><%= devlog_review.justification %></textarea>
-              </div>
-            </div>
+            <% prior_review.devlog_reviews.each do |devlog_review| %>
+              <%= render "devlog_review", devlog_review: devlog_review, frozen: true %>
+            <% end %>
           </div>
         <% end %>
+
+        <div class="devlog-review-group">
+          <% if @prior_reviews.any? { |r| r.devlog_reviews.any? } %>
+            <div class="devlog-review-group__header">
+              <span class="devlog-review-group__current-label">This review</span>
+            </div>
+          <% end %>
+          <% @review.devlog_reviews.each_with_index do |devlog_review, index| %>
+            <%= render "devlog_review", devlog_review: devlog_review, frozen: false, sidebar_trigger: index == 0 %>
+          <% end %>
+        </div>
       </div>
     <% else %>
       <div class="empty-devlogs">
@@ -444,7 +318,7 @@
 
   <div style="height: 25px;"></div>
 
-  <% unless @review.in_unified_db? %>
+  <% unless @review.in_unified_db? || @review.returned_at? || !@review.claimed_by?(current_user) %>
     <!-- Action Buttons Section (Full Width) -->
     <section class="review-card actions-card" data-certification--ysws--review-sidebar-target="actionsCard">
       <div class="checklist-warning">
@@ -456,7 +330,8 @@
       </div>
 
       <div class="action-buttons-grid">
-<button class="action-btn btn-return" disabled>
+        <button class="action-btn btn-return"
+                data-action="click->certification--ysws--return-to-ship-cert#open">
           Return to Ship Certs
         </button>
         <button class="action-btn btn-complete"
@@ -467,6 +342,41 @@
       </div>
     </section>
   <% end %>
+
+  <!-- Return to Ship Cert Modal -->
+  <div class="return-ship-cert-modal" data-certification--ysws--return-to-ship-cert-target="modal">
+    <div class="return-ship-cert-modal__content" data-action="click->certification--ysws--return-to-ship-cert#stopPropagation">
+      <div class="return-ship-cert-modal__header">
+        <h2>Return to Ship Certification</h2>
+        <button class="return-ship-cert-modal__close" data-action="click->certification--ysws--return-to-ship-cert#close" aria-label="Close modal">
+          ×
+        </button>
+      </div>
+
+      <div class="return-ship-cert-modal__body">
+        <label for="recert-reason" class="return-ship-cert-modal__label">
+          Why is this project being returned to ship certification?
+        </label>
+        <textarea
+          id="recert-reason"
+          class="return-ship-cert-modal__textarea"
+          data-certification--ysws--return-to-ship-cert-target="textarea"
+          placeholder="Explain why you're returning this project (e.g. missing devlogs, hours don't add up, needs re-review...)"
+          rows="5"></textarea>
+      </div>
+
+      <div class="return-ship-cert-modal__footer">
+        <button class="return-ship-cert-modal__cancel" data-action="click->certification--ysws--return-to-ship-cert#close">
+          Cancel
+        </button>
+        <button class="return-ship-cert-modal__submit"
+                data-action="click->certification--ysws--return-to-ship-cert#submit"
+                data-certification--ysws--return-to-ship-cert-target="submitButton">
+          Return to Ship Certs
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Fraud Report Modal -->
   <div class="fraud-report-modal" data-certification--ysws--fraud-report-target="modal">

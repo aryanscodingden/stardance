@@ -7,6 +7,10 @@ class Admin::Certification::YswsPolicy < ApplicationPolicy
     index?
   end
 
+  def dashboard?
+    index?
+  end
+
   def update?
     index?
   end

@@ -22,6 +22,8 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class User::HackatimeProject < ApplicationRecord
+  include FunnelResyncTrigger
+
   belongs_to :user
   belongs_to :project, optional: true
 
@@ -34,7 +36,14 @@ class User::HackatimeProject < ApplicationRecord
   validate :project_not_already_linked, if: :project_id_changed?
   validate :not_used_in_devlog, if: :project_id_changed?
 
+  after_commit :enqueue_streak_resync, if: -> { saved_change_to_project_id? && project_id.present? }
+
   private
+
+  def enqueue_streak_resync
+    user.update_column(:streak_synced_at, nil) if user.has_attribute?(:streak_synced_at)
+    StreakSyncJob.perform_later(user_id)
+  end
 
   def project_not_already_linked
     return if project_id.nil? # Allow unlinking (setting project to nil)

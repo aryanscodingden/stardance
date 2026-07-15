@@ -3,6 +3,51 @@ require_relative "../config/environment"
 require "rails/test_help"
 require "view_component/test_helpers"
 
+# Fixture loading truncates every fixture-covered table in whatever database
+# the test env resolves to. If `.env.test` is missing, dotenv falls through to
+# `.env`'s development DATABASE_URL and the suite will wipe the dev database.
+# This has happened three times. Refuse to run against anything but a test DB.
+unless ActiveRecord::Base.connection_db_config.database.end_with?("_test")
+  abort "Aborting: test env is connected to " \
+        "#{ActiveRecord::Base.connection_db_config.database.inspect}, not a *_test database. " \
+        "Recreate .env.test with DATABASE_URL pointing at stardance_test before running tests."
+end
+
+# minitest 6 dropped `Object#stub` (the block-style method stubber the suite
+# relies on, e.g. `Foo.stub(:bar, value) { ... }`). Restore the classic
+# minitest 5 implementation when it's absent so tests that lean on `.stub` keep
+# working without pulling in mocha or rspec-mocks.
+unless Object.method_defined?(:stub) || Object.private_method_defined?(:stub)
+  class Object
+    def stub(name, val_or_callable, *block_args, **block_kwargs, &block)
+      new_name = "__minitest_stub__#{name}"
+      metaclass = class << self; self; end
+
+      if respond_to?(name) && !methods.map(&:to_s).include?(name.to_s)
+        metaclass.send :define_method, name do |*args|
+          super(*args)
+        end
+      end
+
+      metaclass.send :alias_method, new_name, name
+      metaclass.send :define_method, name do |*args, **kwargs, &blk|
+        if val_or_callable.respond_to?(:call)
+          val_or_callable.call(*args, **kwargs, &blk)
+        else
+          blk.call(*block_args, **block_kwargs) if blk
+          val_or_callable
+        end
+      end
+
+      yield self
+    ensure
+      metaclass.send :undef_method, name
+      metaclass.send :alias_method, name, new_name
+      metaclass.send :undef_method, new_name
+    end
+  end
+end
+
 Dir[Rails.root.join("test/support/**/*.rb")].each { |f| require f }
 
 module ActiveSupport
@@ -14,6 +59,7 @@ module ActiveSupport
     fixtures :all
 
     include UserFactory
+    include MissionFactory
   end
 end
 

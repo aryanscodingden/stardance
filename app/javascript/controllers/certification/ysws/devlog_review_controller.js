@@ -234,10 +234,15 @@ export default class extends Controller {
 
     switch (status) {
       case "approved":
-        if (hasNotes) this.panelTarget.classList.add("approved");
+        // Approved devlogs don't individually require a justification (only at
+        // least one approved devlog across the review must have one), so always
+        // mark them complete.
+        this.panelTarget.classList.add("approved");
         this.approveButtonTarget.classList.add("active");
         break;
       case "rejected":
+        // Every rejected devlog needs its own justification, so only mark it
+        // complete once notes are present.
         if (hasNotes) this.panelTarget.classList.add("rejected");
         this.rejectButtonTarget.classList.add("active");
         break;

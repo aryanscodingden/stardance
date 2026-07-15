@@ -39,6 +39,11 @@ gem "thruster", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
 
+# Certificate PDF downloads (wraps the vips-rendered certificate image)
+gem "prawn"
+# Verify-URL QR codes on the certificate (module matrix only; rasterized via vips)
+gem "rqrcode_core"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
@@ -120,7 +125,7 @@ gem "faker", "~> 3.6"
 gem "jsbundling-rails", "~> 1.3"
 gem "stackprof"
 gem "sentry-ruby", "~> 6.6"
-gem "sentry-rails", "~> 6.5"
+gem "sentry-rails", "~> 6.6"
 
 # for pagination
 gem "pagy", "~> 43.5"
@@ -154,3 +159,4 @@ gem "neighbor"
 
 gem "email_reply_parser"
 gem "appsignal"
+gem "mjml-rails"

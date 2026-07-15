@@ -1,0 +1,93 @@
+<dialog id="payout-review-modal"
+       class="payout-review-modal"
+       aria-labelledby="payout-review-title"
+       data-controller="modal">
+  <div class="payout-review-modal__panel">
+    <header class="payout-review-modal__header">
+      <div>
+        <p class="payout-review-modal__eyebrow">Payout review</p>
+        <h2 id="payout-review-title" class="payout-review-modal__title">
+          <%= payout_review[:estimated_payout].to_i %> stardust
+        </h2>
+        <p class="payout-review-modal__deadline">
+          <% if payout_review[:paid_out] %>
+            Paid out
+          <% else %>
+            Automatic payout in
+            <strong data-controller="countdown"
+                    data-countdown-reset-at-value="<%= payout_review[:review_deadline].iso8601 %>"
+                    data-countdown-expired-text-value="processing">calculating…</strong>
+            · <%= l(payout_review[:review_deadline], format: :short) %>
+          <% end %>
+        </p>
+      </div>
+      <button type="button"
+              class="payout-review-modal__close"
+              onclick="document.getElementById('payout-review-modal').close()"
+              aria-label="Close payout review">×</button>
+    </header>
+
+    <div class="payout-review-modal__notice">
+      <% if payout_review[:paid_out] %>
+        <p>Your payout is complete. The anonymous rating reasons remain available for your reference.</p>
+      <% elsif payout_review[:review_open] %>
+        <p>Happy with the ratings? Accept the locked payout immediately. This cannot be undone.</p>
+        <%= button_to "Accept payout now",
+                      ship_event_payout_acceptance_path(payout_review[:ship_event]),
+                      method: :post,
+                      class: "action-btn action-btn--small action-btn--primary",
+                      form: { data: { turbo_confirm: "Accept #{payout_review[:estimated_payout].to_i} stardust now? You will no longer be able to flag these ratings." } } %>
+      <% else %>
+        <p>Your payout review window has closed.</p>
+        <span class="payout-review-modal__processing">Automatic payout is processing.</span>
+      <% end %>
+    </div>
+
+    <div class="payout-review-modal__reasons-wrap"
+         data-controller="payout-review"
+         aria-label="Anonymous rating reasons">
+
+      <div class="payout-review-modal__reasons-header">
+        <% if payout_review[:review_open] %>
+          <p class="payout-review-modal__flag-cost">
+            Flag only inaccurate or unfair ratings. A rejected flag costs <%= Vote::FLAG_COST %> stardust.
+          </p>
+        <% end %>
+        <div class="payout-review-modal__reasons-nav">
+          <button type="button"
+                  class="payout-review-modal__nav-btn"
+                  data-payout-review-target="prevBtn"
+                  data-action="click->payout-review#prev"
+                  aria-label="Previous reason">←</button>
+          <span class="payout-review-modal__nav-counter" data-payout-review-target="counter">
+            1 / <%= payout_review[:reason_votes].size %>
+          </span>
+          <button type="button"
+                  class="payout-review-modal__nav-btn"
+                  data-payout-review-target="nextBtn"
+                  data-action="click->payout-review#next"
+                  aria-label="Next reason">→</button>
+        </div>
+      </div>
+
+      <ol class="payout-review-modal__reasons" aria-label="Rating reasons">
+        <% payout_review[:reason_votes].each.with_index(1) do |vote, index| %>
+          <li class="payout-review-modal__reason"
+              data-payout-review-target="reason">
+            <span class="payout-review-modal__reason-label">Reason <%= index %></span>
+            <%= simple_format(vote.reason, class: "payout-review-modal__reason-text") %>
+            <% if vote.pending_flag? %>
+              <span class="payout-review-modal__flag-status">Pending manual review</span>
+            <% elsif vote.flaggable_by?(current_user) %>
+              <%= button_to "Flag reason",
+                            vote_flag_path(vote),
+                            method: :post,
+                            class: "action-btn action-btn--small action-btn--destructive",
+                            form: { data: { turbo_confirm: "An incorrect flag costs #{Vote::FLAG_COST} stardust. Continue?" } } %>
+            <% end %>
+          </li>
+        <% end %>
+      </ol>
+    </div>
+  </div>
+</dialog>

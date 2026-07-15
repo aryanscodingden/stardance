@@ -26,6 +26,8 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class User::Identity < ApplicationRecord
+  include FunnelResyncTrigger
+
   belongs_to :user
   has_encrypted :access_token, :refresh_token
   blind_index :access_token, :refresh_token, slow: true

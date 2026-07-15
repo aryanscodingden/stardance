@@ -1,0 +1,65 @@
+// Mission prize redeem picker (shown when a mission has 0 or ≥2 prizes;
+// a single prize redirects straight to its shop item).
+
+.submission-redeem__breadcrumb {
+  margin: var(--space-l) 0 var(--space-xs);
+  font-size: 0.9rem;
+  color: var(--color-space-text-muted, var(--color-space-text));
+
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+    }
+  }
+}
+
+.submission-redeem__header {
+  margin: 0 0 var(--space-l);
+
+  h1 {
+    margin: 0 0 var(--space-xs);
+    font-size: 2rem;
+    color: var(--color-space-text);
+  }
+}
+
+.submission-redeem__prizes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-m);
+}
+
+.submission-redeem__prize {
+  padding: var(--space-l);
+  border-radius: 12px;
+  border: 1px solid var(--color-space-border, rgba(255, 255, 255, 0.1));
+  background: var(--color-space-card, rgba(255, 255, 255, 0.04));
+  color: var(--color-space-text);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+
+  h3 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--color-space-text-muted, var(--color-space-text));
+  }
+
+  .action-btn {
+    align-self: flex-start;
+    margin-top: auto;
+  }
+}

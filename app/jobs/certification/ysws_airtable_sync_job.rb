@@ -6,9 +6,7 @@ module Certification
 
     queue_as :default
 
-    # rescue_from(StandardError) must be declared FIRST — ActiveJob checks handlers in
-    # reverse registration order (last = highest priority), so retry_on declarations
-    # below will take precedence over this catch-all for Faraday errors.
+    # rescue_from(StandardError) must be declared FIRST — ActiveJob checks handlers in reverse registration order (last = highest priority), so retry_on declarations below will take precedence over this catch-all for Faraday errors.
     rescue_from(StandardError) do |error|
       Sentry.capture_exception(error, level: :fatal, message: "YswsAirtableSyncJob failed for ysws_review ##{arguments.first}: #{error.message}", extra: { ysws_review_id: arguments.first })
       raise error
@@ -34,11 +32,8 @@ module Certification
       # Check if user is banned
       rejection_info = check_user_status(review)
 
-      # Generate AI summary of devlog justifications (optional)
-      ai_summary = generate_ai_summary(review)
-
       # Build Airtable fields
-      fields = build_airtable_fields(review, ai_summary, rejection_info)
+      fields = build_airtable_fields(review, rejection_info)
 
       # Upsert to Airtable
       table.upsert(fields, "ship_cert_id")
@@ -150,7 +145,7 @@ module Certification
       nil # Gracefully fall back to nil if AI fails
     end
 
-    def build_airtable_fields(review, ai_summary, rejection_info)
+    def build_airtable_fields(review, rejection_info)
       user = review.user
       project = review.project
       devlog_reviews = review.devlog_reviews.to_a
@@ -161,22 +156,22 @@ module Certification
 
       # Calculate minutes
       total_original_minutes = devlog_reviews.sum { |dr| dr.original_minutes.to_i }
-      total_approved_minutes = devlog_reviews.sum { |dr| dr.approved_minutes.to_i }
+      total_approved_minutes = review.approved_minutes_total
       hours_spent = (total_approved_minutes / 60.0).round(2)
 
-      # Check if all devlogs rejected OR under 6 minutes
+      # Check if all devlogs rejected OR under threshold
       all_rejected = devlog_reviews.all? { |dr| dr.rejected? }
-      under_min_threshold = total_approved_minutes < 6
+      under_min_threshold = total_approved_minutes < ::Certification::Ysws::MIN_APPROVED_MINUTES
 
       # Determine final rejection status
-      final_rejected = rejection_info[:rejected] || all_rejected || under_min_threshold
+      final_rejected = review.review_rejected?
       final_rejection_reason = if rejection_info[:rejected]
         rejection_info[:rejection_reason]
       elsif all_rejected
-        summary = ai_summary.presence || review.summary_justification.presence || ""
+        summary = generate_ai_summary(review).presence || review.summary_justification.presence || ""
         "Rejected by YSWS reviewer because: #{summary}".strip
       elsif under_min_threshold
-        "Rejected because under 6 approved minutes."
+        "Rejected because under #{::Certification::Ysws::MIN_APPROVED_MINUTES} approved minutes."
       else
         nil
       end
@@ -199,7 +194,6 @@ module Certification
         total_original_minutes: total_original_minutes,
         total_approved_minutes: total_approved_minutes,
         ship_certifier_name: ship_certifier_name,
-        ai_summary: ai_summary,
         approved_orders: approved_orders
       )
 
@@ -211,6 +205,12 @@ module Certification
         .reverse
       posts_to_check = [ review.post_ship_event, *devlog_posts ].compact
       ship_event_screenshot_url = posts_to_check.lazy.filter_map { |p| screenshot_url_for_post(p) }.first
+
+      # Prefer an actual ship/devlog screenshot; fall back to the project banner
+      # only when there is no screenshot — never send both.
+      selected_screenshot_url = ship_event_screenshot_url.presence || banner_url
+      screenshot_attachments = selected_screenshot_url.present? ? [ { "url" => selected_screenshot_url } ] : []
+      log_screenshot_result(review, screenshot_attachments, ship_event_screenshot_url, banner_url, posts_to_check, project)
 
       {
         # Identity
@@ -242,10 +242,7 @@ module Certification
         "Playable URL" => project.demo_url, # tik
         "readme_url" => project.readme_url, # tik
         "Description" => project.description, # tik
-        "Screenshot" => [
-          ship_event_screenshot_url.present? ? { "url" => ship_event_screenshot_url } : nil,
-          banner_url.present? ? { "url" => banner_url } : nil
-        ].compact, # tik
+        "Screenshot" => screenshot_attachments, # tik
 
         # Review Data
         "reviewer" => review.reviewer&.display_name || review.reviewer&.email || "Unknown", # tik
@@ -295,7 +292,7 @@ module Certification
       }
     end
 
-    def build_justification(review:, devlog_reviews:, total_original_minutes:, total_approved_minutes:, ship_certifier_name:, ai_summary:, approved_orders:)
+    def build_justification(review:, devlog_reviews:, total_original_minutes:, total_approved_minutes:, ship_certifier_name:, approved_orders:)
       project_id = review.project_id
       ysws_review_id = review.id
       ship_cert_id = review.ship_cert_id
@@ -304,35 +301,46 @@ module Certification
       # Format minutes
       original_formatted = format_minutes(total_original_minutes)
       approved_formatted = format_minutes(total_approved_minutes)
+      adjusted_note = total_original_minutes == total_approved_minutes ? "" : " (This was adjusted to #{approved_formatted} after review.)"
 
-      # Build devlog approval list
-      approved_devlogs = devlog_reviews.select { |dr| dr.approved? }
-      devlog_list = approved_devlogs.map do |dr|
-        "devlog #{dr.post_devlog_id}: #{dr.approved_minutes} min"
+      # Devlog tallies for the summary line
+      approved_count = devlog_reviews.count(&:approved?)
+      rejected_count = devlog_reviews.count(&:rejected?)
+      approval_summary = "Of which #{approved_count} #{approved_count == 1 ? "was" : "were"} approved"
+      approval_summary += " and #{rejected_count} rejected" if rejected_count.positive?
+
+      # Per-devlog breakdown: minutes, status, and the reviewer's justification
+      devlog_list = devlog_reviews.map do |dr|
+        minutes = dr.approved_minutes || 0
+        devlog_note = dr.justification.presence
+        line = "devlog #{dr.post_devlog_id}: #{minutes} min #{dr.status}"
+        line += ": \"#{devlog_note}\"" if devlog_note
+        line
       end.join("\n")
 
-      ysws_justification = review.summary_justification.presence
-      goi_note = ai_summary.present? ? "\n#{ai_summary}" : ""
+      # A review counts as a project update when it carries an update description
+      # or an earlier review of the same project exists (a reship).
+      project_updated = review.project&.update_description.present? || prior_review?(review)
+
+      intro = "The user logged #{original_formatted} on hackatime.#{adjusted_note}"
+      intro += "\nThis is a project update." if project_updated
 
       justification = <<~JUSTIFICATION
-        The user logged #{original_formatted} on hackatime. #{total_original_minutes == total_approved_minutes ? "" : "(This was adjusted to #{approved_formatted} after review.)"}.
-        #{goi_note}
+        #{intro}
 
-        In this time they wrote #{devlog_reviews.count} devlogs.
+        In this time they wrote #{devlog_reviews.count} devlogs. #{approval_summary}.
 
         This project was initially ship certified by #{ship_certifier_name}.
 
-        Following this it was YSWS reviewed by #{reviewer_name}#{ysws_justification.present? ? "\n\nwho mentioned: #{ysws_justification}" : ""}
-
-        and approved:
+        Following this it was YSWS reviewed by #{reviewer_name}
 
         #{devlog_list}
         ====================================================
         The Stardance project can be found at https://stardance.hackclub.com/projects/#{project_id}
 
-        The Full YSWS Review + devlogs are at https://stardance.hackclub.com/admin/certification/ysws/#{ysws_review_id}
+        The Full YSWS Review + devlogs are at https://stardance.hackclub.com/admin/certification/review/#{ysws_review_id}
 
-        The Ship Cert is at https://stardance.hackclub.com/admin/certification/ship_cert/#{ship_cert_id}/
+        The Ship Cert is at https://stardance.hackclub.com/admin/certification/ship/#{ship_cert_id}/
       JUSTIFICATION
 
       # Add shop orders section if available
@@ -350,6 +358,14 @@ module Certification
         end
       end
 
+      # List the Hackatime project names linked to this project
+      hackatime_project_names = review.project&.hackatime_projects&.pluck(:name) || []
+      justification += if hackatime_project_names.any?
+        "\n\nUser's Hackatime Project Names: #{hackatime_project_names.join(", ")}"
+      else
+        "\n\nNo hackatime projects linked :cry:"
+      end
+
       justification.strip
     end
 
@@ -359,31 +375,89 @@ module Certification
       hours > 0 ? "#{hours}h #{remaining_minutes}min" : "#{remaining_minutes}min"
     end
 
-    def banner_url_for_project(project)
-      return nil unless project.banner.attached?
+    # Active Storage URLs handed to Airtable must be ABSOLUTE and publicly
+    # fetchable: Airtable downloads the file from the URL server-side, some time
+    # after the upsert returns. If the URL is blank, points at a non-public host
+    # (e.g. a Codespaces dev forward), or uses the wrong scheme, Airtable just
+    # leaves the attachment cell empty — the upsert still returns 200 and every
+    # plain-text field saves fine. So we build URLs from the app's canonical
+    # public host (asset_host, set in every deployed env) and only fall back to
+    # APP_HOST for local dev. Returns {} when no host is configured.
+    def public_url_options
+      return @public_url_options if defined?(@public_url_options)
 
-      host = ENV["APP_HOST"]
-      return nil if host.blank?
+      raw = Rails.application.config.asset_host.presence || ENV["APP_HOST"].presence
+      @public_url_options =
+        if raw.blank?
+          {}
+        else
+          raw = "https://#{raw}" unless raw.match?(%r{\Ahttps?://})
+          uri = URI.parse(raw)
+          options = { host: uri.host, protocol: uri.scheme }
+          options[:port] = uri.port if uri.port && ![ 80, 443 ].include?(uri.port)
+          options
+        end
+    rescue URI::InvalidURIError => e
+      Rails.logger.error("[YswsAirtableSyncJob] invalid asset_host/APP_HOST (#{raw.inspect}): #{e.message}")
+      @public_url_options = {}
+    end
 
-      rails_blob_url(project.banner, host: host)
+    # Builds an absolute, single-hop proxy URL for an Active Storage attachment.
+    # We use the proxy route — matching production's
+    # resolve_model_to_route = :rails_storage_proxy and the url_for(attachment)
+    # used throughout the views — rather than rails_blob_url. rails_blob_url
+    # returns a redirect that 302s to a short-lived signed storage URL; Airtable
+    # fetches some time after the upsert, so it could land on an expired target.
+    # The proxy URL serves the bytes from our own host in one request and its
+    # signed id does not expire.
+    def blob_url(attachment)
+      return nil if attachment.nil?
+
+      options = public_url_options
+      if options[:host].blank?
+        Rails.logger.error("[YswsAirtableSyncJob] no public host configured (asset_host / APP_HOST) — attachment URL skipped")
+        return nil
+      end
+
+      rails_storage_proxy_url(attachment, **options)
     rescue StandardError => e
-      Rails.logger.error("[YswsAirtableSyncJob] banner_url error: #{e.message}")
+      Rails.logger.error("[YswsAirtableSyncJob] blob_url error (#{attachment.class}): #{e.class}: #{e.message}")
       nil
+    end
+
+    def banner_url_for_project(project)
+      banner = project.display_banner
+      return nil unless banner&.attached?
+
+      blob_url(banner)
     end
 
     def screenshot_url_for_post(post)
       return nil unless post
 
-      screenshot = post.attachments.find { |a| a.image? }
-      return nil unless screenshot
+      blob_url(post.attachments.find { |a| a.image? })
+    end
 
-      host = ENV["APP_HOST"]
-      return nil if host.blank?
+    # Screams when the Screenshot field comes out empty so the cause is visible
+    # in logs/Sentry instead of failing silently. An empty field with source
+    # images present is a real misconfiguration (host/scheme); empty with no
+    # source images is expected (some reviews genuinely have no media).
+    def log_screenshot_result(review, attachments, screenshot_url, banner_url, posts_to_check, project)
+      if attachments.any?
+        Rails.logger.info("[YswsAirtableSyncJob] review ##{review.id} Screenshot → #{attachments.map { |a| a['url'] }}")
+        return
+      end
 
-      rails_blob_url(screenshot, host: host)
-    rescue StandardError => e
-      Rails.logger.error("[YswsAirtableSyncJob] screenshot_url error: #{e.message}")
-      nil
+      had_source_image = posts_to_check.any? { |p| p.attachments.any?(&:image?) } || project.display_banner&.attached?
+      detail = "screenshot_url=#{screenshot_url.inspect} banner_url=#{banner_url.inspect} host=#{public_url_options.inspect}"
+
+      if had_source_image
+        message = "[YswsAirtableSyncJob] review ##{review.id}: source images exist but produced NO Screenshot URLs — #{detail}"
+        Rails.logger.error(message)
+        Sentry.capture_message(message, level: :warning, extra: { ysws_review_id: review.id })
+      else
+        Rails.logger.warn("[YswsAirtableSyncJob] review ##{review.id}: no Screenshot — no source images found. #{detail}")
+      end
     end
 
     UNIFIED_YSWS_BASE_ID  = "app3A5kJwYqxMLOgh"
@@ -430,6 +504,15 @@ module Certification
     rescue StandardError => e
       Rails.logger.error "[YswsAirtableSyncJob] double-dip check error: #{e.class}: #{e.message}"
       false
+    end
+
+    # True when an earlier review exists for the same project (i.e. this is a
+    # reship). Mirrors the prior-review lookup on the YSWS review page.
+    def prior_review?(review)
+      Certification::Ysws
+        .where(project_id: review.project_id)
+        .where("id < ?", review.id)
+        .exists?
     end
 
     def prior_ship_event(review)

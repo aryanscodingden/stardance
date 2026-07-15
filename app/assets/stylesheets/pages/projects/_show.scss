@@ -7,7 +7,7 @@
 .project-show__feed,
 .project-show__notice,
 .project-show__onboarding,
-.project-show__payout-votes,
+.payout-checklist,
 turbo-frame#project_hero {
   width: min(100%, 922px);
   align-self: center;
@@ -177,6 +177,37 @@ turbo-frame#project_hero {
   letter-spacing: 0;
 }
 
+// Title + its tag(s) sit on one line; the tag wraps under on narrow screens.
+.project-show__title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  .project-show__title {
+    width: auto;
+  }
+}
+
+.project-show__tag {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+
+  // Orange "Hardware" pill — orange is the "different kind of thing" accent.
+  &--hardware {
+    background: var(--color-brand-orange-soft);
+    color: var(--color-brand-orange);
+  }
+}
+
 .project-show__title-input {
   padding: 0;
   border: 0;
@@ -344,6 +375,75 @@ turbo-frame#project_hero {
   option {
     color: var(--color-set-1-bg);
   }
+}
+
+// Hardware project Design/Build stage toggle — segmented pills, primary-fill
+// (brand highlight) on the selected stage.
+.project-show__stage-toggle {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.project-show__stage-choice {
+  display: inline-flex;
+}
+
+.project-show__stage-radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.project-show__stage-choice-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 45px;
+  padding: 8px 28px;
+  border: 2px solid var(--color-border-input);
+  border-radius: 999px;
+  color: var(--color-space-text);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.project-show__stage-choice:hover .project-show__stage-choice-label {
+  border-color: var(--color-space-text);
+}
+
+.project-show__stage-radio:focus-visible + .project-show__stage-choice-label {
+  border-color: var(--color-border-input-focus);
+}
+
+.project-show__stage-radio:checked + .project-show__stage-choice-label {
+  background: var(--color-brand-highlight);
+  border-color: var(--color-brand-highlight);
+  color: var(--color-set-1-bg);
+}
+
+.project-show__stage-toggle--locked {
+  pointer-events: none;
+}
+
+.project-show__stage-choice-label--locked {
+  opacity: 0.65;
+  cursor: not-allowed;
+  font-size: 0.9rem;
+  filter: saturate(0.7);
+}
+
+.project-show__stage-choice-label--locked.project-show__stage-choice-label--selected {
+  background: var(--color-brand-highlight);
+  border-color: var(--color-brand-highlight);
+  color: var(--color-set-1-bg);
+  opacity: 0.75;
 }
 
 .project-show__hackatime-picker {
@@ -575,11 +675,12 @@ turbo-frame#project_hero {
   }
 }
 
-// Destructive action (Unfollow / Delete). Per branding §4.1 destructive uses
-// salmon (`--color-brand-salmon`) — transparent + salmon-bordered when
-// resting, salmon-filled on hover so the destructive intent is unambiguous.
+// Destructive action (Unfollow / Delete / Report). Per branding §4.1
+// destructive uses salmon (`--color-brand-salmon`) — transparent +
+// salmon-bordered when resting, salmon-filled on hover so the destructive
+// intent is unambiguous.
 .project-show__pill--following,
-.project-show__pill--destructive {
+.project-show__pill--danger {
   border-color: var(--color-brand-salmon);
   color: var(--color-brand-salmon);
 
@@ -590,6 +691,17 @@ turbo-frame#project_hero {
     color: var(--color-set-1-bg);
     outline: none;
   }
+}
+
+.project-show__pill--danger {
+  gap: 6px;
+}
+
+.project-show__pill-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  fill: currentColor;
 }
 
 .project-show__read-footer {
@@ -613,6 +725,16 @@ turbo-frame#project_hero {
   &:hover {
     text-decoration: underline;
   }
+}
+
+.project-show__pill--github {
+  gap: 6px;
+}
+
+.project-show__github-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 // Author avatars stack horizontally with a slight overlap, like a multi-user
@@ -743,6 +865,47 @@ turbo-frame#project_hero {
   }
 }
 
+// Nudge shown under the action row when un-devlogged Hackatime time nears the
+// per-devlog payout cap (Post::ShipEvent::DEVLOG_CAP_WARNING_SECONDS).
+.project-show__devlog-cap-warning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: var(--space-xs) 0 0;
+  padding: 10px 14px;
+  border: 1px solid
+    color-mix(in srgb, var(--color-brand-yellow) 55%, transparent);
+  border-radius: 12px;
+  background: color-mix(
+    in srgb,
+    var(--color-brand-yellow) 14%,
+    var(--color-set-2-bg)
+  );
+  color: var(--color-brand-cream);
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+
+.project-show__devlog-cap-warning--over {
+  border-color: color-mix(in srgb, var(--color-brand-salmon) 55%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--color-brand-salmon) 14%,
+    var(--color-set-2-bg)
+  );
+}
+
+.project-show__devlog-cap-warning-icon {
+  flex-shrink: 0;
+  width: 1.25em;
+  height: 1.25em;
+  fill: var(--color-brand-yellow);
+}
+
+.project-show__devlog-cap-warning--over .project-show__devlog-cap-warning-icon {
+  fill: var(--color-brand-salmon);
+}
+
 // "Add 15min (test)" button. Pulled out of the actions row and pinned to the
 // bottom-right corner of the viewport so it stays out of the main flow.
 .project-show__test-time-form {
@@ -783,6 +946,19 @@ turbo-frame#project_hero {
   text-align: center;
 }
 
+.project-show__onboarding-image {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 16px;
+  border-radius: 12px;
+}
+
+.project-show__onboarding-image--icon {
+  width: 240px;
+}
+
 .project-show__onboarding-header-title {
   margin: 0 0 8px;
   font-size: 2.5rem;
@@ -800,6 +976,12 @@ turbo-frame#project_hero {
   color: var(--color-brand-highlight);
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+// Keeps the getting-started CTA pill-sized and centered instead of
+// stretching to the full width of the onboarding column.
+.project-show__onboarding-cta {
+  align-self: center;
 }
 
 .project-show__onboarding-list {
@@ -920,10 +1102,19 @@ turbo-frame#project_hero {
   }
 
   &--returned {
-    background: color-mix(in srgb, var(--color-brand-salmon) 18%, transparent);
-    color: var(--color-brand-salmon);
-    border: 1px solid
-      color-mix(in srgb, var(--color-brand-salmon) 40%, transparent);
+    --badge-accent: var(--color-brand-salmon);
+  }
+
+  &--approved {
+    --badge-accent: var(--color-brand-mint);
+    text-decoration: none;
+  }
+
+  &--returned,
+  &--approved {
+    background: color-mix(in srgb, var(--badge-accent) 18%, transparent);
+    color: var(--badge-accent);
+    border: 1px solid color-mix(in srgb, var(--badge-accent) 40%, transparent);
   }
 
   &--clickable {
@@ -937,12 +1128,12 @@ turbo-frame#project_hero {
     &:focus-visible {
       background: color-mix(
         in srgb,
-        var(--color-brand-salmon) 30%,
+        var(--badge-accent, var(--color-brand-salmon)) 30%,
         transparent
       );
       border-color: color-mix(
         in srgb,
-        var(--color-brand-salmon) 65%,
+        var(--badge-accent, var(--color-brand-salmon)) 65%,
         transparent
       );
       outline: none;
@@ -1110,65 +1301,390 @@ turbo-frame#project_hero {
 }
 
 // Payout votes panel — same set-1 surface as the notice.
-.project-show__payout-votes {
-  // Match the mission module's tile (.mission-panel).
-  padding: var(--space-m);
-  border-radius: 14px;
-  border: 1px solid var(--color-space-border, rgba(255, 255, 255, 0.12));
-  background: var(--color-space-card, rgba(255, 255, 255, 0.04));
+.payout-checklist {
+  background: rgba(217, 217, 217, 0.1);
+  border: 2px solid var(--color-brand-highlight);
+  border-radius: 16px;
+  padding: 1.25rem 1.25rem 1rem;
   color: var(--color-space-text);
+
+  &--admin {
+    border-color: var(--color-brand-orange);
+    border-style: dashed;
+  }
 }
 
-.project-show__payout-votes-header {
+.payout-checklist__title {
+  color: var(--color-brand-highlight);
+  font-family: var(--font-family-text);
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0 0 1rem;
+}
+
+.payout-checklist__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.payout-checklist__step {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+
+  &--done {
+    opacity: 0.5;
+  }
+}
+
+.payout-checklist__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+
+  .payout-checklist__step--done & {
+    background: var(--color-brand-highlight);
+    color: var(--color-set-1-bg);
+  }
+}
+
+.payout-checklist__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.payout-checklist__label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.payout-checklist__progress-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.payout-checklist__bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  appearance: none;
+
+  &::-webkit-progress-bar {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+
+  &::-webkit-progress-value {
+    background: var(--color-brand-highlight);
+    border-radius: 3px;
+  }
+
+  &::-moz-progress-bar {
+    background: var(--color-brand-highlight);
+    border-radius: 3px;
+  }
+}
+
+.payout-checklist__count {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+.payout-checklist__hint {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  line-height: 1.35;
+}
+
+.payout-checklist__estimate {
+  color: var(--color-brand-mint);
+  font-weight: 700;
+}
+
+.payout-checklist__action {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-brand-highlight);
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-brand-cream);
+  }
+}
+
+.payout-review-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  margin: 0;
+  width: min(720px, calc(100vw - 2 * var(--space-m)));
+  max-height: min(820px, calc(100dvh - 2 * var(--space-m)));
+  padding: 0;
+  border: 1px solid
+    color-mix(in srgb, var(--color-brand-highlight) 45%, transparent);
+  border-radius: var(--border-radius, 16px);
+  background: var(--color-space-bg-2, #0d0b2e);
+  color: var(--color-space-text);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 20px 60px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+  }
+}
+
+.payout-review-modal__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  padding: var(--space-l);
+  max-height: min(820px, calc(100dvh - 2 * var(--space-m)));
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 99px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.32);
+    }
+  }
+}
+
+.payout-review-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-m);
+}
+
+.payout-review-modal__eyebrow,
+.payout-review-modal__title,
+.payout-review-modal__deadline,
+.payout-review-modal__notice p,
+.payout-review-modal__flag-cost {
+  margin: 0;
+}
+
+.payout-review-modal__eyebrow {
+  color: var(--color-brand-mint);
+  font-size: var(--font-size-s);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.payout-review-modal__title {
+  color: var(--color-brand-highlight);
+  font-size: var(--font-size-xxxl);
+  line-height: 1.1;
+}
+
+.payout-review-modal__deadline,
+.payout-review-modal__flag-cost {
+  color: var(--color-space-text-muted);
+  font-size: var(--font-size-s);
+  line-height: 1.4;
+}
+
+.payout-review-modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-space-text-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--color-space-text);
+    outline: none;
+  }
+}
+
+.payout-review-modal__notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-m);
+  padding: var(--space-m);
+  border-radius: calc(var(--border-radius, 16px) - 4px);
+  background: color-mix(
+    in srgb,
+    var(--color-brand-highlight) 8%,
+    rgba(255, 255, 255, 0.03)
+  );
+  border: 1px solid
+    color-mix(in srgb, var(--color-brand-highlight) 28%, transparent);
+}
+
+.payout-review-modal__processing,
+.payout-review-modal__flag-status {
+  color: var(--color-brand-yellow);
+  font-size: var(--font-size-s);
+  font-weight: 700;
+}
+
+.payout-review-modal__reasons-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.payout-review-modal__reasons-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-m);
   flex-wrap: wrap;
-  margin-bottom: var(--space-s);
 }
 
-.project-show__payout-votes-cta {
-  display: inline-flex;
-  flex: 0 0 auto;
-}
-
-.project-show__payout-votes-title {
-  margin: 0;
-  // Branding §2.1 Body size, bold.
-  font-size: 1.1875rem;
-  font-weight: 700;
-}
-
-.project-show__payout-votes-info {
-  cursor: help;
-}
-
-.project-show__payout-votes-row {
+.payout-review-modal__reasons-nav {
   display: flex;
   align-items: center;
-  gap: var(--space-m);
+  gap: var(--space-xs);
+  flex-shrink: 0;
 }
 
-.project-show__payout-votes-progress {
-  flex: 1;
-  height: 14px;
-  appearance: none;
-
-  &::-webkit-progress-bar {
-    background: var(--color-overlay-light);
-    border-radius: 999px;
-  }
-
-  &::-webkit-progress-value {
-    background: var(--color-space-accent);
-    border-radius: 999px;
-  }
-}
-
-.project-show__payout-votes-text {
+.payout-review-modal__nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-space-text);
   font-size: 1rem;
-  white-space: nowrap;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    opacity 120ms ease;
+
+  &:hover:not(:disabled),
+  &:focus-visible:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.3);
+    outline: none;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+.payout-review-modal__nav-counter {
+  min-width: 3.5rem;
+  text-align: center;
+  font-size: var(--font-size-s);
+  font-weight: 700;
+  color: var(--color-space-text-muted);
+}
+
+.payout-review-modal__reasons {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.payout-review-modal__reason {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-s);
+  padding: var(--space-m);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: calc(var(--border-radius, 16px) - 4px);
+  background: rgba(255, 255, 255, 0.03);
+  min-height: 120px;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.payout-review-modal__reason-label {
+  color: var(--color-brand-lilac);
+  font-size: var(--font-size-s);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.payout-review-modal__reason-text {
+  margin: 0;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-body);
+  color: var(--color-space-text);
+}
+
+@media (max-width: 720px) {
+  .payout-review-modal__panel {
+    padding: var(--space-m);
+  }
+
+  .payout-review-modal__notice {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .payout-review-modal__reasons-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 // Mobile
@@ -1265,6 +1781,7 @@ turbo-frame#project_hero {
     display: flex;
     flex-direction: column;
     max-height: 76vh;
+    overflow: hidden;
   }
 
   .feed-composer__chips,
@@ -1298,6 +1815,13 @@ turbo-frame#project_hero {
   }
 
   .feed-composer__textarea {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .md-preview {
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
@@ -1940,6 +2464,52 @@ turbo-frame#project_hero {
   opacity: 0.5;
 }
 
+.project-show__hackatime-stale {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-brand-salmon);
+  margin-top: 6px;
+}
+
+.project-show__hackatime-reconnect {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-brand-salmon);
+  background: none;
+  border: 1px dashed var(--color-brand-salmon);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.75;
+  }
+}
+
+.project-show__hackatime-dropdown-help {
+  display: block;
+  position: sticky;
+  bottom: 0;
+  padding: 8px 12px;
+  border-top: 1px solid var(--color-space-border);
+  background: var(--color-set-2-bg);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-brand-cream);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
 .project-show__hackatime-tag {
   display: inline-flex;
   align-items: center;
@@ -2021,6 +2591,7 @@ turbo-frame#project_hero {
   z-index: 10;
   margin-top: 4px;
   padding: 4px;
+  padding-bottom: 0;
   border-radius: var(--profile-radius);
   border: 2px solid var(--color-border-input);
   background: var(--color-set-2-bg);
@@ -2032,6 +2603,10 @@ turbo-frame#project_hero {
   &[hidden] {
     display: none;
   }
+}
+
+.project-show__hackatime-dropdown-items {
+  display: contents;
 }
 
 .project-show__hackatime-dropdown-item {
@@ -2250,4 +2825,190 @@ turbo-frame#project_hero {
   margin: 0;
   text-align: center;
   padding: var(--space-l) 0;
+}
+
+// -- Report project modal --
+// Shell mirrors .mission-browse-modal (same set-2 surface, border, shadow,
+// centered-fixed positioning); the shared modal partial only supplies the
+// bare <dialog> + h3.modal__title, so this paints all of it.
+.report-modal {
+  background: var(--color-set-2-bg);
+  border: 2px solid var(--color-border-input);
+  border-radius: var(--profile-radius);
+  box-shadow: 0 24px 60px var(--color-shadow-deep);
+  color: var(--color-space-text);
+  max-width: 460px;
+  padding: var(--space-xl);
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+
+  &::backdrop {
+    background: var(--color-backdrop);
+    backdrop-filter: blur(4px);
+  }
+
+  .modal__title {
+    margin: 0 0 var(--space-l);
+    font-family: "Playfair Display", "Times New Roman", Georgia, serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: var(--font-size-xxxl);
+    line-height: var(--line-height-headers);
+    color: var(--color-space-text);
+    background-color: transparent;
+  }
+}
+
+.report-modal__intro {
+  color: var(--color-space-text-muted);
+  font-size: var(--font-size-m);
+  line-height: 1.5;
+  margin: 0 0 var(--space-l);
+}
+
+.report-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-l);
+}
+
+.report-modal__reasons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.report-modal__reason {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-s);
+  background: var(--color-overlay-light-soft);
+  border: 1px solid var(--color-space-border);
+  border-radius: var(--profile-radius);
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+
+  &:hover {
+    background: var(--color-overlay-light);
+    border-color: var(--color-brand-mint);
+  }
+
+  &:has(.report-modal__reason-input:checked) {
+    background: var(--color-brand-mint-soft);
+    border-color: var(--color-brand-mint);
+  }
+}
+
+.report-modal__reason-input {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border: 1px solid var(--color-space-border);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  flex: 0 0 auto;
+
+  &:checked {
+    border-color: var(--color-brand-mint);
+    background: var(--color-brand-mint);
+    box-shadow: inset 0 0 0 3px var(--color-set-2-bg);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-brand-mint);
+    outline-offset: 2px;
+  }
+}
+
+.report-modal__reason-label {
+  flex: 1;
+  cursor: pointer;
+  font-size: var(--font-size-m);
+}
+
+.report-modal__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xxs);
+}
+
+.report-modal__textarea {
+  width: 100%;
+  resize: vertical;
+  padding: var(--space-s);
+  background: var(--color-overlay-light-soft);
+  border: 1px solid var(--color-space-border);
+  border-radius: var(--profile-radius);
+  color: var(--color-space-text);
+  font-family: inherit;
+  font-size: var(--font-size-m);
+
+  &::placeholder {
+    color: var(--color-space-text-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-brand-mint);
+    outline-offset: 1px;
+    border-color: var(--color-brand-mint);
+  }
+}
+
+.report-modal__hint {
+  color: var(--color-space-text-muted);
+  font-size: var(--font-size-s);
+}
+
+.report-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-s);
+}
+
+.report-modal__submit,
+.report-modal__cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 16px;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.report-modal__submit {
+  background: var(--color-brand-salmon);
+  border-color: var(--color-brand-salmon);
+  color: var(--color-set-1-bg);
+
+  &:hover,
+  &:focus-visible {
+    filter: brightness(0.92);
+  }
+}
+
+.report-modal__cancel {
+  background: transparent;
+  border-color: var(--color-space-border);
+  color: var(--color-space-text);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--color-space-text);
+  }
 }

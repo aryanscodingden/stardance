@@ -4,8 +4,17 @@ class Projects::ShipsController < ApplicationController
 
   def create
     authorize @project, :ship?
+
+    latest_review = @project.ship_reviews.order(created_at: :desc, id: :desc).first
+    if latest_review&.pending?
+      redirect_to project_path(@project),
+                  alert: "Your project is being reviewed. You can ship again once it's approved." and return
+    elsif latest_review&.returned? && @project.needs_changes?
+      redirect_to project_path(@project),
+                  alert: "Your last review wasn't approved — address the feedback and request re-certification instead." and return
+    end
+
     # Everything posts from the modal on the project show page.
-    mission_payout_path = params[:mission_payout_path]
     submission_guide_ack = params[:mission_submission_guide_acknowledged].to_s == "1"
 
     if mission_submission_guide_ack_required? && !submission_guide_ack
@@ -30,19 +39,22 @@ class Projects::ShipsController < ApplicationController
         raise ActiveRecord::RecordInvalid, ship_event unless ship_event.valid?
       end
       @post = @project.posts.create!(user: current_user, postable: ship_event)
-      maybe_create_mission_submission(ship_event, mission_payout_path, submission_guide_ack)
+      maybe_create_mission_submission(ship_event, submission_guide_ack)
 
       # First Ship: Always create ship certification for manual review    ----------- Ask @AVD if you want to change this! - May need to notify teams of any changes!
       # Reships: If links alive - approves project, create a 'reship' YSWS review, if links dead - Creates ship cert for manual review
       if !reship
-        @project.ship_reviews.create!(status: :pending)
+        cert = @project.ship_reviews.create!(status: :pending, post_ship_event_id: ship_event.id)
+        ExternalDashboard::ShipWebhookJob.perform_later(cert.id)
       elsif probe_result.ok?
+        @project.start_review! if @project.may_start_review?
         @project.approve! if @project.may_approve?
         @post.postable.update!(certification_status: "approved")
         create_ysws_review(ship_event)
       else
         @project.ship_reviews.create!(
           status: :returned,
+          post_ship_event_id: ship_event.id,
           feedback: "Automated URL check failed: #{probe_result.failures.join('; ')}. Please make sure your links are online and public, then re-ship!"
         )
       end
@@ -59,6 +71,8 @@ class Projects::ShipsController < ApplicationController
     end
   rescue ActiveRecord::RecordInvalid => e
     redirect_back fallback_location: project_path(@project), alert: e.record.errors.full_messages.to_sentence
+  rescue ActiveRecord::RecordNotUnique
+    redirect_to project_path(@project), alert: "A review is already pending for this project."
   end
 
   private
@@ -77,13 +91,13 @@ class Projects::ShipsController < ApplicationController
       mission.submission_guide.present?
     end
 
-    def maybe_create_mission_submission(ship_event, payout_path_param, submission_guide_acknowledged = false)
+    def maybe_create_mission_submission(ship_event, submission_guide_acknowledged = false)
       attachment = @project.current_mission_attachment
       return unless attachment
 
       mission = attachment.mission
       return if @project.shipped_to_mission?(mission)
-      payout_path = resolve_payout_path(mission, payout_path_param)
+      payout_path = resolve_payout_path(mission)
       ack_time = (submission_guide_acknowledged && mission.submission_guide.present?) ? Time.current : nil
 
       Mission::Submission.create!(
@@ -94,30 +108,13 @@ class Projects::ShipsController < ApplicationController
       )
     end
 
-    def resolve_payout_path(mission, payout_path_param)
-      if mission.fixed_stardust_payout&.positive? && !user_has_approved_submission_for?(mission)
-        return "static_prize"
-      end
-      return "voting" unless mission.has_prizes?
-      return "voting" if user_redeemed_prize_for?(mission)
-      payout_path_param.to_s == "voting" ? "voting" : "static_prize"
-    end
-
-    def user_has_approved_submission_for?(mission)
-      Mission::Submission
-        .where(mission_id: mission.id, status: "approved")
-        .joins(ship_event: { post: :user })
-        .where(users: { id: current_user.id })
-        .exists?
-    end
-
-    def user_redeemed_prize_for?(mission)
-      Mission::Submission
-        .where(mission_id: mission.id)
-        .joins(ship_event: { post: :user })
-        .where(users: { id: current_user.id })
-        .where.not(shop_order_id: nil)
-        .exists?
+    # A submission only skips rating (takes the fixed-prize path) when the
+    # mission pays fixed stardust and the builder hasn't already claimed it.
+    # Mirrors Mission#submissions_enter_rating?.
+    def resolve_payout_path(mission)
+      return "voting" unless mission.fixed_stardust_payout&.positive?
+      return "voting" if current_user.completed_mission_ids.include?(mission.id)
+      "static_prize"
     end
 
     def create_ysws_review(ship_event)
