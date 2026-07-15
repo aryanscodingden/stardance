@@ -1,202 +1,99 @@
 <p>
-  In Stardance, "shipping" is the moment your project becomes
-  <strong>real</strong> to other people — not just to you. It's when you stop
-  building in private and put something out where strangers can poke at it, vote
-  on it, and decide it's worth Stardust.
+  In Stardance, "shipping" is the moment your project becomes <strong>real</strong> to other people — not just to you. It's when you stop building in private and put something out where strangers can poke at it, vote on it, and decide it's worth Stardust.
 </p>
 
 <p>
-  This guide walks through what actually happens when you click that big
-  <em>Ship It!</em> button — and what you should have ready before you do.
+  This guide walks through what actually happens when you click that big <em>Ship It!</em> button — and what you should have ready before you do.
 </p>
 
 <h2>The 60-second version</h2>
 
 <ol>
   <li>You click <strong>Ship</strong> on your project.</li>
-  <li>
-    A reviewer (we call them Shipwrights) checks that your project is real,
-    runnable, and demoable.
-  </li>
-  <li>
-    If approved, your project enters the <strong>voting pool</strong>. Other
-    people are randomly shown your project and rate it across four categories.
-  </li>
-  <li>
-    After enough votes come in, your scores determine your payout in Stardust —
-    anywhere from 1 to 30+ per hour you logged.
-  </li>
+  <li>A reviewer (we call them Shipwrights) checks that your project is real, runnable, and demoable.</li>
+  <li>If approved, your project enters the <strong>voting pool</strong>. Other people are randomly shown your project and rate it across four categories.</li>
+  <li>After enough votes come in, your scores determine your payout in Stardust — anywhere from 1 to 30+ per hour you logged.</li>
   <li>Stardust converts to prizes in the shop.</li>
 </ol>
 
 <p>
-  That's the whole loop. Build → ship → review → vote → payout → prize.
-  Everything else in this guide is detail on doing each step well.
+  That's the whole loop. Build → ship → review → vote → payout → prize. Everything else in this guide is detail on doing each step well.
 </p>
 
 <h2>What reviewers actually check</h2>
 
 <p>
-  Shipwrights aren't grading you on cleverness or polish. They're checking a
-  small set of practical things:
+  Shipwrights aren't grading you on cleverness or polish. They're checking a small set of practical things:
 </p>
 
 <ul>
-  <li>
-    <strong>Can someone actually try it?</strong> A demo URL has to lead to a
-    live, playable, runnable thing — not your GitHub repo, not a "coming soon"
-    page.
-  </li>
-  <li>
-    <strong>Is the source public?</strong> Your code URL has to point to a
-    public, cloneable GitHub repo (or equivalent). No private repos, no zip
-    files dumped in Drive.
-  </li>
-  <li>
-    <strong>Is there a README?</strong> Linked from your project. We'll get to
-    what makes a good one.
-  </li>
-  <li>
-    <strong>Does the project look like a project?</strong> Description,
-    screenshot, at least one devlog showing real progress.
-  </li>
-  <li>
-    <strong>Is the time real?</strong> Hackatime tracked actual coding time —
-    not 8 hours of staring at a config file.
-  </li>
+  <li><strong>Can someone actually try it?</strong> A demo URL has to lead to a live, playable, runnable thing — not your GitHub repo, not a "coming soon" page.</li>
+  <li><strong>Is the source public?</strong> Your code URL has to point to a public, cloneable GitHub repo (or equivalent). No private repos, no zip files dumped in Drive.</li>
+  <li><strong>Is there a README?</strong> Linked from your project. We'll get to what makes a good one.</li>
+  <li><strong>Does the project look like a project?</strong> Description, screenshot, at least one devlog showing real progress.</li>
+  <li><strong>Is the time real?</strong> Hackatime tracked actual coding time — not 8 hours of staring at a config file.</li>
 </ul>
 
 <p>
-  None of those are arbitrary. Every one of them is something a future voter
-  will need to look at when they decide whether your project deserves their
-  vote.
+  None of those are arbitrary. Every one of them is something a future voter will need to look at when they decide whether your project deserves their vote.
 </p>
 
 <div class="guide-callout guide-callout--tip">
   <span class="guide-callout__icon" aria-hidden="true">🚀</span>
   <div class="guide-callout__body">
-    <p>
-      The most common reason projects bounce back is that the demo URL points to
-      the GitHub repo instead of an actual deployed/playable thing. If a
-      reviewer can't try your project in under a minute, it's not shipped.
-    </p>
+    <p><strong>The single most common reason projects bounce back:</strong> the demo URL points to the GitHub repo instead of an actual deployed/playable thing. If a reviewer can't try your project in under a minute, it's not shipped.</p>
   </div>
 </div>
 
 <h2>What "demo URL" means for your project</h2>
 
 <p>
-  This is the part that trips people up most, because it depends entirely on
-  what you built. We've given some examples of what you can put for your demo
-  here.
+  This is the part that trips people up most, because it depends entirely on what you built. Some examples:
 </p>
 
 <div class="guide-list-grid">
-  <div class="guide-list-grid__item">
-    <strong>Web app</strong>
-    <span>
-      A live URL on Vercel, Netlify, GitHub Pages, or your own domain.
-    </span>
-  </div>
-  <div class="guide-list-grid__item">
-    <strong>Browser game</strong><span>An itch.io page or playable embed.</span>
-  </div>
-  <div class="guide-list-grid__item">
-    <strong>Downloadable game</strong
-    ><span>An itch.io download page, or a GitHub release with the binary.</span>
-  </div>
-  <div class="guide-list-grid__item">
-    <strong>Mobile app</strong
-    ><span
-      >An App Store or Play Store listing, or a signed APK in GitHub
-      releases.</span
-    >
-  </div>
-  <div class="guide-list-grid__item">
-    <strong>Desktop app</strong
-    ><span>GitHub release with installers for the platforms you support.</span>
-  </div>
-  <div class="guide-list-grid__item">
-    <strong>CLI tool / library</strong
-    ><span
-      >A package on <code>PyPI</code>, <code>npm</code>, <code>crates.io</code>,
-      etc., plus a GitHub release.</span
-    >
-  </div>
-  <div class="guide-list-grid__item">
-    <strong>Hardware</strong
-    ><span
-      >Photos, a video walkthrough, a printable on Printables, or PCB on
-      KiCanvas.</span
-    >
-  </div>
-  <div class="guide-list-grid__item">
-    <strong>An OS or driver</strong
-    ><span
-      >A bootable image plus an emulator demo (e.g.
-      <code>copy.sh/v86</code>).</span
-    >
-  </div>
+  <div class="guide-list-grid__item"><strong>Web app</strong><span>A live URL on Vercel, Netlify, GitHub Pages, or your own domain.</span></div>
+  <div class="guide-list-grid__item"><strong>Browser game</strong><span>An itch.io page or playable embed.</span></div>
+  <div class="guide-list-grid__item"><strong>Downloadable game</strong><span>An itch.io download page, or a GitHub release with the binary.</span></div>
+  <div class="guide-list-grid__item"><strong>Mobile app</strong><span>App Store / Play Store listing, or a signed APK in releases.</span></div>
+  <div class="guide-list-grid__item"><strong>Desktop app</strong><span>GitHub release with installers for the platforms you support.</span></div>
+  <div class="guide-list-grid__item"><strong>CLI tool / library</strong><span>A package on PyPI, npm, crates.io, etc., plus a GitHub release.</span></div>
+  <div class="guide-list-grid__item"><strong>Hardware</strong><span>Photos, a video walkthrough, a printable on Printables, or PCB on KiCanvas.</span></div>
+  <div class="guide-list-grid__item"><strong>An OS or driver</strong><span>A bootable image plus an emulator demo (e.g. <code>copy.sh/v86</code>).</span></div>
 </div>
 
 <p>
-  If your project genuinely can't be deployed (custom hardware, a kernel patch,
-  etc.), a high-quality video demo is the right answer — and we'll cover that
-  case in the project-type guide.
+  If your project genuinely can't be deployed (custom hardware, a kernel patch, etc.), a high-quality video demo is the right answer — and we'll cover that case in the project-type guide.
 </p>
 
-<!--prettier-ignore-start-->
 <%= link_to guide_path(:how_to_ship), class: "help-cta" do %>
-<span class="help-cta__icon">
-  <%= inline_svg_tag "icons/compass_fill.svg" %>
-</span>
-Open the project-type guide → <% end %>
-<!--prettier-ignore-end-->
+  <span class="help-cta__icon"><%= inline_svg_tag "icons/compass_fill.svg" %></span>
+  Open the project-type guide →
+<% end %>
 
 <h2>What happens after you ship</h2>
 
 <p>
-  Approval doesn't immediately mean "you got Stardust." It means your project is
-  now in the voting pool. Voters are randomly assigned your project and asked to
-  score it from 1–9 on four categories:
+  Approval doesn't immediately mean "you got Stardust." It means your project is now in the voting pool. Voters are randomly assigned your project and asked to score it from 1–9 on four categories:
 </p>
 
 <ul>
-  <li>
-    <strong>Originality</strong>: how distinct is the project from common
-    projects?
-  </li>
-  <li>
-    <strong>Technicality</strong>: how much effort did you put into the
-    implementation?
-  </li>
-  <li>
-    <strong>Usability</strong>: could someone actually use it? Did they enjoy
-    using it?
-  </li>
-  <li>
-    <strong>Storytelling</strong>: how well did you document the development
-    journey through devlogs, documentation, commit messages, and your README?
-  </li>
+  <li><strong>Originality</strong> — how distinct is the project from common projects?</li>
+  <li><strong>Technicality</strong> — how much effort did you put into the implementation?</li>
+  <li><strong>Usability</strong> — could someone actually use it? Did they enjoy using it?</li>
+  <li><strong>Storytelling</strong> — how well did you document the development journey through devlogs, documentation, commit messages, and your README?</li>
 </ul>
 
 <p>
-  Your project needs to be voted on 12 times. Once those 12 votes come in, these
-  scores combine into a quality multiplier. A well-rated project earns ~20+
-  Stardust per hour you spent, but barely-passing project earns closer to 1. The
-  difference is enormous, and it's almost entirely determined by whether you
-  took shipping seriously.
+  Once enough votes come in, these scores combine into a quality multiplier. A well-rated project earns ~30+ Stardust per hour you spent. A barely-passing project earns closer to 1. The difference is enormous, and it's almost entirely determined by whether you took shipping seriously.
 </p>
 
 <h2>What ship-readiness looks like, in one sentence</h2>
 
 <blockquote>
-  A complete stranger could open your demo URL, your README, and your project
-  page, and within five minutes know what your project is, why it's interesting,
-  and how to try it themselves.
+  A complete stranger could open your demo URL, your README, and your project page, and within five minutes know what your project is, why it's interesting, and how to try it themselves.
 </blockquote>
 
 <p>
-  If that's true, you're ready. If it's not, the next two guides will help you
-  get there.
+  If that's true, you're ready. If it's not, the next two guides will help you get there.
 </p>

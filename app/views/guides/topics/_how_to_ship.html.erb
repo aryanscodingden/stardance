@@ -1,20 +1,13 @@
 <p class="decision-tree__intro">
-  Pick what you built. We'll walk you through what "shipped" means for that kind
-  of project — the demo URL options, what your README needs, and what reviewers
-  most often flag.
+  Pick what you built. We'll walk you through what "shipped" means for that kind of project — the demo URL options, what your README needs, and what reviewers most often flag.
 </p>
 
-<div
-  class="decision-tree"
-  data-controller="decision-tree"
-  data-decision-tree-nodes-value="<%= ShipDecisionTree.serialized.to_json %>"
-  data-decision-tree-root-value="<%= ShipDecisionTree::ROOT_ID %>"
->
-  <nav
-    class="decision-tree__breadcrumb"
-    aria-label="Path through the guide"
-    data-decision-tree-target="breadcrumb"
-  ></nav>
+<div class="decision-tree"
+     data-controller="decision-tree"
+     data-decision-tree-nodes-value='<%= ShipDecisionTree.serialized.to_json %>'
+     data-decision-tree-root-value="<%= ShipDecisionTree::ROOT_ID %>">
+
+  <nav class="decision-tree__breadcrumb" aria-label="Path through the guide" data-decision-tree-target="breadcrumb"></nav>
 
   <div data-decision-tree-target="nodes"></div>
 </div>

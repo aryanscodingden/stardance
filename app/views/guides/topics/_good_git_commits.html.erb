@@ -1,12 +1,9 @@
 <p>
-  Good commits aren't a moral exercise. They're a tool that makes your project
-  easier to read, easier to revisit weeks from now, and easier to show off when
-  someone asks "how did you build this?"
+  Good commits aren't a moral exercise. They're a tool that makes your project easier to read, easier to revisit weeks from now, and easier to show off when someone asks "how did you build this?"
 </p>
 
 <p>
-  Stardance reviewers and voters do look at your repo. A clean commit history is
-  one of the cheapest signals you can send that you take your work seriously.
+  Stardance reviewers and voters do look at your repo. A clean commit history is one of the cheapest signals you can send that you take your work seriously.
 </p>
 
 <h2>The two rules that matter</h2>
@@ -14,23 +11,17 @@
 <h3>1. One commit, one change</h3>
 
 <p>
-  Each commit should do one thing — add a feature, fix a bug, refactor a file,
-  update a dep. If you can't summarize a commit in a sentence without using
-  "and," it's probably two commits.
+  Each commit should do one thing — add a feature, fix a bug, refactor a file, update a dep. If you can't summarize a commit in a sentence without using "and," it's probably two commits.
 </p>
 
 <p>
-  Why this matters: when something breaks, you can revert the one commit that
-  broke it instead of unwinding a bunch of unrelated changes. When you're
-  showing your project to a friend (or a future employer), they can scroll
-  through and see what you actually did.
+  Why this matters: when something breaks, you can revert the one commit that broke it instead of unwinding a bunch of unrelated changes. When you're showing your project to a friend (or a future employer), they can scroll through and see what you actually did.
 </p>
 
 <h3>2. Write the message for the next person</h3>
 
 <p>
-  The "next person" is usually you, six weeks from now, with no memory of what
-  you were doing. Make their life easier.
+  The "next person" is usually you, six weeks from now, with no memory of what you were doing. Make their life easier.
 </p>
 
 <p>A solid format:</p>
@@ -59,17 +50,15 @@ final final v2</code></pre>
 <div class="guide-callout">
   <span class="guide-callout__icon" aria-hidden="true">💡</span>
   <div class="guide-callout__body">
-    <p>
-      Imperative mood ("add login throttling," not "added login throttling") is
-      a convention. It's small but you'll see it everywhere — your commits will
-      look right at home next to the projects you're inspired by.
-    </p>
+    <p>Imperative mood ("add login throttling," not "added login throttling") is a convention. It's small but you'll see it everywhere — your commits will look right at home next to the projects you're inspired by.</p>
   </div>
 </div>
 
 <h2>Conventional commits (optional)</h2>
 
-<p>Some projects use a stricter format that prefixes commits with a type:</p>
+<p>
+  Some projects use a stricter format that prefixes commits with a type:
+</p>
 
 <pre><code>feat: add login throttling
 fix: pagination off-by-one
@@ -78,56 +67,40 @@ docs: explain the auth flow
 chore: bump dependencies</code></pre>
 
 <p>
-  This is great for projects that auto-generate changelogs or version numbers.
-  For most Stardance projects it's overkill, but it's a nice habit. If you're on
-  a team or want to look polished, use it.
+  This is great for projects that auto-generate changelogs or version numbers. For most Stardance projects it's overkill, but it's a nice habit. If you're on a team or want to look polished, use it.
 </p>
 
 <h2>How often to commit</h2>
 
 <p>
-  Whenever you finish a coherent thing. Not "every five minutes" and not "once
-  at the end of the week."
+  Whenever you finish a coherent thing. Not "every five minutes" and not "once at the end of the week."
 </p>
 
 <p>
-  Heuristic: if you'd hate to lose what you just did, commit it. If you broke
-  something for an hour while wiring up a new feature, that's one commit when it
-  works — not twelve micro-commits documenting the broken intermediate states.
+  Heuristic: if you'd hate to lose what you just did, commit it. If you broke something for an hour while wiring up a new feature, that's one commit when it works — not twelve micro-commits documenting the broken intermediate states.
 </p>
 
 <h3>The "WIP" trap</h3>
 
 <p>
-  Lots of people commit <code>WIP</code> messages while iterating, planning to
-  clean up later. They never clean up later. The commits stay forever.
+  Lots of people commit <code>WIP</code> messages while iterating, planning to clean up later. They never clean up later. The commits stay forever.
 </p>
 
 <p>Two ways out:</p>
 
 <ul>
-  <li>
-    <strong>Commit often, then squash before pushing.</strong>
-    <code>git rebase -i</code> lets you collapse a series of WIP commits into a
-    single clean one with a real message.
-  </li>
-  <li>
-    <strong>Just write a real message the first time.</strong> Honestly easier
-    than rebasing later.
-  </li>
+  <li><strong>Commit often, then squash before pushing.</strong> <code>git rebase -i</code> lets you collapse a series of WIP commits into a single clean one with a real message.</li>
+  <li><strong>Just write a real message the first time.</strong> Honestly easier than rebasing later.</li>
 </ul>
 
 <h2>What goes in the body</h2>
 
 <p>
-  Most commits don't need a body — the subject line is enough. But for
-  non-obvious changes, the body is where you tell the story:
+  Most commits don't need a body — the subject line is enough. But for non-obvious changes, the body is where you tell the story:
 </p>
 
 <ul>
-  <li>
-    <strong>Why</strong> you made the change (the diff already shows the what).
-  </li>
+  <li><strong>Why</strong> you made the change (the diff already shows the what).</li>
   <li>What you considered and rejected.</li>
   <li>Anything weird about the implementation a reader should know.</li>
   <li>Issue or ticket numbers if you're tracking work somewhere.</li>
@@ -136,31 +109,14 @@ chore: bump dependencies</code></pre>
 <h2>Mistakes you'll only make once</h2>
 
 <ul>
-  <li>
-    <strong>Committing <code>node_modules</code> or build artifacts.</strong>
-    Use a <code>.gitignore</code>. Most generators include one — start from a
-    template.
-  </li>
-  <li>
-    <strong>Committing API keys or <code>.env</code> files.</strong> Always
-    gitignore <code>.env</code>. If you slip, rotate the key immediately — git
-    history is forever, even after a force-push.
-  </li>
-  <li>
-    <strong>Force-pushing a branch other people are using.</strong> If you're
-    working alone this doesn't matter. If you're not, it does.
-  </li>
-  <li>
-    <strong>Letting your branch drift weeks behind <code>main</code>.</strong>
-    Rebase often, or merge often. Either is fine. Doing neither is painful.
-  </li>
+  <li><strong>Committing <code>node_modules</code> or build artifacts.</strong> Use a <code>.gitignore</code>. Most generators include one — start from a template.</li>
+  <li><strong>Committing API keys or <code>.env</code> files.</strong> Always gitignore <code>.env</code>. If you slip, rotate the key immediately — git history is forever, even after a force-push.</li>
+  <li><strong>Force-pushing a branch other people are using.</strong> If you're working alone this doesn't matter. If you're not, it does.</li>
+  <li><strong>Letting your branch drift weeks behind <code>main</code>.</strong> Rebase often, or merge often. Either is fine. Doing neither is painful.</li>
 </ul>
 
 <h2>One small bonus</h2>
 
 <p>
-  If you set up your editor to show commit messages alongside lines (most do via
-  "git blame"), you'll get a free reminder of why each piece of your project
-  exists. That's the payoff: a few seconds of effort per commit, and your
-  codebase tells you its own story.
+  If you set up your editor to show commit messages alongside lines (most do via "git blame"), you'll get a free reminder of why each piece of your project exists. That's the payoff: a few seconds of effort per commit, and your codebase tells you its own story.
 </p>

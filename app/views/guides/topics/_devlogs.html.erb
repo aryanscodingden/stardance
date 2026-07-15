@@ -1,22 +1,11 @@
 <p>
-  Devlogs are short updates you post about your project, tied to time you've
-  actually spent on it. They serve three purposes — and only one of them is
-  "Stardance requires it."
+  Devlogs are short updates you post about your project, tied to time you've actually spent on it. They serve three purposes — and only one of them is "Stardance requires it."
 </p>
 
 <ol>
-  <li>
-    They prove you spent the time you logged. Reviewers and voters can see your
-    progress wasn't fabricated.
-  </li>
-  <li>
-    They give voters something to scroll through when judging "storytelling" —
-    one of the four scoring axes.
-  </li>
-  <li>
-    They help your future self remember what you were doing, which makes coming
-    back after a break much easier.
-  </li>
+  <li>They prove you spent the time you logged. Reviewers and voters can see your progress wasn't fabricated.</li>
+  <li>They give voters something to scroll through when judging "storytelling" — one of the four scoring axes.</li>
+  <li>They help your future self remember what you were doing, which makes coming back after a break much easier.</li>
 </ol>
 
 <p>
@@ -26,102 +15,83 @@
 <h2>What a great devlog looks like</h2>
 
 <p>
-  Imagine someone scrolling through Explore. They have 30 seconds. What makes
-  them stop on yours?
+  Imagine someone scrolling through Explore. They have 30 seconds. What makes them stop on yours?
 </p>
 
 <h3>1. Show, don't tell</h3>
 
 <p>
-  At least one image, GIF, or short video, every devlog. The single biggest
-  predictor of a devlog getting attention is whether it has visual content.
+  At least one image, GIF, or short video, every devlog. The single biggest predictor of a devlog getting attention is whether it has visual content.
 </p>
 
-<p>You don't need polish, you need <em>something to look at</em>:</p>
+<p>You don't need polish — you need <em>something to look at</em>:</p>
 
 <ul>
-  <li>A screenshot of the new feature working (or hilariously not working if that happens).</li>
-  <li>An animated GIF of the UI flow you just built.</li>
-  <li>A 30-second screen recording — this works for almost any project type!</li>
-  <li>A photo of the hardware you assembled, whether it's complete or not.</li>
-  <li>A diagram you sketched on paper.</li>
+  <li>Screenshot of the new feature working (or hilariously not working).</li>
+  <li>Animated GIF of the UI flow you just built.</li>
+  <li>30-second screen recording — works for almost any project type.</li>
+  <li>Photo of the hardware you assembled, half-soldered.</li>
+  <li>Diagram you sketched on paper.</li>
 </ul>
 
 <h3>2. Lead with what changed</h3>
 
-<p>First sentence: what's new since last time. Don't bury it.</p>
+<p>
+  First sentence: what's new since last time. Don't bury it.
+</p>
 
 <blockquote>
-  <strong>Good:</strong> Added drag-to-reorder for the playlist. The hard part
-  was making it work on touch — I thought I could reuse the mouse handlers but
-  the gesture system on Android needed completely different events.
+  <strong>Good:</strong> Added drag-to-reorder for the playlist. The hard part was making it work on touch — I thought I could reuse the mouse handlers but the gesture system on Android needed completely different events.
 </blockquote>
 
 <blockquote>
-  <strong>Bad:</strong> Today I worked on my project for a few hours. I made
-  some progress and learned a lot.
+  <strong>Bad:</strong> Today I worked on my project for a few hours. I made some progress and learned a lot.
 </blockquote>
 
 <p>
-  The bad version doesn't tell a reader anything. The good version makes them
-  curious about what an Android gesture system looks like.
+  The bad version doesn't tell a reader anything. The good version makes them curious about what an Android gesture system looks like.
 </p>
 
 <h3>3. Include the friction</h3>
 
 <p>
-  Voters score "storytelling" higher when they get a sense of struggle and
-  resolution. The devlog where you spent four hours and only got the icon to
-  render correctly is more interesting than the one where everything worked the
-  first time.
+  Voters score "storytelling" higher when they get a sense of struggle and resolution. The devlog where you spent four hours and only got the icon to render correctly is more interesting than the one where everything worked the first time.
 </p>
 
 <p>You don't need to be theatrical. Just be honest:</p>
 
 <blockquote>
-  Spent two hours dealing with Tailwind v4's new theme syntax but then I realized
-  my layer ordering was wrong. Took a whole afternoon to change two characters.
+  Spent two hours fighting Tailwind v4's new theme syntax before realizing my layer ordering was wrong. Whole afternoon, two characters changed.
 </blockquote>
 
 <h3>4. Keep it short</h3>
 
 <p>
-  3–6 sentences plus an image is the sweet spot. Devlogs aren't blog posts — aim
-  for something a voter will actually read in 15 seconds.
+  3–6 sentences plus an image is the sweet spot. Devlogs aren't blog posts — aim for something a voter will actually read in 15 seconds.
 </p>
 
 <h2>How often to post</h2>
 
 <p>
-  After every meaningful chunk of work. "Meaningful" is up to you, but a useful
-  rule:
+  After every meaningful chunk of work. "Meaningful" is up to you, but a useful rule:
 </p>
 
 <div class="guide-callout guide-callout--warning">
   <span class="guide-callout__icon" aria-hidden="true">⚠️</span>
   <div class="guide-callout__body">
-    <p>
-      You need at least one devlog since your last ship to ship again. Don't go
-      too long without posting one — devlogs are how voters and reviewers see
-      that your progress is real.
-    </p>
+    <p>You need at least one devlog since your last ship to ship again. Don't go too long without posting one — devlogs are how voters and reviewers see that your progress is real.</p>
   </div>
 </div>
 
 <p>
-  Most projects end up with one devlog every 2–4 hours of work. That's a good
-  cadence. Less than that and you'll drift; more than that and they get thin.
+  Most projects end up with one devlog every 2–4 hours of work. That's a good cadence. Less than that and you'll drift; more than that and they get thin.
 </p>
 
 <% cap_hours = Post::ShipEvent::MAX_PAYOUT_HOURS_PER_DEVLOG %>
 <div class="guide-callout guide-callout--warning">
   <span class="guide-callout__icon" aria-hidden="true">⚠️</span>
   <div class="guide-callout__body">
-    <p>
-      Only up to <%= cap_hours %> hours per devlog counts toward your payout
-      when you ship. If you code for <%= cap_hours + 4 %> hours and post a
-      single devlog, 4 of those hours won't count- post as you go instead.
-    </p>
+    <p>Only up to <%= cap_hours %> hours per devlog counts toward your payout when you ship. If you code for <%= cap_hours + 4 %> hours and post a single devlog, 4 of those hours won't count- post as you go instead.</p>
   </div>
 </div>
 
@@ -131,45 +101,25 @@
 
 <ul>
   <li><strong>What you built.</strong> The default. Show the new feature.</li>
-  <li>
-    <strong>What broke.</strong> Bugs you hit, especially the embarrassing or
-    weird ones. These get the most engagement.
-  </li>
-  <li>
-    <strong>What you learned.</strong> A new library, a concept you'd never used
-    before, a mistake you don't want to repeat.
-  </li>
-  <li>
-    <strong>A decision you made.</strong> Why you chose X over Y. Voters love
-    this — it shows technical thinking.
-  </li>
-  <li>
-    <strong>Something that surprised you.</strong> A perf improvement that came
-    from nowhere, a user reaction you didn't expect.
-  </li>
-  <li>
-    <strong>Aesthetic / design decisions.</strong> If your project has a visual
-    identity, talk about it.
-  </li>
+  <li><strong>What broke.</strong> Bugs you hit, especially the embarrassing or weird ones. These get the most engagement.</li>
+  <li><strong>What you learned.</strong> A new library, a concept you'd never used before, a mistake you don't want to repeat.</li>
+  <li><strong>A decision you made.</strong> Why you chose X over Y. Voters love this — it shows technical thinking.</li>
+  <li><strong>Something that surprised you.</strong> A perf improvement that came from nowhere, a user reaction you didn't expect.</li>
+  <li><strong>Aesthetic / design decisions.</strong> If your project has a visual identity, talk about it.</li>
 </ul>
 
 <h2>The devlog you should not post</h2>
 
 <p>
-  Devlogs that say "made progress, will update later" don't help anyone. If
-  you're between meaningful chunks, just keep working — there's no quota. Only
-  post when there's something to show.
+  Devlogs that say "made progress, will update later" don't help anyone. If you're between meaningful chunks, just keep working — there's no quota. Only post when there's something to show.
 </p>
 
 <h2>One workflow that works</h2>
 
 <p>
-  Take screenshots and short clips <em>while</em> you're working. When you
-  finish a chunk and stop coding, you'll already have the visual content
-  waiting. Writing the text takes 5 minutes when the work is fresh.
+  Take screenshots and short clips <em>while</em> you're working. When you finish a chunk and stop coding, you'll already have the visual content waiting. Writing the text takes 5 minutes when the work is fresh.
 </p>
 
 <p>
-  Trying to reconstruct a devlog three days later, when you've forgotten what
-  you did and don't have screenshots? That's how devlogs get skipped.
+  Trying to reconstruct a devlog three days later, when you've forgotten what you did and don't have screenshots? That's how devlogs get skipped.
 </p>
