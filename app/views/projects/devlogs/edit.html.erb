@@ -58,7 +58,7 @@
                 <div class="devlog-edit__attachment" data-devlog-edit-target="slot">
                   <div class="devlog-edit__attachment-preview" data-devlog-edit-target="preview">
                     <% if attachment.content_type.to_s.start_with?("video/") %>
-                      <%= video_tag url_for(attachment), controls: true, class: "devlog-edit__attachment-media" %>
+                      <%= video_tag rails_storage_redirect_url(attachment), controls: true, class: "devlog-edit__attachment-media" %>
                     <% elsif attachment.variable? %>
                       <%= image_tag attachment.variant(:medium), alt: "", class: "devlog-edit__attachment-media" %>
                     <% else %>

@@ -21,7 +21,7 @@
                             loading: (lazy ? "lazy" : nil),
                             decoding: (lazy ? "async" : nil) %>
             <% elsif attachment.content_type.to_s.start_with?("video/") %>
-              <%= video_tag url_for(attachment),
+              <%= video_tag rails_storage_redirect_url(attachment),
                             controls: true,
                             preload: (lazy ? "none" : "metadata"),
                             class: "feed-post-card__video" %>
