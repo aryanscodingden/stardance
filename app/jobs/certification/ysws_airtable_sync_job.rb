@@ -59,6 +59,16 @@ module Certification
         .find_by(id: ysws_review_id)
     end
 
+    # Both certification_ysws_reviews and certification_integrities key
+    # uniquely on the ship event, so a review maps 1-1 to an integrity check.
+    # Every synced review must have one — a missing record is a data error.
+    # Raises StandardError (not RecordNotFound, which this job discards) so
+    # the rescue_from handler reports it to Sentry.
+    def integrity_check_for(review)
+      Certification::Integrity.find_by(ship_event_id: review.post_ship_event_id) ||
+        raise(StandardError, "No certification integrity for ship event ##{review.post_ship_event_id} (ysws_review ##{review.id})")
+    end
+
     def check_stardance_review_submitted_unified(review)
       # Fetch existing Airtable record by review_id
       existing_record = table.all(filter: "{review_id} = '#{review.id}'").first
@@ -190,6 +200,7 @@ module Certification
       # Build justification using the ideal format
       justification = build_justification(
         review: review,
+        integrity_check: integrity_check_for(review),
         devlog_reviews: devlog_reviews,
         total_original_minutes: total_original_minutes,
         total_approved_minutes: total_approved_minutes,
