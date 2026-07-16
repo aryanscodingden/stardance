@@ -91,9 +91,24 @@
       <%= helpers.md("As a prize for your great work, look out for a bonus prize in the mail :)", allow_images: false) %>
     </div>
   <% elsif body.present? && !quote_repost? %>
-    <div class="feed-post-card__body markdown-content">
-      <%= helpers.md(body, allow_images: false) %>
-    </div>
+    <% if clamp_body? %>
+      <div class="feed-post-card__body-clamp"
+           data-controller="read-more"
+           data-read-more-clamped-class="feed-post-card__body--clamped">
+        <div class="feed-post-card__body feed-post-card__body--clamped markdown-content" data-read-more-target="body">
+          <%= helpers.md(body, allow_images: false) %>
+        </div>
+        <button type="button"
+                class="feed-post-card__read-more"
+                data-read-more-target="toggle"
+                data-action="read-more#toggle"
+                hidden>Read more</button>
+      </div>
+    <% else %>
+      <div class="feed-post-card__body markdown-content">
+        <%= helpers.md(body, allow_images: false) %>
+      </div>
+    <% end %>
   <% end %>
 
   <%= render "shared/post_media",

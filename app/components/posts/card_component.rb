@@ -126,6 +126,12 @@ module Posts
       display_postable.respond_to?(:body) ? display_postable.body : nil
     end
 
+    # Clamp long bodies everywhere except on the post's own page, where the
+    # full text should always be visible.
+    def clamp_body?
+      card_link_url.present? && request.path != card_link_url
+    end
+
     def original_post
       postable.original_post if repost? && postable.respond_to?(:original_post)
     end

@@ -881,6 +881,47 @@
     padding-left: 0;
   }
 
+  &__body-clamp {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xxs);
+  }
+
+  &__body--clamped {
+    // Roughly five lines of body text; the JS controller unhides the
+    // "Read more" toggle only when the content actually overflows this.
+    max-height: calc(1.4em * 5);
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 calc(100% - 2em),
+      transparent
+    );
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 2em), transparent);
+  }
+
+  &__read-more {
+    margin-left: var(--feed-content-offset);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-brand-cream);
+    font: inherit;
+    font-size: calc(var(--font-size-s) * 1.2);
+    line-height: 1.4;
+    cursor: pointer;
+    align-self: flex-start;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 640px) {
+      margin-left: 0;
+    }
+  }
+
   &__media {
     padding-left: var(--feed-content-offset);
 
