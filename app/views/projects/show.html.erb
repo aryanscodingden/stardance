@@ -829,7 +829,7 @@
         <% ship_index = 0 %>
         <% @timeline_entries.each do |entry| %>
           <% if entry.is_a?(Certification::Ship) %>
-            <%= render "projects/ship_decision_card", decision: entry %>
+            <%= render "projects/ship_decision_card", decision: entry, is_member: is_member, project: @project %>
           <% elsif entry.postable_type == "Post::ShipEvent" %>
             <% ship_index += 1 %>
             <% recert_id = ((is_member || current_user&.can_review?) && @project.needs_changes? && ship_index == 1) ? "recert-modal-#{@project.id}" : nil %>
