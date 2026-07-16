@@ -8,6 +8,8 @@
   decided_on = decision.decided_on
   reviewer = decision.reviewer
   reviewer_name = reviewer&.display_name.presence
+  returned = decision.returned? && project.needs_changes? &&
+    decision == project.ship_reviews.order(created_at: :desc, id: :desc).first
 %>
 
 <article id="<%= dom_id(decision) %>"
@@ -68,5 +70,16 @@
                       class: "ship-decision-card__video" %>
       </div>
     </section>
+  <% end %>
+
+  <% if returned %>
+    <% if is_member || current_user&.can_review? %>
+      <% confirm_msg = is_member ? "Have you addressed the feedback? This will re-enter the review queue." : "This will request re-certification on behalf of the user. Continue?" %>
+      <%= button_to "Request re-certification",
+            project_recertification_path(project),
+            method: :post,
+            class: "recert-modal__btn recert-modal__btn--primary",
+            form: { data: { turbo_confirm: confirm_msg } } %>
+    <% end %>
   <% end %>
 </article>
