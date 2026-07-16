@@ -59,6 +59,16 @@ module Certification
         .find_by(id: ysws_review_id)
     end
 
+    # Both certification_ysws_reviews and certification_integrities key
+    # uniquely on the ship event, so a review maps 1-1 to an integrity check.
+    # Every synced review must have one — a missing record is a data error.
+    # Raises StandardError (not RecordNotFound, which this job discards) so
+    # the rescue_from handler reports it to Sentry.
+    def integrity_check_for(review)
+      Certification::Integrity.find_by(ship_event_id: review.post_ship_event_id) ||
+        raise(StandardError, "No certification integrity for ship event ##{review.post_ship_event_id} (ysws_review ##{review.id})")
+    end
+
     def check_stardance_review_submitted_unified(review)
       # Fetch existing Airtable record by review_id
       existing_record = table.all(filter: "{review_id} = '#{review.id}'").first
@@ -187,9 +197,12 @@ module Certification
         .where("fulfilled_by IS NULL OR fulfilled_by NOT LIKE ?", "System%")
         .includes(:shop_item)
 
+      integrity_check = integrity_check_for(review)
+
       # Build justification using the ideal format
       justification = build_justification(
         review: review,
+        integrity_check: integrity_check,
         devlog_reviews: devlog_reviews,
         total_original_minutes: total_original_minutes,
         total_approved_minutes: total_approved_minutes,
@@ -266,6 +279,12 @@ module Certification
         # Report status
         "report_status" => report_status(review),
 
+        # Certification integrity
+        "integrity_id" => integrity_check.id.to_s,
+        "integrity_status" => integrity_check.status,
+        "integrity_flags" => integrity_check.flags,
+        "fraud_data" => integrity_check.fraud_detection_data&.to_json,
+
         # Double-dip flag
         "flagged_double_dipped" => double_dipped?(project.repo_url)
       }
@@ -292,7 +311,17 @@ module Certification
       }
     end
 
-    def build_justification(review:, devlog_reviews:, total_original_minutes:, total_approved_minutes:, ship_certifier_name:, approved_orders:)
+    # One line per Certification::Integrity status, embedded in the
+    # justification. Uses fetch so an unmapped new status fails loudly.
+    INTEGRITY_JUSTIFICATION_NOTES = {
+      "auto_passed" => "Passed automatic heartbeat checks.",
+      "pending" => "Waiting for manual heartbeat review.",
+      "manually_passed" => "Passed manual heartbeat review.",
+      "deducted" => "Hours deducted during manual review.",
+      "banned" => "Project rejected due to manual review of heartbeats."
+    }.freeze
+
+    def build_justification(review:, integrity_check:, devlog_reviews:, total_original_minutes:, total_approved_minutes:, ship_certifier_name:, approved_orders:)
       project_id = review.project_id
       ysws_review_id = review.id
       ship_cert_id = review.ship_cert_id
@@ -325,6 +354,8 @@ module Certification
       intro = "The user logged #{original_formatted} on hackatime.#{adjusted_note}"
       intro += "\nThis is a project update." if project_updated
 
+      integrity_note = INTEGRITY_JUSTIFICATION_NOTES.fetch(integrity_check.status)
+
       justification = <<~JUSTIFICATION
         #{intro}
 
@@ -336,6 +367,9 @@ module Certification
 
         #{devlog_list}
         ====================================================
+
+        #{integrity_note}
+
         The Stardance project can be found at https://stardance.hackclub.com/projects/#{project_id}
 
         The Full YSWS Review + devlogs are at https://stardance.hackclub.com/admin/certification/review/#{ysws_review_id}
