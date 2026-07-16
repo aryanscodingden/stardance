@@ -10,8 +10,8 @@
 # The dismissal key is derived from DEADLINE, so changing the date automatically
 # re-shows the popup to everyone who dismissed the previous week's promo.
 class StickerPromo
-  DEADLINE = Time.new(2026, 7, 6, 4, 59, 0, "+00:00").freeze
-  DEADLINE_LABEL = "THIS SUNDAY (July 5th, 11:59 PM EST)"
+  DEADLINE = Time.new(2026, 7, 20, 4, 59, 0, "+00:00").freeze
+  DEADLINE_LABEL = "THIS SUNDAY (July 19th, 11:59 PM EST)"
 
   class << self
     def active? = Time.current < DEADLINE
