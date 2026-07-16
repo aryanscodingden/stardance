@@ -20,7 +20,10 @@
       <p class="hero__peek-link"><%= link_to home_path do %>See what teens are making <em>right now</em> &rarr;<% end %></p>
       <p class="hero__peek-link"><%= link_to "Teacher? See our edu resources! →", edu_path %></p>
       <% if Rails.env.development? && current_user.blank? %>
-        <%= button_to "dev login", dev_login_auto_path, method: :get, form_class: "hero__dev-login", class: "hero__dev-login-btn" %>
+        <%= form_with url: dev_login_auto_path, method: :get, class: "hero__dev-login" do %>
+          <%= number_field_tag :id, nil, placeholder: "user id (optional)", min: 1, autocomplete: "off", class: "hero__dev-login-input" %>
+          <%= submit_tag "dev login", class: "hero__dev-login-btn" %>
+        <% end %>
       <% end %>
     <% end %>
   </div>
