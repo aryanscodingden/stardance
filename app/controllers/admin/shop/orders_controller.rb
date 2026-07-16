@@ -38,7 +38,7 @@ class Admin::Shop::OrdersController < Admin::ApplicationController
     end
 
     # Base query
-    orders = ShopOrder.includes(:shop_item, { user: :projects }, :accessory_orders, :assigned_to_user)
+    orders = ShopOrder.includes(:shop_item, { user: :projects }, :accessory_orders, :assigned_to_user, mission_submission: :mission)
 
     # Apply status filter first if explicitly set (takes priority over view)
     if params[:status].present?
@@ -580,7 +580,7 @@ class Admin::Shop::OrdersController < Admin::ApplicationController
   private
 
   def set_order
-    @order = ShopOrder.find(params[:id])
+    @order = ShopOrder.includes(mission_submission: :mission).find(params[:id])
   end
 
   def apply_shared_filters(scope)

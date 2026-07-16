@@ -34,6 +34,9 @@
       <h1 class="aorder__title">
         Order #<%= @order.id %>
         <span class="aorder__state-badge aorder__state-badge--<%= display_s %>"><%= display_s.humanize %></span>
+        <% if @order.mission_submission.present? %>
+          <%= link_to "🎖️ Free via mission", admin_mission_path(@order.mission_submission.mission.slug), class: "aorder__mission-badge", title: "Redeemed for free via the \"#{@order.mission_submission.mission.name}\" mission" %>
+        <% end %>
       </h1>
       <p class="aorder__subtitle"><%= @order.shop_item.name %> · <%= @order.created_at.strftime("%b %-d, %Y at %-I:%M%p") %></p>
     </div>
@@ -128,6 +131,9 @@
             <%= @order.quantity %> × <%= @order.frozen_item_price %> = <strong><%= @order.total_cost %> tickets</strong>
             <% if @order.frozen_modifiers_price.to_i > 0 %>
               + <%= @order.frozen_modifiers_price %> modifiers = <strong><%= @order.total_cost_with_modifiers %> total</strong>
+            <% end %>
+            <% if @order.mission_submission.present? %>
+              <span class="aorder__mission-badge" title="Redeemed for free via the &quot;<%= @order.mission_submission.mission.name %>&quot; mission">🎖️ Free via mission</span>
             <% end %>
           </span>
         </div>

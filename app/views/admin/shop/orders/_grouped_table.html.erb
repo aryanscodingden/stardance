@@ -31,7 +31,12 @@
         <% group[:orders].each do |order| %>
           <tr>
             <td>#<%= order.id %></td>
-            <td><%= order.shop_item.name %></td>
+            <td>
+              <%= order.shop_item.name %>
+              <% if order.mission_submission.present? %>
+                <br><span class="shop-orders__mission-badge" title="Redeemed for free via the &quot;<%= order.mission_submission.mission.name %>&quot; mission">🎖️ Free via mission</span>
+              <% end %>
+            </td>
             <td><%= order.quantity %></td>
             <td><%= order.total_cost %></td>
             <td>
