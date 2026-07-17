@@ -144,6 +144,8 @@ module ApplicationHelper
   end
 
   def achievement_icon(icon_name, earned: true, **options)
+    return image_tag(icon_name, **options) if icon_name.respond_to?(:attached?)
+
     asset_path = find_achievement_asset(icon_name)
 
     if earned
