@@ -5,6 +5,7 @@ Rack::Attack.cache.store = Rails.cache
 module RackAttackClient
   STATIC_PATHS = %r{\A/(assets|favicon\.ico|robots\.txt|manifest\.json|apple-touch-icon)}.freeze
   AUTH_PATHS = %r{\A/(auth/[^/]+/callback|oauth/callback|auth/failure)\z}.freeze
+  ADMIN_PATHS = %r{\A/admin(/|\z)}.freeze
 
   def self.ip(request)
     request.get_header("HTTP_CF_CONNECTING_IP").presence || request.ip
@@ -21,6 +22,10 @@ module RackAttackClient
   def self.auth_request?(request)
     request.path.match?(AUTH_PATHS)
   end
+
+  def self.admin_request?(request)
+    request.path.match?(ADMIN_PATHS)
+  end
 end
 
 Rack::Attack.safelist("allow health checks") do |req|
@@ -32,15 +37,27 @@ Rack::Attack.safelist("allow static assets") do |req|
 end
 
 Rack::Attack.throttle("requests/ip", limit: 600, period: 5.minutes) do |req|
-  RackAttackClient.ip(req)
+  RackAttackClient.ip(req) unless RackAttackClient.admin_request?(req)
 end
 
 Rack::Attack.throttle("request bursts/ip", limit: 120, period: 1.minute) do |req|
-  RackAttackClient.ip(req)
+  RackAttackClient.ip(req) unless RackAttackClient.admin_request?(req)
 end
 
 Rack::Attack.throttle("state-changing requests/ip", limit: 60, period: 1.minute) do |req|
-  RackAttackClient.ip(req) unless req.get? || req.head? || req.options?
+  RackAttackClient.ip(req) if !(req.get? || req.head? || req.options?) && !RackAttackClient.admin_request?(req)
+end
+
+Rack::Attack.throttle("admin requests/ip", limit: 1500, period: 5.minutes) do |req|
+  RackAttackClient.ip(req) if RackAttackClient.admin_request?(req)
+end
+
+Rack::Attack.throttle("admin request bursts/ip", limit: 300, period: 1.minute) do |req|
+  RackAttackClient.ip(req) if RackAttackClient.admin_request?(req)
+end
+
+Rack::Attack.throttle("admin state-changing requests/ip", limit: 180, period: 1.minute) do |req|
+  RackAttackClient.ip(req) if RackAttackClient.admin_request?(req) && !(req.get? || req.head? || req.options?)
 end
 
 Rack::Attack.throttle("auth callbacks/ip", limit: 20, period: 5.minutes) do |req|
