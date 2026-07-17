@@ -40,6 +40,9 @@
               <% elsif order.accessory_orders.any? %>
                 <br><small>🎁 +<%= order.accessory_orders.count %> modifiers</small>
               <% end %>
+              <% if order.mission_submission.present? %>
+                <br><span class="shop-orders__mission-badge" title="Redeemed for free via the &quot;<%= order.mission_submission.mission.name %>&quot; mission">🎖️ Free via mission</span>
+              <% end %>
             </td>
             <td>
               <span>

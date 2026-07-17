@@ -340,4 +340,16 @@
       white-space: nowrap;
     }
   }
+
+  &__mission-badge {
+    display: inline-block;
+    margin-top: var(--space-xxs);
+    padding: var(--space-xxs) var(--space-s);
+    border-radius: calc(var(--border-radius) / 2);
+    background: rgba(255, 213, 152, 0.15);
+    color: var(--color-brand-peach);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    white-space: nowrap;
+  }
 }
