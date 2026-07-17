@@ -153,7 +153,7 @@
                     rel: "noopener",
                     class: "project-show__latest-ship-btn" %>
       <% end %>
-      <% if payout_review.present? %>
+      <% if payout_review.present? && payout_review[:review_deadline].present? %>
         <button type="button"
                 class="project-show__latest-ship-btn"
                 onclick="document.getElementById('payout-review-modal').showModal()"
