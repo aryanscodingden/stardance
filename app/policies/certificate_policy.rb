@@ -11,6 +11,10 @@ class CertificatePolicy < ApplicationPolicy
     user.present? && record.user_id == user.id && record.rejected? && user.certificate_eligible?
   end
 
+  def regenerate?
+    user.present? && record.user_id == user.id && record.approved? && user.certificate_eligible?
+  end
+
   def download?
     user.present? && user.certificate&.approved?
   end

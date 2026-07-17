@@ -27,6 +27,15 @@ class CertificatesController < ApplicationController
     request_and_redirect(certificate)
   end
 
+  def regenerate
+    certificate = current_user&.certificate
+    return render_not_found if certificate.nil?
+
+    authorize certificate
+    certificate.hours_at_issue = current_user.approved_ship_hours
+    request_and_redirect(certificate)
+  end
+
   def download
     authorize Certificate, :download?
 

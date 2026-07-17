@@ -179,6 +179,29 @@
   color: var(--color-space-text-muted);
 }
 
+.certificate-page__regenerate {
+  width: 100%;
+  margin-top: var(--space-s);
+}
+
+.certificate-page__regenerate-toggle {
+  font-size: var(--font-size-s);
+  color: var(--color-space-text-muted);
+  cursor: pointer;
+  transition: color 180ms ease;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-brand-mint);
+  }
+}
+
+.certificate-page__regenerate-text {
+  margin: var(--space-s) 0 0;
+  font-size: var(--font-size-s);
+  color: var(--color-space-text-muted);
+}
+
 .certificate-page__faq {
   display: flex;
   flex-direction: column;

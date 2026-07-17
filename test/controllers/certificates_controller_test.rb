@@ -232,4 +232,81 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :forbidden
   end
+
+  test "regenerate refreshes hours and keeps name when matching verified identity" do
+    @user.update!(first_name: "Orpheus", last_name: "Dino")
+    create_approved_ship(@user, hours: 31)
+    certificate = Certificate.create!(user: @user, name: "Orpheus Dino", hours_at_issue: 31)
+    certificate.approved!
+    create_approved_ship(@user, hours: 60)
+    sign_in @user
+
+    patch regenerate_certificate_path, params: { certificate: { name: "Orpheus Dino" } }
+
+    assert_redirected_to certificate_path
+    certificate.reload
+    assert certificate.approved?
+    assert_in_delta 60.0, certificate.hours_at_issue
+  end
+
+  test "regenerate with a custom name re-enters review" do
+    @user.update!(first_name: "Orpheus", last_name: "Dino")
+    create_approved_ship(@user, hours: 31)
+    certificate = Certificate.create!(user: @user, name: "Orpheus Dino", hours_at_issue: 31)
+    certificate.approved!
+    sign_in @user
+
+    patch regenerate_certificate_path, params: { certificate: { name: "Different Name" } }
+
+    assert_redirected_to certificate_path
+    certificate.reload
+    assert_equal "Different Name", certificate.name
+    assert certificate.pending?
+  end
+
+  test "regenerate is forbidden for pending certificates" do
+    create_approved_ship(@user, hours: 31)
+    Certificate.create!(user: @user, name: "Pending Name", hours_at_issue: 31)
+    sign_in @user
+
+    patch regenerate_certificate_path, params: { certificate: { name: "New Name" } }
+
+    assert_response :forbidden
+  end
+
+  test "regenerate is forbidden for rejected certificates" do
+    create_approved_ship(@user, hours: 31)
+    certificate = Certificate.create!(user: @user, name: "Bad Name", hours_at_issue: 31)
+    certificate.rejected!
+    sign_in @user
+
+    patch regenerate_certificate_path, params: { certificate: { name: "New Name" } }
+
+    assert_response :forbidden
+  end
+
+  test "regenerate is forbidden for ineligible users" do
+    create_approved_ship(@user, hours: 31)
+    certificate = Certificate.create!(user: @user, name: "Some Name", hours_at_issue: 31)
+    certificate.approved!
+    post_ship_events(:one).update_columns(certification_status: "pending")
+    sign_in @user
+
+    patch regenerate_certificate_path, params: { certificate: { name: "Some Name" } }
+
+    assert_response :forbidden
+  end
+
+  test "approved certificate page shows regenerate option" do
+    create_approved_ship(@user, hours: 31)
+    certificate = Certificate.create!(user: @user, name: "Orpheus Star", hours_at_issue: 31)
+    certificate.approved!
+    sign_in @user
+
+    get certificate_path
+
+    assert_response :success
+    assert_match "Need to update your name or hours?", response.body
+    assert_match "Regenerate certificate", response.body
+  end
 end

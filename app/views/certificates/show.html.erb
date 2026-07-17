@@ -62,6 +62,25 @@
                   data: { controller: "tooltip copy", tooltip_message_value: "Click to copy",
                           copy_text_value: share_url, action: "click->copy#copy" }) %>
           </div>
+          <details class="certificate-page__regenerate">
+            <summary class="certificate-page__regenerate-toggle">Need to update your name or hours?</summary>
+            <p class="certificate-page__regenerate-text">
+              Regenerating will re-count your approved hours and let you change the name on the certificate.
+            </p>
+            <%= form_with model: certificate, url: regenerate_certificate_path, method: :patch,
+                  class: "certificate-page__request-form" do |form| %>
+              <%= form.text_field :name,
+                    value: certificate.name,
+                    maxlength: Certificate::NAME_MAX_LENGTH,
+                    placeholder: "Name on the certificate",
+                    "aria-label": "Name on the certificate",
+                    class: "certificate-page__name-input" %>
+              <%= render ActionButtonComponent.new(text: "Regenerate certificate", size: :small) %>
+            <% end %>
+            <p class="certificate-page__mine-hint">
+              Names that don't match your verified identity need a quick review before re-issue.
+            </p>
+          </details>
         <% elsif certificate.pending? %>
           <p class="certificate-page__mine-text">
             Your certificate for <strong><%= certificate.name %></strong> is waiting on a quick
