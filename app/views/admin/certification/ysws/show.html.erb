@@ -222,14 +222,16 @@
             </span>
           </div>
 
-          <% if @review.reviewer %>
-            <div class="detail-item">
-              <span class="detail-key">YSWS Reviewer:</span>
-              <span class="detail-value">
-                <%= link_to (@review.reviewer.display_name || "Unknown"), admin_user_path(@review.reviewer), class: "link-primary" %>
-              </span>
-            </div>
-          <% end %>
+          <div class="detail-item">
+            <span class="detail-key">Reviewed by:</span>
+            <span class="detail-value">
+              <% if @review.reviewer %>
+                <%= link_to (@review.reviewer.display_name.presence || "Unknown"), admin_user_path(@review.reviewer), class: "link-primary" %>
+              <% else %>
+                Not reviewed yet
+              <% end %>
+            </span>
+          </div>
 
           <% if @review.summary_justification.present? %>
             <div class="detail-item">

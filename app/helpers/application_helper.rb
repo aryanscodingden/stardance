@@ -140,7 +140,10 @@ module ApplicationHelper
     return if cert.nil?
     return url_for(cert.verdict_video) if cert.verdict_video.attached?
 
-    safe_external_url(cert.proof_video_url)
+    safe_external_url(cert.proof_video_url)&.sub(
+      "/rails/active_storage/blobs/proxy/",
+      "/rails/active_storage/blobs/redirect/"
+    )
   end
 
   def achievement_icon(icon_name, earned: true, **options)

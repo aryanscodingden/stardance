@@ -271,28 +271,32 @@
     background: var(--color-brand-salmon-soft);
     color: var(--color-brand-salmon);
   }
-
-  // Small action primary, dark-bg variant (branding §4.2): highlight fill,
-  // dark text, no border, 16px bold, 16px/3px padding, fully rounded.
+ // Small action primary, dark-bg variant with extra contrast for claimed rows.
   & &__view-btn {
     display: inline-block;
     padding: 3px 16px;
+    border: 2px solid var(--color-brand-mint);
     border-radius: 999px;
-    background: var(--color-brand-highlight);
-    color: var(--color-set-1-bg);
+    background: var(--color-brand-blue);
+    color: var(--color-brand-yellow);
     font-size: var(--font-size-m);
     font-weight: 700;
     text-decoration: none;
     white-space: nowrap;
+    box-shadow: 0 0 0 2px var(--color-set-1-bg);
+
+    &:visited,
+    &:hover {
+      color: var(--color-brand-yellow);
+    }
 
     &:hover {
-      background: var(--color-brand-highlight-secondary);
-      color: var(--color-set-1-bg);
+      background: var(--color-brand-blue);
       text-decoration: none;
     }
 
     &:active {
-      background: var(--color-space-text);
+      background: var(--color-brand-highlight-secondary);
     }
 
     &:focus-visible {
