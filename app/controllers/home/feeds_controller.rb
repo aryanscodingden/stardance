@@ -2,6 +2,7 @@ class Home::FeedsController < ApplicationController
   include OnboardingResumable
 
   FEED_LIMIT = 10
+  FIRST_PAGE_LIMIT = 3
   RECOMMENDATION_POOL = 100 # after this, we fallback to SQL
   GORSE_TIMEOUT = 0.75
   TABS = %w[for_you following popular newest new_builders].freeze
@@ -128,7 +129,9 @@ class Home::FeedsController < ApplicationController
 
   def feed_pagy
     page = [ params[:page].to_i, 1 ].max
-    FeedPage.new(page: page, limit: FEED_LIMIT, offset: (page - 1) * FEED_LIMIT)
+    limit = page == 1 ? FIRST_PAGE_LIMIT : FEED_LIMIT
+    offset = page == 1 ? 0 : FIRST_PAGE_LIMIT + (page - 2) * FEED_LIMIT
+    FeedPage.new(page: page, limit: limit, offset: offset)
   end
 
   def compose_feed(recommended, backfill, pagy)

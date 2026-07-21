@@ -756,7 +756,7 @@
   }
 
   a:not(.feed-post-card__overlay-link),
-  button,
+  button:not(.feed-post-card__media-arrow),
   summary,
   input,
   textarea,
@@ -930,45 +930,114 @@
     }
   }
 
-  &__media-viewport {
-    width: 100%;
-    border-radius: calc(var(--border-radius) * 0.65);
-    background: rgba(5, 4, 24, 0.28);
-    overflow: clip;
+  &__media-stage {
     position: relative;
   }
 
-  &__media-track {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-xxs);
+  &__media-viewport {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
     width: 100%;
+    border-radius: calc(var(--border-radius) * 0.65);
+    background: rgba(5, 4, 24, 0.28);
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  // Excluded from the generic interactive-element lift above: that rule's
+  // position: relative would pull the arrows out of their absolute overlay.
+  &__media-arrow {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 2;
+    width: 64px;
+    display: flex;
+    align-items: center;
+    border: none;
+    padding: 0;
+    color: var(--color-brand-cream);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 150ms ease;
+
+    svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    &--prev {
+      left: 0;
+      justify-content: flex-start;
+      padding-left: var(--space-xs);
+      background: linear-gradient(to right, rgba(5, 4, 24, 0.65), transparent);
+      border-radius: calc(var(--border-radius) * 0.65) 0 0
+        calc(var(--border-radius) * 0.65);
+    }
+
+    &--next {
+      right: 0;
+      justify-content: flex-end;
+      padding-right: var(--space-xs);
+      background: linear-gradient(to left, rgba(5, 4, 24, 0.65), transparent);
+      border-radius: 0 calc(var(--border-radius) * 0.65)
+        calc(var(--border-radius) * 0.65) 0;
+    }
+
+    &:focus-visible {
+      opacity: 1;
+    }
+
+    &--hidden {
+      visibility: hidden;
+    }
+
+    @media (hover: none) {
+      display: none;
+    }
+  }
+
+  &__media-stage:hover &__media-arrow {
+    opacity: 1;
   }
 
   &__media-slide {
-    width: 100%;
-    min-width: 0;
-    min-height: 0;
-    aspect-ratio: 1 / 1;
+    flex: 0 0 100%;
+    scroll-snap-align: start;
     margin: 0;
-    border: 1px solid var(--color-space-surface-faint);
-    border-radius: calc(var(--border-radius) * 0.45);
     background: rgba(5, 4, 24, 0.32);
     overflow: hidden;
-  }
-
-  &__media[data-count="1"] &__media-track {
-    grid-template-columns: 1fr;
-  }
-
-  &__media[data-count="1"] &__media-slide {
     aspect-ratio: 16 / 9;
     max-height: 420px;
   }
 
-  &__media[data-count="3"] &__media-slide:first-child {
-    grid-row: span 2;
-    aspect-ratio: auto;
+  &__media-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 0 2px;
+  }
+
+  &__media-dot {
+    appearance: none;
+    border: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-space-text-muted);
+    opacity: 0.4;
+    padding: 0;
+    cursor: pointer;
+    transition: opacity 150ms ease;
+
+    &--active {
+      opacity: 1;
+      background: var(--color-brand-cream);
+    }
   }
 
   &__image,
@@ -1437,6 +1506,93 @@
 // Devlog detail page — post + comments thread view.
 // Uses .app-layout__main so it inherits the 722px reading column,
 // centered margins, and responsive breakpoints from _base.scss.
+.post-panel {
+  border: none;
+  padding: 0;
+  background: transparent;
+  max-width: min(720px, 92vw);
+  width: 100%;
+  position: fixed;
+  top: 4vh;
+  left: 50%;
+  translate: -50% 0;
+  margin: 0;
+  max-height: 92vh;
+  overflow: visible;
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+  }
+
+  &__content {
+    background: var(--color-space-bg-2, #0d0b2e);
+    border: 2px solid var(--color-space-border);
+    border-radius: var(--profile-radius, var(--border-radius));
+    display: flex;
+    flex-direction: column;
+    max-height: 92vh;
+    overflow: hidden;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    flex-shrink: 0;
+  }
+
+  &__close {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--color-space-text-muted);
+    cursor: pointer;
+    font-size: 1.5rem;
+    line-height: 1;
+    padding: 0.25rem;
+    transition: color 120ms ease;
+
+    &:hover {
+      color: var(--color-space-text);
+    }
+  }
+
+  &__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 16px 16px;
+
+    // Comment composer stays pinned while the thread scrolls under it.
+    .devlog-detail__comment-form {
+      position: sticky;
+      bottom: 0;
+      margin-bottom: 0;
+      padding: var(--space-xs) 0;
+      background: var(--color-space-bg-2, #0d0b2e);
+    }
+  }
+
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+  }
+
+  @media (max-width: 640px) {
+    max-width: 100vw;
+    max-height: 100dvh;
+    top: 0;
+
+    &__content {
+      max-height: 100dvh;
+      border-radius: 0;
+    }
+  }
+}
+
 .devlog-detail {
   &__thread {
     display: flex;
@@ -1667,280 +1823,6 @@
       &:last-child {
         margin-bottom: 0;
       }
-    }
-  }
-}
-
-.comment-modal {
-  border: none;
-  padding: 0;
-  background: transparent;
-  max-width: min(600px, 92vw);
-  width: 100%;
-  position: fixed;
-  top: 8vh;
-  left: 50%;
-  translate: -50% 0;
-  margin: 0;
-  max-height: 84vh;
-  overflow: visible;
-  cursor: auto;
-
-  &::backdrop {
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(2px);
-  }
-
-  &__content {
-    background: var(--color-space-bg-2, #0d0b2e);
-    border: 2px solid var(--color-space-border);
-    border-radius: var(--profile-radius, var(--border-radius));
-    display: flex;
-    flex-direction: column;
-    max-height: 84vh;
-    overflow: hidden;
-  }
-
-  &__lazy-content {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  &__header {
-    display: flex;
-    align-items: center;
-    padding: 10px 16px;
-    flex-shrink: 0;
-  }
-
-  &__close {
-    appearance: none;
-    background: transparent;
-    border: 0;
-    color: var(--color-space-text-muted);
-    cursor: pointer;
-    font-size: 1.5rem;
-    line-height: 1;
-    padding: 0.25rem;
-    transition: color 120ms ease;
-
-    &:hover {
-      color: var(--color-space-text);
-    }
-  }
-
-  &__body {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    padding: 0 16px;
-  }
-
-  // Original-post card — elevated so it stands apart from the replies below.
-  &__op {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--color-space-border);
-    border-radius: 12px;
-    padding: 14px;
-  }
-
-  &__op-eyebrow {
-    color: var(--color-space-text-muted);
-    display: block;
-    font-size: calc(var(--font-size-s) * 0.82);
-    font-weight: 600;
-    letter-spacing: 0.07em;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-  }
-
-  &__op-head {
-    align-items: center;
-    display: flex;
-    gap: 10px;
-  }
-
-  &__op-avatar {
-    border-radius: 50%;
-    flex-shrink: 0;
-    height: 40px;
-    object-fit: cover;
-    width: 40px;
-  }
-
-  &__op-meta {
-    align-items: baseline;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    min-width: 0;
-  }
-
-  &__op-author {
-    color: var(--color-space-text);
-    font-size: calc(var(--font-size-s) * 1.1);
-    font-weight: 600;
-  }
-
-  &__op-time {
-    color: var(--color-space-text-muted);
-    font-size: var(--font-size-s);
-  }
-
-  &__op-body {
-    color: var(--color-space-text);
-    font-size: calc(var(--font-size-s) * 1.1);
-    line-height: 1.5;
-    margin-top: 10px;
-
-    p {
-      margin: 0 0 0.4em;
-      &:last-child {
-        margin-bottom: 0;
-      }
-    }
-  }
-
-  &__op-media {
-    margin-top: 12px;
-
-    // Drop the feed's avatar-aligned left offset inside the narrower card.
-    .feed-post-card__media {
-      padding-left: 0;
-    }
-  }
-
-  &__thread-left {
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    width: 40px;
-  }
-
-  &__thread-right {
-    flex: 1;
-    min-width: 0;
-    padding-bottom: 4px;
-  }
-
-  &__replies-label {
-    color: var(--color-space-text-muted);
-    font-size: calc(var(--font-size-s) * 0.82);
-    font-weight: 600;
-    letter-spacing: 0.07em;
-    margin: 16px 0 4px;
-    text-transform: uppercase;
-  }
-
-  &__replies {
-    display: block;
-  }
-
-  &__replies-list {
-    padding: 2px 0;
-  }
-
-  &__replies-loading,
-  &__replies-empty {
-    color: var(--color-space-text-muted);
-    font-size: calc(var(--font-size-s) * 1.05);
-    margin: 0;
-    padding: 14px 0;
-    text-align: center;
-  }
-
-  // Pinned below the scrolling thread so it stays reachable.
-  &__composer {
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    flex-shrink: 0;
-    padding: 0 16px;
-  }
-
-  &__sign-in {
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    color: var(--color-space-text-muted);
-    flex-shrink: 0;
-    font-size: calc(var(--font-size-s) * 1.05);
-    margin: 0;
-    padding: 16px;
-
-    a {
-      color: var(--color-brand-highlight);
-    }
-  }
-
-  &__replying-to {
-    color: var(--color-space-text-muted);
-    font-size: calc(var(--font-size-s) * 1.05);
-    margin: 0;
-    padding-top: 10px;
-  }
-
-  &__replying-to-name {
-    color: var(--color-brand-highlight);
-  }
-
-  &__thread-reply {
-    display: flex;
-    gap: 12px;
-    padding-top: 8px;
-  }
-
-  &__reply-avatar {
-    border-radius: 50%;
-    height: 40px;
-    width: 40px;
-    object-fit: cover;
-    flex-shrink: 0;
-  }
-
-  &__textarea {
-    background: transparent;
-    border: none;
-    box-sizing: border-box;
-    color: var(--color-space-text);
-    display: block;
-    font-family: inherit;
-    font-size: 1.2rem;
-    min-height: 64px;
-    max-height: 160px;
-    padding: 4px 0;
-    resize: none;
-    width: 100%;
-
-    &::placeholder {
-      color: var(--color-space-text-muted);
-    }
-
-    &:focus {
-      outline: none;
-    }
-  }
-
-  &__footer {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 12px 0;
-    flex-shrink: 0;
-  }
-
-  @media (max-width: 640px) {
-    top: 0;
-    max-height: 100dvh;
-    width: 100%;
-    max-width: 100vw;
-
-    &__content {
-      border-radius: 0;
-      border-left: 0;
-      border-right: 0;
-      height: 100dvh;
-      max-height: 100dvh;
     }
   }
 }

@@ -2,17 +2,24 @@ class Projects::DevlogsController < ApplicationController
   TEST_TIME_SECONDS = 15.minutes.to_i
 
   before_action :set_project
-  before_action :set_devlog, only: %i[show edit update destroy versions]
+  before_action :set_devlog, only: %i[edit update destroy versions]
   before_action :require_hackatime_project, only: %i[create]
   before_action :sync_hackatime_projects, only: %i[create]
 
   skip_before_action :remember_page, only: %i[preview_time]
 
   def show
+    @post = @project.posts.visible_to(current_user)
+                    .find_by!(postable_type: "Post::Devlog", postable_id: params[:id])
+    @devlog = @post.postable
     authorize @devlog
     @body_class = "app-layout-page"
-    @post = @project.posts.visible_to(current_user).find_by!(postable: @devlog)
     @comments = @devlog.comments.for_thread
+
+    if turbo_frame_request_id == "post-panel-comments"
+      render partial: "projects/devlogs/panel", layout: false,
+             locals: { media_variant: panel_media_variant, panel_post: panel_post }
+    end
   end
 
   def create
@@ -149,6 +156,27 @@ class Projects::DevlogsController < ApplicationController
   end
 
   private
+
+  # Match the variant the originating feed rendered so the panel's images hit
+  # the browser cache instead of refetching.
+  def panel_media_variant
+    variant = params[:media_variant]
+    %w[small medium large].include?(variant) ? variant.to_sym : :large
+  end
+
+  # The clicked card may be a quote-repost of this devlog; render that post's
+  # card so the quoter's commentary survives the placeholder swap. Only this
+  # devlog's own post or a repost of it is trusted.
+  def panel_post
+    return @post if params[:panel_post].blank?
+
+    candidate = Post.visible_to(current_user).find_by(id: params[:panel_post])
+    return @post if candidate.nil? || candidate == @post
+
+    reposts_devlog = candidate.postable.is_a?(Post::Repost) &&
+      candidate.postable.original_post == @post
+    reposts_devlog ? candidate : @post
+  end
 
   def set_project
     @project = Project.find(params[:project_id])

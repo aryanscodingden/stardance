@@ -91,6 +91,15 @@ export default class extends Controller {
   };
 
   onOpen = (event) => {
+    // Carousel arrows/dots browse media without opening the post; they must
+    // not mark it read or send recommendation feedback.
+    if (
+      event.target.closest(
+        ".feed-post-card__media-arrow, .feed-post-card__media-dot",
+      )
+    ) {
+      return;
+    }
     if (event.target.closest("a, button, summary")) {
       this.sendOnce("open");
     }

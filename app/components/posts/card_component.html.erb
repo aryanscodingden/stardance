@@ -131,9 +131,7 @@
   <% if show_footer? && !fire_event? %>
   <footer class="feed-post-card__actions">
     <% if show_comments && interaction_post&.postable_type == "Post::Devlog" %>
-      <div class="feed-post-card__comment-action"
-           data-controller="comment-modal"
-           data-comment-modal-content-url-value="<%= helpers.devlog_comments_path(interaction_postable) %>">
+      <div class="feed-post-card__comment-action">
         <% comment_action_inner = capture do %>
           <%= inline_svg_tag "icons/comment.svg", class: "feed-post-card__action-icon" %>
           <span id="<%= comments_count_id %>"><%= interaction_postable.comments_count %></span>
@@ -142,32 +140,13 @@
           <%= link_to comments_url,
                 class: "feed-post-card__action",
                 aria: { label: "#{interaction_postable.comments_count} comments" },
-                data: { action: "comment-modal#open" } do %><%= comment_action_inner %><% end %>
+                data: { action: "card-link#navigateComments" } do %><%= comment_action_inner %><% end %>
         <% else %>
           <button type="button"
                   class="feed-post-card__action"
                   aria-label="<%= interaction_postable.comments_count %> comments"
-                  data-action="comment-modal#open"><%= comment_action_inner %></button>
+                  data-action="card-link#navigateComments"><%= comment_action_inner %></button>
         <% end %>
-
-        <dialog class="comment-modal"
-                data-comment-modal-target="dialog"
-                data-action="click->comment-modal#backdropClick turbo:submit-end->comment-modal#formSubmitted"
-                aria-label="Comments">
-          <div class="comment-modal__content">
-            <header class="comment-modal__header">
-              <button type="button" class="comment-modal__close" data-action="comment-modal#close" aria-label="Close">&times;</button>
-            </header>
-            <%= helpers.turbo_frame_tag dom_id(interaction_postable, :comment_modal),
-                  class: "comment-modal__lazy-content",
-                  data: {
-                    comment_modal_target: "contentFrame",
-                    action: "turbo:frame-load->comment-modal#contentLoaded"
-                  } do %>
-              <p class="comment-modal__replies-loading">Loading discussion&hellip;</p>
-            <% end %>
-          </div>
-        </dialog>
       </div>
     <% end %>
 

@@ -121,9 +121,6 @@ application.register(
 import CommandPaletteController from "./command_palette_controller";
 application.register("command-palette", CommandPaletteController);
 
-import CommentModalController from "./comment_modal_controller";
-application.register("comment-modal", CommentModalController);
-
 import ComposerController from "./composer_controller";
 application.register("composer", ComposerController);
 
@@ -223,6 +220,9 @@ application.register("lookout-recorder", LookoutRecorderController);
 import MarkdownPreviewController from "./markdown_preview_controller";
 application.register("markdown-preview", MarkdownPreviewController);
 
+import MediaCarouselController from "./media_carousel_controller";
+application.register("media-carousel", MediaCarouselController);
+
 import MentionAutocompleteController from "./mention_autocomplete_controller";
 application.register("mention-autocomplete", MentionAutocompleteController);
 
@@ -276,6 +276,9 @@ application.register("payout-review", PayoutReviewController);
 
 import PostMenuController from "./post_menu_controller";
 application.register("post-menu", PostMenuController);
+
+import PostPanelController from "./post_panel_controller";
+application.register("post-panel", PostPanelController);
 
 import PrizeFloatController from "./prize_float_controller";
 application.register("prize-float", PrizeFloatController);
