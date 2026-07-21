@@ -7,7 +7,10 @@
 <main class="integrity-review" role="main">
   <header class="integrity-review__header">
     <%= link_to "← Back to queue", admin_certification_integrity_reviews_path, class: "integrity-review__back" %>
-    <h1>Integrity Review #<%= @review.id %></h1>
+    <div class="integrity-review__header-main">
+      <h1>Integrity Review #<%= @review.id %></h1>
+      <%= render "flags", review: @review %>
+    </div>
   </header>
 
   <div class="integrity-review__cards">
