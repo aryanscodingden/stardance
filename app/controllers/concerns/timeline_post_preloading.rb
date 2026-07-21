@@ -10,10 +10,10 @@ module TimelinePostPreloading
 
     preload_timeline_group(posts, :user)
     preload_timeline_group(posts_requiring_timeline_project(grouped, project_context: project_context), :project)
-    preload_timeline_group(grouped["Post::Devlog"], postable: :attachments_attachments)
+    preload_timeline_group(grouped["Post::Devlog"], postable: { attachments_attachments: :blob })
     preload_timeline_group(
       grouped["Post::ShipEvent"],
-      postable: [ :attachments_attachments, { mission_submission: :mission } ]
+      postable: [ { attachments_attachments: :blob }, { mission_submission: :mission } ]
     )
   end
 
