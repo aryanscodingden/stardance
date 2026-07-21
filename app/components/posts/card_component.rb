@@ -72,7 +72,9 @@ module Posts
       data.merge(
         controller: controllers,
         card_link_url_value: url,
-        action: actions
+        action: actions,
+        media_variant: media_variant,
+        post_id: post.id
       )
     end
 
@@ -144,9 +146,6 @@ module Posts
       end
     end
 
-    def attachment_count
-      attachments.respond_to?(:size) ? attachments.size : 0
-    end
 
     def show_footer?
       show_comments || show_reposts || show_likes || show_actions
