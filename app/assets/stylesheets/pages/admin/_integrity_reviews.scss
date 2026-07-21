@@ -305,14 +305,17 @@
     stroke-width: 3;
   }
 
-  @each $index, $fill in (
-    0: var(--color-brand-mint),
-    1: var(--color-brand-lilac),
-    2: var(--color-brand-blue),
-    3: var(--color-brand-salmon),
-    4: var(--color-brand-yellow),
-    5: var(--color-brand-peach)
-  ) {
+  @each $index,
+    $fill
+      in (
+        0: var(--color-brand-mint),
+        1: var(--color-brand-lilac),
+        2: var(--color-brand-blue),
+        3: var(--color-brand-salmon),
+        4: var(--color-brand-yellow),
+        5: var(--color-brand-peach)
+      )
+  {
     & &__treemap-rect--#{$index} {
       fill: $fill;
     }
