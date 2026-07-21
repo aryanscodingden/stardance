@@ -34,6 +34,9 @@ module Certification
 
     delegate :project, to: :ship_event
 
+    # The user who shipped — author of the ship event's post.
+    def user = ship_event&.post&.user
+
     has_paper_trail
 
     enum :status, {

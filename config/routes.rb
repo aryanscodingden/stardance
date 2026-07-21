@@ -810,6 +810,10 @@ Rails.application.routes.draw do
     get "mission_reviews", to: "missions/submissions#overview", as: :mission_reviews
 
     namespace :certification do
+      # Integrity review queue — restricted to admins and fraud leads.
+      get "integrity", to: "integrity#index", as: "integrity_reviews"
+      get "integrity/:id", to: "integrity#show", as: "integrity_review"
+
       # Reviewer stats & payout requests
       scope "/ship" do
         get  "mystats", to: "mystats#show", as: "mystats"
