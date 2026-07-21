@@ -6,6 +6,7 @@ class User
     self::ALL = [
       new(0, :super_admin, "Can assign other users admin"),
       new(1, :admin, "Can do everything except assign or remove admin"),
+      new(10, :fraud_lead, "Senior fraud team member"),
       new(2, :fraud_dept, "Can issue negative payouts, cancel grants & shop orders, but not reject or ban users; access to Blazer; access to read-only admin User w/o PII"),
       new(3, :project_certifier, "Approve/reject if project work meets Shipwright standards"),
       new(4, :guardian_of_integrity, "Can approve/reject projects for YSWS DB"),

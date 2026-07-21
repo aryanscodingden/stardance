@@ -203,6 +203,7 @@
         <%
           all_roles = [
             { name: 'fraud_dept', disabled: !current_user&.admin? },
+            { name: 'fraud_lead', disabled: !current_user&.admin? },
             { name: 'fulfillment_person', disabled: !current_user&.admin? },
             { name: 'project_certifier', disabled: !current_user&.admin? },
             { name: 'guardian_of_integrity', disabled: !current_user&.admin? },
