@@ -1,5 +1,196 @@
 <% content_for :title, "Integrity Review ##{@review.id}" %>
 
-<main>
-  <h1>Integrity Review #<%= @review.id %></h1>
+<% project = @review.project %>
+<% shipper = @review.user %>
+<% dash = tag.span("—", class: "integrity-review__placeholder") %>
+
+<main class="integrity-review" role="main">
+  <header class="integrity-review__header">
+    <%= link_to "← Back to queue", admin_certification_integrity_reviews_path, class: "integrity-review__back" %>
+    <h1>Integrity Review #<%= @review.id %></h1>
+  </header>
+
+  <div class="integrity-review__cards">
+    <section class="integrity-review__card" aria-labelledby="integrity-review-project-heading">
+      <h2 class="integrity-review__card-title" id="integrity-review-project-heading">Project</h2>
+
+      <% if project %>
+        <dl class="integrity-review__list">
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Title</dt>
+            <dd class="integrity-review__value"><%= link_to project.title, project_path(project) %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Project ID</dt>
+            <dd class="integrity-review__value">#<%= project.id %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Ship Event ID</dt>
+            <dd class="integrity-review__value">#<%= @review.ship_event_id %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Type</dt>
+            <dd class="integrity-review__value"><%= project.project_type.presence || dash %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Categories</dt>
+            <dd class="integrity-review__value"><%= project.project_categories.presence&.join(", ") || dash %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Ship status</dt>
+            <dd class="integrity-review__value"><%= project.ship_status.presence || dash %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Tracked time</dt>
+            <dd class="integrity-review__value"><%= pluralize((project.duration_seconds / 3600.0).round(1), "hour") %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Repository</dt>
+            <dd class="integrity-review__value">
+              <%= project.repo_url.present? ? link_to(project.repo_url, project.repo_url, target: "_blank", rel: "noopener") : dash %>
+            </dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Demo</dt>
+            <dd class="integrity-review__value">
+              <%= project.demo_url.present? ? link_to(project.demo_url, project.demo_url, target: "_blank", rel: "noopener") : dash %>
+            </dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Description</dt>
+            <dd class="integrity-review__value"><%= project.description.presence || dash %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Shipped at</dt>
+            <dd class="integrity-review__value"><%= project.shipped_at ? l(project.shipped_at, format: :long) : dash %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Created at</dt>
+            <dd class="integrity-review__value"><%= l(project.created_at, format: :long) %></dd>
+          </div>
+        </dl>
+      <% else %>
+        <p class="integrity-review__placeholder">Project record is unavailable.</p>
+      <% end %>
+    </section>
+
+    <section class="integrity-review__card" aria-labelledby="integrity-review-user-heading">
+      <h2 class="integrity-review__card-title" id="integrity-review-user-heading">User</h2>
+
+      <% if shipper %>
+        <dl class="integrity-review__list">
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Name</dt>
+            <dd class="integrity-review__value">
+              <% if shipper.display_name.present? %>
+                <%= link_to shipper.display_name, profile_path(shipper.display_name) %>
+              <% else %>
+                <%= dash %>
+              <% end %>
+            </dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">User ID</dt>
+            <dd class="integrity-review__value">#<%= shipper.id %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Email</dt>
+            <dd class="integrity-review__value"><%= shipper.email.presence || dash %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Slack ID</dt>
+            <dd class="integrity-review__value"><%= shipper.slack_id.presence || dash %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Country</dt>
+            <dd class="integrity-review__value"><%= shipper.geocoded_country.presence || dash %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Verification</dt>
+            <dd class="integrity-review__value"><%= shipper.verification_status.presence || dash %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Balance</dt>
+            <dd class="integrity-review__value"><%= shipper.approx_balance %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Total earned</dt>
+            <dd class="integrity-review__value"><%= shipper.approx_total_earned %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Banned</dt>
+            <dd class="integrity-review__value"><%= shipper.banned? ? "Yes" : "No" %></dd>
+          </div>
+          <div class="integrity-review__row">
+            <dt class="integrity-review__term">Created at</dt>
+            <dd class="integrity-review__value"><%= l(shipper.created_at, format: :long) %></dd>
+          </div>
+        </dl>
+
+        <div class="integrity-review__tools">
+          <%= link_to "Joe ↗", "https://joe.fraud.hackclub.com/profile/#{shipper.slack_id}", target: "_blank", rel: "noopener noreferrer", class: "integrity-review__tool-btn" %>
+        </div>
+      <% else %>
+        <p class="integrity-review__placeholder">User record is unavailable.</p>
+      <% end %>
+    </section>
+  </div>
+
+  <% signal_rows = integrity_signal_rows(@review) %>
+  <section class="integrity-review__panel" aria-labelledby="integrity-review-reasoning-heading">
+    <h2 class="integrity-review__card-title" id="integrity-review-reasoning-heading">Review reasoning</h2>
+
+    <% if signal_rows.any? %>
+      <dl class="integrity-review__list">
+        <% signal_rows.each do |name, value| %>
+          <% block = value.is_a?(Hash) %>
+          <div class="integrity-review__row <%= "integrity-review__row--block" if block %>">
+            <dt class="integrity-review__term"><%= name.to_s.humanize %></dt>
+            <dd class="integrity-review__value <%= "integrity-review__value--block" if block %>"><%= format_integrity_signal(name, value) %></dd>
+          </div>
+        <% end %>
+      </dl>
+    <% else %>
+      <p class="integrity-review__placeholder">No detection data recorded for this review.</p>
+    <% end %>
+  </section>
+
+  <section class="integrity-review__section" aria-labelledby="integrity-review-orders-heading">
+    <h2 class="integrity-review__card-title" id="integrity-review-orders-heading">Shop orders</h2>
+
+    <% if @shop_orders.any? %>
+      <div class="integrity-review__table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Status</th>
+              <th>Cost</th>
+              <th>Ordered</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @shop_orders.each do |order| %>
+              <tr>
+                <td data-label="Item"><%= order.shop_item&.name || tag.span("—", class: "integrity-review__placeholder") %></td>
+                <td data-label="Qty"><%= order.quantity %></td>
+                <td data-label="Status"><%= order.aasm_state&.humanize || tag.span("—", class: "integrity-review__placeholder") %></td>
+                <td data-label="Cost"><%= number_to_currency(order.total_cost) %></td>
+                <td data-label="Ordered"><%= l(order.created_at, format: :long) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="integrity-review__placeholder">This user has no shop orders.</p>
+    <% end %>
+  </section>
+
+  <div class="integrity-review__actions" role="group" aria-label="Review decision">
+    <button type="button" class="integrity-review__action integrity-review__action--pass" disabled>Not Fraudulent</button>
+    <button type="button" class="integrity-review__action integrity-review__action--fraud" disabled>Fraudulent</button>
+    <button type="button" class="integrity-review__action integrity-review__action--deduct" disabled>Deducted hours</button>
+  </div>
 </main>
