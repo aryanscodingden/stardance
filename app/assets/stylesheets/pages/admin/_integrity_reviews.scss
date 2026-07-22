@@ -118,6 +118,52 @@
     @extend %integrity-table-container;
   }
 
+  // Flag filter bar — colour-coded pill links (OR filter). Selected pills read
+  // solid; deselected ones dim to an outline so the active set is obvious.
+  & &__filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-l);
+  }
+
+  & &__filter {
+    text-decoration: none;
+    cursor: pointer;
+
+    // Deselected: drop the tint to a hairline outline of the flag's own hue,
+    // which the tag's `color` already carries.
+    &:not(.is-selected) {
+      background: transparent;
+      box-shadow: inset 0 0 0 1px currentcolor;
+      opacity: 0.6;
+    }
+
+    &:hover {
+      opacity: 1;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-brand-highlight);
+      outline-offset: 2px;
+    }
+  }
+
+  & &__filter-reset {
+    color: var(--color-set-1-fg-secondary);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--color-brand-highlight);
+      text-decoration: underline;
+    }
+  }
+
   & &__placeholder {
     color: var(--color-set-1-fg-secondary);
   }
@@ -190,6 +236,20 @@
 .integrity-review {
   & &__header {
     margin-bottom: var(--space-xl);
+  }
+
+  // Title on the left, flag tags pinned to the top-right corner. Wraps to
+  // stacked on narrow viewports so the tags drop below the heading.
+  & &__header-main {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-m);
+
+    h1 {
+      margin: 0;
+    }
   }
 
   & &__back {
@@ -493,5 +553,48 @@
     background: var(--color-set-2-bg);
     color: var(--color-space-text);
     border-color: var(--color-space-text);
+  }
+}
+
+// Integrity flag tags — one colour-coded pill per raised flag, shared by the
+// queue (index) and review-detail (show) pages. Each flag maps to its own
+// accent hue; the fill is a translucent tint of that same hue. Tints are kept
+// local here (rather than as global tokens) since they're specific to these
+// pages. Accent-as-status per branding §1.3.
+.integrity-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &__tag {
+    display: inline-block;
+    padding: var(--space-xxxs) var(--space-s);
+    border-radius: 999px;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  @each $flag, $hue,
+    $tint
+      in ("unknown-file", var(--color-brand-salmon), rgba(255, 141, 157, 0.18)),
+    ("cursor-strange", var(--color-brand-lilac), rgba(235, 183, 255, 0.18)),
+    ("neuralnet", var(--color-brand-blue), rgba(149, 219, 255, 0.18)),
+    ("no-hackatime-user", var(--color-brand-peach), rgba(255, 213, 152, 0.18)),
+    ("check-failed", var(--color-brand-yellow), rgba(255, 229, 100, 0.18))
+  {
+    &__tag--#{$flag} {
+      background: $tint;
+      color: $hue;
+    }
+  }
+
+  &__none {
+    color: var(--color-set-1-fg-secondary);
   }
 }
