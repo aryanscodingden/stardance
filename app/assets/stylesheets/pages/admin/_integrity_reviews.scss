@@ -580,8 +580,9 @@
     white-space: nowrap;
   }
 
-  @each $flag, $hue, $tint
-    in ("unknown-file", var(--color-brand-salmon), rgba(255, 141, 157, 0.18)),
+  @each $flag, $hue,
+    $tint
+      in ("unknown-file", var(--color-brand-salmon), rgba(255, 141, 157, 0.18)),
     ("cursor-strange", var(--color-brand-lilac), rgba(235, 183, 255, 0.18)),
     ("neuralnet", var(--color-brand-blue), rgba(149, 219, 255, 0.18)),
     ("no-hackatime-user", var(--color-brand-peach), rgba(255, 213, 152, 0.18)),
