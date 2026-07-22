@@ -997,6 +997,14 @@ Rails.application.routes.draw do
     end
   end
 
+  # Workshops (index + show; upcoming ones also surface in the events widget).
+  resources :workshops, only: [ :index, :show ] do
+    scope module: :workshops do
+      resource :rsvp, only: [ :create, :destroy ]
+      resource :attendance, only: [ :create ]
+    end
+  end
+
   # Reviewer queue.
   resources :mission_submissions, only: [] do
     member do
