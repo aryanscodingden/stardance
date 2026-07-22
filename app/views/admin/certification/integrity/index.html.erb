@@ -48,7 +48,7 @@
           <% @reviews.each do |review| %>
             <% project = review.project %>
             <% shipper = review.user %>
-            <tr>
+            <tr class="<%= "integrity-queue__row--claimed" if review.claimed_by?(current_user) %>">
               <td data-label="Project">
                 <% if project %>
                   <%= link_to project.title, project_path(project) %>

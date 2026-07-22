@@ -118,6 +118,19 @@
     @extend %integrity-table-container;
   }
 
+  // A review claimed by the current admin. Desktop rows can't paint a <tr>
+  // border under the collapsed table, so an inset ring stands in; the stacked
+  // mobile cards recolour their border instead.
+  & &__row--claimed {
+    @media (min-width: 961px) {
+      box-shadow: inset 0 0 0 2px var(--color-brand-yellow);
+    }
+
+    @media (max-width: 960px) {
+      border-color: var(--color-brand-yellow);
+    }
+  }
+
   // Flag filter bar — colour-coded pill links (OR filter). Selected pills read
   // solid; deselected ones dim to an outline so the active set is obvious.
   & &__filters {

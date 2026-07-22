@@ -4,6 +4,7 @@ class Admin::Certification::IntegrityController < Admin::Certification::Applicat
 
     reviews = ::Certification::Integrity
       .pending
+      .unclaimed_or_claimed_by(current_user)
       .includes(ship_event: [ :project, { post: :user } ])
       .order(created_at: :asc)
       .to_a
@@ -35,6 +36,19 @@ class Admin::Certification::IntegrityController < Admin::Certification::Applicat
   def show
     @review = ::Certification::Integrity.find(params[:id])
     authorize @review, policy_class: Admin::Certification::IntegrityPolicy
+
+    # Claim this review for the current admin so it drops off everyone else's
+    # queue. Already-decided reviews (reached via history links) are read-only
+    # and aren't claimed.
+    if @review.pending?
+      claimed = ::Certification::Integrity.atomic_claim!(@review.id, current_user)
+      if claimed.nil?
+        redirect_to admin_certification_integrity_reviews_path, alert: "This review is currently claimed by another admin."
+        return
+      end
+      @review.claimed_by_id = claimed.claimed_by_id
+      @review.claimed_at = claimed.claimed_at
+    end
 
     @shop_orders = @review.user&.shop_orders&.includes(:shop_item)&.order(created_at: :desc) || ShopOrder.none
   end
