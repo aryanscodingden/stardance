@@ -24,6 +24,9 @@
   <div class="devlog-main">
     <div class="devlog-header-row">
       <span class="devlog-id">Devlog #<%= devlog_review.post_devlog.id %></span>
+      <% if (devlog_posted_at = devlog_review.post_devlog.post&.created_at) %>
+        <span class="devlog-date"><%= devlog_posted_at.strftime("%b %-d, %Y") %></span>
+      <% end %>
       <% if devlog_review.approved? %>
         <span class="devlog-status status-approved">Approved</span>
       <% elsif devlog_review.rejected? %>
@@ -151,6 +154,9 @@
           <button class="adjust-btn"
                   data-action="click->certification--ysws--devlog-review#quickAdjust"
                   data-adjust-action="25%">25%</button>
+          <button class="adjust-btn"
+                  data-action="click->certification--ysws--devlog-review#quickAdjust"
+                  data-adjust-action="-15">-15min</button>
           <button class="adjust-btn"
                   data-action="click->certification--ysws--devlog-review#quickAdjust"
                   data-adjust-action="-30">-30min</button>

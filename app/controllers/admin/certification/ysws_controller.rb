@@ -1,9 +1,37 @@
 class Admin::Certification::YswsController < Admin::Certification::ApplicationController
+  FILTER_SESSION_KEY = :admin_ysws_review_filters
+
   def index
     authorize ::Certification::Ysws
-    @project_type = params[:project_type].presence
-    @sort         = params[:sort].presence_in(%w[length todo])
-    @dir          = params[:dir] == "asc" ? "asc" : "desc"
+    if params[:reset_filters].present?
+      session.delete(FILTER_SESSION_KEY)
+      redirect_to admin_certification_ysws_reviews_path
+      return
+    end
+
+    filters = ysws_review_filters
+    if params.key?(:project_type)
+      if params[:project_type].present?
+        filters["project_type"] = params[:project_type]
+      else
+        filters.delete("project_type")
+      end
+    end
+    if params.key?(:sort)
+      sort = params[:sort].presence_in(%w[length todo])
+      if sort
+        filters["sort"] = sort
+        filters["dir"] = params[:dir] == "asc" ? "asc" : "desc"
+      else
+        filters.delete("sort")
+        filters.delete("dir")
+      end
+    end
+    session[FILTER_SESSION_KEY] = filters
+
+    @project_type = filters["project_type"].presence
+    @sort         = filters["sort"].presence_in(%w[length todo])
+    @dir          = filters["dir"] == "asc" ? "asc" : "desc"
 
     scope = ::Certification::Ysws.pending.unclaimed_or_claimed_by(current_user)
 
@@ -34,7 +62,7 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
 
   def show
     @review = ::Certification::Ysws
-      .includes(:project, :user, :reviewer, devlog_reviews: { post_devlog: :attachments_attachments })
+      .includes(:project, :user, :reviewer, devlog_reviews: { post_devlog: [ :post, :attachments_attachments ] })
       .find(params[:id])
     authorize @review
 
@@ -65,7 +93,7 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
     @prior_reviews = ::Certification::Ysws
       .where(project_id: @review.project_id)
       .where("id < ?", @review.id)
-      .includes(devlog_reviews: { post_devlog: :attachments_attachments })
+      .includes(devlog_reviews: { post_devlog: [ :post, :attachments_attachments ] })
       .order(:id)
 
     # Prior (frozen) + current devlogs, in display order, counted together in
@@ -130,6 +158,10 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
   end
 
   private
+
+  def ysws_review_filters
+    session[FILTER_SESSION_KEY].to_h.slice("project_type", "sort", "dir")
+  end
 
 
   # Fetches all commits in the review period and buckets them by devlog ID.
@@ -220,6 +252,17 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
     else
       render json: { success: false, errors: report.errors.full_messages }, status: :unprocessable_entity
     end
+  end
+
+  def unclaim
+    @review = ::Certification::Ysws.includes(:project).find(params[:id])
+    authorize @review, :unclaim?
+
+    @review.release_claim!
+    Rails.logger.info "[YSWS#unclaim] user=#{current_user.id} review=#{@review.id} Released claim"
+
+    redirect_to admin_certification_ysws_reviews_path,
+                notice: "Unclaimed review for “#{@review.project&.title || "Review ##{@review.id}"}.”"
   end
 
   def complete

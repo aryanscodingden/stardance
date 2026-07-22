@@ -150,6 +150,9 @@ export default class extends Controller {
       case "25%":
         newMinutes = Math.round(currentMinutes * 0.25);
         break;
+      case "-15":
+        newMinutes = Math.max(0, currentMinutes - 15);
+        break;
       case "-30":
         newMinutes = Math.max(0, currentMinutes - 30);
         break;

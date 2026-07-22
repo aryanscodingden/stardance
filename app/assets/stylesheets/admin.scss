@@ -69,7 +69,7 @@ body.admin-page {
     font-size: var(--font-size-l);
   }
 
-  a:not(.action-btn):not([class*="btn-"]) {
+  a:not(.action-btn):not([class*="btn-"]):not(.ysws-queue__view-btn) {
     color: var(--color-brand-highlight);
     text-decoration: none;
 

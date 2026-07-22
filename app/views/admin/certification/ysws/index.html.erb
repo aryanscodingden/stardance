@@ -48,6 +48,12 @@
         <span class="ysws-queue__goal-label">Goal of <%= @devlog_goal %> devlogs reached</span>
       <% end %>
     </div>
+
+    <% if @project_type.present? || @sort.present? %>
+      <%= link_to "Reset filters",
+                  admin_certification_ysws_reviews_path(reset_filters: 1),
+                  class: "btn-secondary slim ysws-queue__reset-filters" %>
+    <% end %>
   <% end %>
 
   <% if @reviews.any? %>

@@ -104,6 +104,10 @@
     letter-spacing: 0.05em;
   }
 
+  & &__reset-filters {
+    align-self: flex-end;
+  }
+
   // Sortable column header: the title doubles as a sort toggle, with an arrow
   // that points up/down when its column is the active sort and is dimmed
   // otherwise.
@@ -278,7 +282,7 @@
     border: 2px solid var(--color-brand-mint);
     border-radius: 999px;
     background: var(--color-brand-blue);
-    color: var(--color-brand-yellow);
+    color: #000;
     font-size: var(--font-size-m);
     font-weight: 700;
     text-decoration: none;
@@ -287,7 +291,7 @@
 
     &:visited,
     &:hover {
-      color: var(--color-brand-yellow);
+      color: #000;
     }
 
     &:hover {
@@ -714,6 +718,11 @@ body:has(.certification-ysws) {
       gap: var(--space-s);
       align-items: flex-start;
       flex-wrap: wrap;
+    }
+
+    &__unclaim-form {
+      flex-basis: 100%;
+      margin: 0;
     }
 
     // Title row carries the page heading plus the shared Super Star (magic)
@@ -1307,6 +1316,12 @@ body:has(.certification-ysws) {
       font-size: var(--font-size-l);
       font-weight: 700;
       font-family: var(--font-family-sans);
+    }
+
+    .devlog-date {
+      color: var(--color-set-1-fg-secondary);
+      font-size: var(--font-size-s);
+      font-weight: 600;
     }
 
     .devlog-status {

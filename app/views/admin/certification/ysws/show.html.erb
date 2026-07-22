@@ -59,6 +59,14 @@
         <button class="btn-action btn-report" data-action="click->certification--ysws--fraud-report#open">
           🚩 Report to Fraud Squad!
         </button>
+
+        <% if @review.claimed_by?(current_user) %>
+          <%= button_to "Unclaim review",
+                        admin_certification_ysws_claim_path(@review),
+                        method: :delete,
+                        class: "btn-secondary slim",
+                        form: { class: "review-detail-header__unclaim-form" } %>
+        <% end %>
       </div>
     </div>
   </div>
