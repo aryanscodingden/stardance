@@ -128,11 +128,10 @@
       <%= inline_svg_tag "icons/time.svg", class: "profile-project-card__meta-icon profile-project-card__meta-icon--time" %>
       <span><%= ship_hours %>h<%= " build" if project.hardware? %></span>
     </li>
-    <% ship_multiplier = ship.multiplier || ship.payout_multiplier %>
-    <% if ship_multiplier.present? %>
+    <% if ship.multiplier.present? %>
       <li class="profile-project-card__meta-item profile-project-card__meta-item--multiplier" title="Quality multiplier">
         <%= inline_svg_tag "icons/star_fill.svg", class: "profile-project-card__meta-icon" %>
-        <span><%= number_with_precision(ship_multiplier, precision: 2) %>x multiplier</span>
+        <span><%= number_with_precision(ship.multiplier, precision: 2) %>x multiplier</span>
       </li>
     <% end %>
     <% if ship.payout.present? %>
