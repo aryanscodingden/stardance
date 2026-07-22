@@ -1549,6 +1549,36 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_22_150605) do
     t.index ["user_id"], name: "index_votes_on_user_id"
   end
 
+  create_table "workshop_attendances", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.bigint "workshop_id", null: false
+    t.index ["user_id"], name: "index_workshop_attendances_on_user_id"
+    t.index ["workshop_id", "user_id"], name: "index_workshop_attendances_on_workshop_id_and_user_id", unique: true
+  end
+
+  create_table "workshop_rsvps", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.bigint "workshop_id", null: false
+    t.index ["user_id"], name: "index_workshop_rsvps_on_user_id"
+    t.index ["workshop_id", "user_id"], name: "index_workshop_rsvps_on_workshop_id_and_user_id", unique: true
+  end
+
+  create_table "workshops", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.datetime "ends_at", null: false
+    t.datetime "rsvps_notified_at"
+    t.datetime "starts_at", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.string "zoom_link"
+    t.index ["starts_at"], name: "index_workshops_on_starts_at"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "certificates", "users"
@@ -1693,4 +1723,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_22_150605) do
   add_foreign_key "votes", "post_ship_events", column: "ship_event_id"
   add_foreign_key "votes", "projects"
   add_foreign_key "votes", "users"
+  add_foreign_key "workshop_attendances", "users"
+  add_foreign_key "workshop_attendances", "workshops"
+  add_foreign_key "workshop_rsvps", "users"
+  add_foreign_key "workshop_rsvps", "workshops"
 end
