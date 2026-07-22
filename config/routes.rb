@@ -663,6 +663,7 @@ Rails.application.routes.draw do
         resource :rejection, only: :create
       end
     end
+    resources :workshops
     resources :vote_flags, only: [ :index ] do
       scope module: :vote_flags do
         resource :approval, only: :create
