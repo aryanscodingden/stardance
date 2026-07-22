@@ -200,9 +200,11 @@
     <% end %>
   </section>
 
-  <div class="integrity-review__actions" role="group" aria-label="Review decision">
-    <button type="button" class="integrity-review__action integrity-review__action--pass" disabled>Not Fraudulent</button>
-    <button type="button" class="integrity-review__action integrity-review__action--fraud" disabled>Fraudulent</button>
-    <button type="button" class="integrity-review__action integrity-review__action--deduct" disabled>Deducted hours</button>
-  </div>
+  <% if @review.pending? && @review.claimed_by?(current_user) %>
+    <div class="integrity-review__actions" role="group" aria-label="Review decision">
+      <button type="button" class="integrity-review__action integrity-review__action--pass" disabled>Not Fraudulent</button>
+      <button type="button" class="integrity-review__action integrity-review__action--fraud" disabled>Fraudulent</button>
+      <button type="button" class="integrity-review__action integrity-review__action--deduct" disabled>Deducted hours</button>
+    </div>
+  <% end %>
 </main>
