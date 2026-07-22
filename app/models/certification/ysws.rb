@@ -48,6 +48,8 @@ module Certification
   class Ysws < ApplicationRecord
     self.table_name = "certification_ysws_reviews"
 
+    has_paper_trail
+
     belongs_to :reviewer, class_name: "User", optional: true
     belongs_to :user
     belongs_to :project, -> { with_deleted }, optional: true
@@ -218,6 +220,12 @@ module Certification
 
     def claimed_by?(user)
       claim_active? && claimed_by_id == user.id
+    end
+
+    def release_claim!
+      return false unless pending? && claim_active?
+
+      update!(claimed_by: nil, claimed_at: nil)
     end
 
     def approved_minutes_total
