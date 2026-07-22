@@ -3,6 +3,7 @@
 # Table name: certification_integrities
 #
 #  id                     :bigint           not null, primary key
+#  claimed_at             :datetime
 #  decision_justification :text
 #  deduction_minutes      :integer
 #  flags                  :integer          default(0), not null
@@ -11,17 +12,20 @@
 #  status                 :integer          default("auto_passed"), not null
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
+#  claimed_by_id          :bigint
 #  reviewer_id            :bigint
 #  ship_event_id          :bigint           not null
 #
 # Indexes
 #
+#  index_certification_integrities_on_claimed_by_id  (claimed_by_id)
 #  index_certification_integrities_on_reviewer_id    (reviewer_id)
 #  index_certification_integrities_on_ship_event_id  (ship_event_id) UNIQUE
 #  index_certification_integrities_on_status         (status)
 #
 # Foreign Keys
 #
+#  fk_rails_...  (claimed_by_id => users.id)
 #  fk_rails_...  (reviewer_id => users.id)
 #  fk_rails_...  (ship_event_id => post_ship_events.id)
 #

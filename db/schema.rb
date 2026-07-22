@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_14_143837) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_22_150605) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -206,6 +206,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_14_143837) do
   end
 
   create_table "certification_integrities", force: :cascade do |t|
+    t.datetime "claimed_at"
+    t.bigint "claimed_by_id"
     t.datetime "created_at", null: false
     t.text "decision_justification"
     t.integer "deduction_minutes"
@@ -216,6 +218,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_14_143837) do
     t.bigint "ship_event_id", null: false
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
+    t.index ["claimed_by_id"], name: "index_certification_integrities_on_claimed_by_id"
     t.index ["reviewer_id"], name: "index_certification_integrities_on_reviewer_id"
     t.index ["ship_event_id"], name: "index_certification_integrities_on_ship_event_id", unique: true
     t.index ["status"], name: "index_certification_integrities_on_status"
@@ -1555,6 +1558,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_14_143837) do
   add_foreign_key "certification_funding_requests", "users"
   add_foreign_key "certification_funding_requests", "users", column: "reviewer_id"
   add_foreign_key "certification_integrities", "post_ship_events", column: "ship_event_id"
+  add_foreign_key "certification_integrities", "users", column: "claimed_by_id"
   add_foreign_key "certification_integrities", "users", column: "reviewer_id"
   add_foreign_key "certification_ship_reviews", "post_ship_events", on_delete: :nullify
   add_foreign_key "certification_ship_reviews", "projects"
