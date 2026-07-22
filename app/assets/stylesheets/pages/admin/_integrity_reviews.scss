@@ -238,8 +238,9 @@
     margin-bottom: var(--space-xl);
   }
 
-  // Title on the left, flag tags pinned to the top-right corner. Wraps to
-  // stacked on narrow viewports so the tags drop below the heading.
+  // Title on the left, Hackatime projects + flag tags pinned to the
+  // top-right corner. Wraps to stacked on narrow viewports so the meta
+  // group drops below the heading.
   & &__header-main {
     display: flex;
     flex-wrap: wrap;
@@ -250,6 +251,24 @@
     h1 {
       margin: 0;
     }
+  }
+
+  // Hackatime projects sit to the left of the flag tags within the group.
+  & &__header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-s);
+  }
+
+  & &__hackatime-keys {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   & &__back {
@@ -493,6 +512,11 @@
     a {
       color: var(--color-brand-highlight);
     }
+  }
+
+  & &__hackatime-key {
+    font-weight: 700;
+    color: var(--color-brand-mint);
   }
 
   // Full-width rows (e.g. the heartbeat treemap): stack the label above the

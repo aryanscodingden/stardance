@@ -9,7 +9,16 @@
     <%= link_to "← Back to queue", admin_certification_integrity_reviews_path, class: "integrity-review__back" %>
     <div class="integrity-review__header-main">
       <h1>Integrity Review #<%= @review.id %></h1>
-      <%= render "flags", review: @review %>
+      <div class="integrity-review__header-meta">
+        <% if project&.hackatime_keys&.any? %>
+          <ul class="integrity-review__hackatime-keys">
+            <% project.hackatime_keys.each do |key| %>
+              <li class="integrity-review__hackatime-key"><%= key %></li>
+            <% end %>
+          </ul>
+        <% end %>
+        <%= render "flags", review: @review %>
+      </div>
     </div>
   </header>
 
