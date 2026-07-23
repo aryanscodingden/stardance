@@ -9,7 +9,7 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
       return
     end
 
-    filters = ysws_review_filters
+    filters = ysws_review_filter_params? ? {} : ysws_review_filters
     if params.key?(:project_type)
       if params[:project_type].present?
         filters["project_type"] = params[:project_type]
@@ -163,6 +163,10 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
     session[FILTER_SESSION_KEY].to_h.slice("project_type", "sort", "dir")
   end
 
+  def ysws_review_filter_params?
+    params.key?(:project_type) || params.key?(:sort) || params.key?(:dir)
+  end
+
 
   # Fetches all commits in the review period and buckets them by devlog ID.
   # Returns { devlog_id (integer) => [commit_hash, ...] }.
@@ -258,11 +262,14 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
     @review = ::Certification::Ysws.includes(:project).find(params[:id])
     authorize @review, :unclaim?
 
-    @review.release_claim!
-    Rails.logger.info "[YSWS#unclaim] user=#{current_user.id} review=#{@review.id} Released claim"
-
-    redirect_to admin_certification_ysws_reviews_path,
-                notice: "Unclaimed review for “#{@review.project&.title || "Review ##{@review.id}"}.”"
+    if @review.release_claim!
+      Rails.logger.info "[YSWS#unclaim] user=#{current_user.id} review=#{@review.id} Released claim"
+      redirect_to admin_certification_ysws_reviews_path,
+                  notice: "Unclaimed review for “#{@review.project&.title || "Review ##{@review.id}"}.”"
+    else
+      redirect_to admin_certification_ysws_reviews_path,
+                  alert: "That review can no longer be unclaimed."
+    end
   end
 
   def complete

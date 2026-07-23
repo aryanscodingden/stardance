@@ -148,24 +148,28 @@
       </div>
       <% unless frozen %>
         <div class="quick-adjust-buttons">
-          <button class="adjust-btn"
-                  data-action="click->certification--ysws--devlog-review#quickAdjust"
-                  data-adjust-action="50%">50%</button>
-          <button class="adjust-btn"
-                  data-action="click->certification--ysws--devlog-review#quickAdjust"
-                  data-adjust-action="25%">25%</button>
-          <button class="adjust-btn"
-                  data-action="click->certification--ysws--devlog-review#quickAdjust"
-                  data-adjust-action="-15">-15min</button>
-          <button class="adjust-btn"
-                  data-action="click->certification--ysws--devlog-review#quickAdjust"
-                  data-adjust-action="-30">-30min</button>
-          <button class="adjust-btn"
-                  data-action="click->certification--ysws--devlog-review#quickAdjust"
-                  data-adjust-action="-60">-1hr</button>
-          <button class="adjust-btn"
-                  data-action="click->certification--ysws--devlog-review#quickAdjust"
-                  data-adjust-action="reset">Reset</button>
+          <div class="quick-adjust-buttons__row">
+            <button class="adjust-btn"
+                    data-action="click->certification--ysws--devlog-review#quickAdjust"
+                    data-adjust-action="50%">50%</button>
+            <button class="adjust-btn"
+                    data-action="click->certification--ysws--devlog-review#quickAdjust"
+                    data-adjust-action="25%">25%</button>
+            <button class="adjust-btn"
+                    data-action="click->certification--ysws--devlog-review#quickAdjust"
+                    data-adjust-action="-15">-15min</button>
+          </div>
+          <div class="quick-adjust-buttons__row">
+            <button class="adjust-btn"
+                    data-action="click->certification--ysws--devlog-review#quickAdjust"
+                    data-adjust-action="-30">-30min</button>
+            <button class="adjust-btn"
+                    data-action="click->certification--ysws--devlog-review#quickAdjust"
+                    data-adjust-action="-60">-1hr</button>
+            <button class="adjust-btn"
+                    data-action="click->certification--ysws--devlog-review#quickAdjust"
+                    data-adjust-action="reset">Reset</button>
+          </div>
         </div>
       <% end %>
     </div>

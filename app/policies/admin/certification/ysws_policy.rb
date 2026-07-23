@@ -20,6 +20,6 @@ class Admin::Certification::YswsPolicy < ApplicationPolicy
   end
 
   def unclaim?
-    user.present? && index? && record.claimed_by?(user)
+    user.present? && index? && record.pending? && record.claimed_by?(user)
   end
 end

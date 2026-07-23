@@ -138,12 +138,21 @@ module ApplicationHelper
 
   def certification_verdict_video_src(cert)
     return if cert.nil?
-    return url_for(cert.verdict_video) if cert.verdict_video.attached?
+    return rails_storage_redirect_path(cert.verdict_video) if cert.verdict_video.attached?
 
-    safe_external_url(cert.proof_video_url)&.sub(
-      "/rails/active_storage/blobs/proxy/",
-      "/rails/active_storage/blobs/redirect/"
-    )
+    active_storage_redirect_url(safe_external_url(cert.proof_video_url))
+  end
+
+  def active_storage_redirect_url(url)
+    return if url.blank?
+
+    uri = URI.parse(url)
+    return url unless uri.path.start_with?("/rails/active_storage/blobs/proxy/")
+
+    uri.path = uri.path.sub("/rails/active_storage/blobs/proxy/", "/rails/active_storage/blobs/redirect/")
+    uri.to_s
+  rescue URI::InvalidURIError
+    url
   end
 
   def achievement_icon(icon_name, earned: true, **options)
