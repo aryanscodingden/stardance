@@ -49,8 +49,12 @@ export default class extends Controller {
     if (query === this.lastQuery) return;
     this.lastQuery = query;
 
-    const url = new URL(this.urlValue, window.location.origin);
+    const url = new URL(window.location.href);
+    url.pathname = new URL(this.urlValue, window.location.origin).pathname;
+    url.searchParams.delete("reset_filters");
+
     if (query) url.searchParams.set("search", query);
+    else url.searchParams.delete("search");
 
     this.element.classList.add("is-searching");
     this.frameTarget.src = url.toString();

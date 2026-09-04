@@ -1,5 +1,6 @@
 class Admin::Certification::YswsController < Admin::Certification::ApplicationController
   FILTER_SESSION_KEY = :admin_ysws_review_filters
+  FILTER_URL_KEYS = %w[project_type sort dir with_integrity search].freeze
 
   def index
     authorize ::Certification::Ysws
@@ -36,14 +37,21 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
         filters.delete("dir")
       end
     end
+    filters = canonical_ysws_review_filters(filters)
     session[FILTER_SESSION_KEY] = filters
+
+    @search = params[:search].to_s.strip
+    canonical_params = filters.merge("search" => @search.presence).compact_blank
+    visible_params = request.query_parameters.slice(*FILTER_URL_KEYS)
+    if !turbo_frame_request? && visible_params != canonical_params
+      redirect_to admin_certification_ysws_reviews_path(canonical_params)
+      return
+    end
 
     @project_type   = filters["project_type"].presence
     @sort           = filters["sort"].presence_in(%w[length todo])
     @dir            = filters["dir"] == "asc" ? "asc" : "desc"
     @with_integrity = filters["with_integrity"] != "0"
-
-    @search = params[:search].to_s.strip
 
     queue = ::Certification::Ysws.pending.unclaimed_or_claimed_by(current_user)
     queue = queue.with_integrity_check if @with_integrity
@@ -251,6 +259,18 @@ class Admin::Certification::YswsController < Admin::Certification::ApplicationCo
       params.key?(:with_integrity)
   end
 
+  def canonical_ysws_review_filters(filters)
+    canonical = {}
+    canonical["project_type"] = filters["project_type"] if filters["project_type"].present?
+    canonical["with_integrity"] = "0" if filters["with_integrity"] == "0"
+
+    if (sort = filters["sort"].presence_in(%w[length todo]))
+      canonical["sort"] = sort
+      canonical["dir"] = filters["dir"] == "asc" ? "asc" : "desc"
+    end
+
+    canonical
+  end
 
   # Fetches all commits in the review period and buckets them by devlog ID.
   # Returns { devlog_id (integer) => [commit_hash, ...] }.
