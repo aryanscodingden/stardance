@@ -90,17 +90,15 @@ module Certification
         .where(projects: { hardware_stage: nil })
         .where("projects.project_type IS DISTINCT FROM 'Hardware'")
     }
-    # Reviews the review page can open: banning soft-deletes projects and devlogs,
-    # and the page raises on a devlog review whose devlog is gone.
-    scope :reviewable, -> {
-      orphaned_devlogs = ::Certification::Devlog
-        .where("certification_devlog_reviews.ysws_review_id = certification_ysws_reviews.id")
-        .where.not(post_devlog_id: ::Post::Devlog.select(:id))
 
+    # Banning soft-deletes projects and devlogs, and the review page can't open a
+    # review whose devlog is gone.
+    scope :reviewable, -> {
       joins(:project, :user)
         .where(projects: { deleted_at: nil }, users: { banned: false })
-        .where(orphaned_devlogs.arel.exists.not)
+        .where.not(id: Devlog.orphaned.select(:ysws_review_id))
     }
+
     scope :without_mac_analysis, -> { left_joins(:mac_analysis).where(certification_mac_analyses: { id: nil }) }
 
     # Finished reviews whose Airtable row the unified base has not taken yet, so
