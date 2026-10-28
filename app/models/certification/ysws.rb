@@ -90,10 +90,8 @@ module Certification
         .where(projects: { hardware_stage: nil })
         .where("projects.project_type IS DISTINCT FROM 'Hardware'")
     }
-    # Reviews the review page can actually open. Banning a user soft-deletes their
-    # projects and devlogs, and a devlog review whose devlog is gone has nothing to
-    # render — the page raises on it. Those sat in the queue as dead ends, so the
-    # GOI queue leaves them out until the data is restored.
+    # Reviews the review page can open: banning soft-deletes projects and devlogs,
+    # and the page raises on a devlog review whose devlog is gone.
     scope :reviewable, -> {
       orphaned_devlogs = ::Certification::Devlog
         .where("certification_devlog_reviews.ysws_review_id = certification_ysws_reviews.id")
