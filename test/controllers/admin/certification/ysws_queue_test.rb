@@ -168,6 +168,53 @@ class Admin::Certification::YswsQueueTest < ActionDispatch::IntegrationTest
     Flipper.disable(:ysws_review_flow, @admin)
   end
 
+  test "reviews the review page can't open stay out of the queue and its badge" do
+    healthy = pending_review(integrity: nil)
+    banned = pending_review(integrity: nil, shipper: create_user(slack_id: "U_YSWS_QUEUE_BANNED", display_name: "ysws_queue_banned"))
+    banned.user.update_column(:banned, true)
+    deleted_project = pending_review(integrity: nil)
+    deleted_project.project.update_column(:deleted_at, Time.current)
+    deleted_devlog = pending_review(integrity: nil)
+    add_devlog(deleted_devlog).soft_delete!
+
+    sign_in @admin
+    get admin_certification_ysws_reviews_path
+
+    assert_response :success
+    assert_select "a[href=?]", admin_certification_ysws_review_path(healthy)
+    [ banned, deleted_project, deleted_devlog ].each do |hidden|
+      assert_select "a[href=?]", admin_certification_ysws_review_path(hidden), count: 0
+    end
+
+    get admin_dashboard_count_path("ysws_reviews")
+    assert_select ".admin-dashboard__count-pill", text: "1"
+  end
+
+  test "a review whose devlogs are all intact stays in the queue" do
+    review = pending_review(integrity: nil)
+    add_devlog(review)
+
+    sign_in @admin
+    get admin_certification_ysws_reviews_path
+
+    assert_select "a[href=?]", admin_certification_ysws_review_path(review)
+  end
+
+  test "review flow never hands out a review the page can't open" do
+    broken = pending_review(integrity: nil)
+    add_devlog(broken).soft_delete!
+    Flipper.enable(:ysws_review_flow, @admin)
+
+    sign_in @admin
+    post next_admin_certification_ysws_reviews_path, params: { flow: 1, step: 1 }
+
+    assert_redirected_to admin_certification_ysws_reviews_path
+    assert_equal "Nothing in the queue to review right now.", flash[:notice]
+    assert_nil broken.reload.claimed_by_id
+  ensure
+    Flipper.disable(:ysws_review_flow, @admin)
+  end
+
   test "an unsuccessful claim does not record an audit event" do
     review = pending_review(integrity: nil)
     Certification::Ysws.atomic_claim!(review.id, @shipper)
@@ -181,13 +228,20 @@ class Admin::Certification::YswsQueueTest < ActionDispatch::IntegrationTest
   private
 
   # A hardware stage can't change once a project has shipped, so it is set first.
-  def pending_review(integrity:, hardware_stage: nil)
+  def pending_review(integrity:, hardware_stage: nil, shipper: @shipper)
     project = Project.create!(title: "GOI queue #{SecureRandom.hex(4)}")
-    Project::Membership.create!(project: project, user: @shipper, role: :owner)
+    Project::Membership.create!(project: project, user: shipper, role: :owner)
     project.update!(hardware_stage: hardware_stage) if hardware_stage
     ship_event = Post::ShipEvent.create!(body: "Ship it", uploading_attachments: true)
-    Post.create!(project: project, user: @shipper, postable: ship_event)
+    Post.create!(project: project, user: shipper, postable: ship_event)
     Certification::Integrity.create!(ship_event: ship_event, status: integrity) if integrity
-    Certification::Ysws.create!(user: @shipper, project: project, post_ship_event: ship_event, original_minutes: 60)
+    Certification::Ysws.create!(user: shipper, project: project, post_ship_event: ship_event, original_minutes: 60)
+  end
+
+  def add_devlog(review)
+    devlog = Post::Devlog.create!(body: "Built the thing", duration_seconds: 1.hour.to_i, uploading_attachments: true)
+    Post.create!(project: review.project, user: review.user, postable: devlog)
+    Certification::Devlog.create!(post_devlog: devlog, ysws_review: review, original_minutes: 60)
+    devlog
   end
 end
